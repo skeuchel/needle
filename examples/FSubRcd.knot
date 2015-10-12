@@ -1,0 +1,54 @@
+namespace tm, x, y, z : Tm
+  - shift: "shift" - subst: "subst"
+namespace ty, X, Y, Z : Ty
+  - shift: "tshift" - subst: "tsubst"
+
+sort Lab, l :=
+  | L0
+  | LS l
+
+sort Ty, S, T, U :=
+  + tvar X
+  | top
+  | tarr T1 T2
+  | tall X T1 [X]T2
+  | trec TS
+
+sort Pat, p :=
+  | pvar x T
+  | prec ps
+
+sort PRec, ps :=
+  | pnil
+  | pcons l p ps
+
+sort TRec, SS, TS, US :=
+  | tnil
+  | tcons l T TS
+
+sort Tm, s, t, u :=
+  + var x
+  | abs x T [x]t
+  | app t1 t2
+  | tabs X T [X]t
+  | tapp t T
+  | rec ts
+  | prj t l
+  | lett p t1 [bindPat p]t2
+
+sort Rec, ss, ts, us :=
+  | rnil
+  | rcons l t ts
+
+fun bindPat : Pat -> [tm]
+  | pvar x T    -> x
+  | prec ps     -> bindPRec ps
+
+fun bindPRec : PRec -> [tm]
+  | pnil         -> {}
+  | pcons l p ps -> bindPat p , bindPRec ps
+
+env Env, G, D :=
+  + empty
+  | evar  : x -> T
+  | etvar : X -> T

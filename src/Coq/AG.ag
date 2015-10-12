@@ -1,0 +1,8 @@
+module {Coq.AG} {} {import Coq.Syntax}
+
+{
+defaultValues :: Inh_Root
+defaultValues = (Inh_Root {})
+}
+
+include "src/Coq/Syntax.ag"

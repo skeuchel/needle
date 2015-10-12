@@ -1,0 +1,23 @@
+module {KnotSpec.AG}
+{}
+{
+import KnotSpec.Syntax
+
+import qualified Data.Map
+}
+
+optpragmas
+{
+{-# OPTIONS_GHC -fno-warn-dodgy-imports -fno-warn-unused-matches #-}
+}
+
+include "src/KnotSpec/Syntax.ag"
+
+{
+fromTN :: TypeName -> String
+fromTN (TN s) = s
+}
+
+include "src/KnotSpec/Environment.ag"
+include "src/KnotSpec/TypeCheck.ag"
+include "src/KnotSpec/Desugaring.ag"

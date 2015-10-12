@@ -1,0 +1,21 @@
+namespace A, a : AA
+namespace B, b : BB
+namespace Z, z : ZZ
+
+sort ZZ, zz :=
+  + zvar z
+  | aabs [a]aa
+  | babs [b]bb
+
+sort AA, aa :=
+  + avar a
+  | arec zz
+
+sort BB, bb :=
+  + bvar b
+  | brec zz
+
+env Env, G, D :=
+  + empty
+  | ea : a ->
+  | eb : b ->

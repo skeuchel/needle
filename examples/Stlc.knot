@@ -1,0 +1,17 @@
+namespace TM, x, y, z : Tm
+  - shift: "shift"
+  - subst: "subst"
+
+sort Ty, S, T, U :=
+  | tunit
+  | tarrow T1 T2
+
+sort Tm, s, t, u :=
+  + var x
+  | tt
+  | abs x T [x]t
+  | app t1 t2
+
+env Env, G, D :=
+  + empty
+  | evar : x -> T

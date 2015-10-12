@@ -1,0 +1,32 @@
+namespace TmVar, x, y, z : Tm
+  - shift: "shift" - subst: "subst"
+namespace TyVar, X, Y, Z : Ty
+  - shift: "tshift" - subst: "tsubst"
+
+sort Ty, S, T, U :=
+  + TVar X
+  | TArr T1 T2
+  | TAll X [X]T
+  | TProd T1 T2
+
+sort Tm, s, t, u :=
+  + Var x
+  | Abs x T [x]t
+  | App t1 t2
+  | TAbs X [X]t
+  | TApp t T
+  | Prod t1 t2
+  | Case t1 p [bind p]t2
+
+sort Pat, p :=
+  | PVar x T
+  | PProd p1 p2
+
+fun bind : Pat -> [TmVar]
+  | PVar x T    -> x
+  | PProd p1 p2 -> bind p1 , bind p2
+
+env Ctx, G, D :=
+  + empty
+  | evar : x -> T
+  | etvar : X ->

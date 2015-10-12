@@ -1,0 +1,247 @@
+
+{
+data MetaEnvironments =
+  MetaEnvironments {
+    meNamespaceNameRoots :: MENamespaceNameRoots,
+    meNamespaceTypeName  :: MENamespaceTypeName,
+    meSortNameRoots      :: MESortNameRoots,
+    meSortTypeName       :: MESortTypeName,
+    meNamespaceCtor      :: MENamespaceCtor,
+    meEnvNameRoots       :: MEEnvNameRoots,
+    meEnvTypeName        :: MEEnvTypeName,
+    meFunType            :: MEFunType,
+    meRelationEnv        :: MERelationEnv
+  }
+  deriving (Show)
+
+metaEnvironments :: TermSpec -> MetaEnvironments
+metaEnvironments ts = metaEnvironments_Syn_TermSpec sem
+  where sem = wrap_TermSpec (sem_TermSpec ts) defaultValues
+
+defaultValues :: Inh_TermSpec
+defaultValues = (Inh_TermSpec {})
+}
+
+--  __  __     _
+-- |  \/  |___| |_ __ _   _ _  __ _ _ __  ___ ___
+-- | |\/| / -_)  _/ _` | | ' \/ _` | '  \/ -_|_-<
+-- |_|  |_\___|\__\__,_| |_||_\__,_|_|_|_\___/__/
+
+attr Name
+  syn root    :: NameRoot
+  syn suffix  :: String
+sem Name
+  | Tuple
+      loc.root    = @x1
+      loc.suffix  = @x2
+
+--  ___              _  __ _         _   _
+-- / __|_ __  ___ __(_)/ _(_)__ __ _| |_(_)___ _ _
+-- \__ \ '_ \/ -_) _| |  _| / _/ _` |  _| / _ \ ' \
+-- |___/ .__/\___\__|_|_| |_\__\__,_|\__|_\___/_||_|
+--     |_|
+
+attr TermSpec
+  syn metaEnvironments :: MetaEnvironments
+
+sem TermSpec
+  | TermSpec
+      loc.metaEnvironments =
+        MetaEnvironments
+          @loc.meNamespaceNameRoots
+          @loc.meNamespaceTypeName
+          @loc.meSortNameRoots
+          @loc.meSortTypeName
+          @loc.meNamespaceCtor
+          @loc.meEnvNameRoots
+          @loc.meEnvTypeName
+          @loc.meFunType
+          @loc.meRelationEnv
+
+--  _  _
+-- | \| |__ _ _ __  ___ ____ __  __ _ __ ___ ___
+-- | .` / _` | '  \/ -_|_-< '_ \/ _` / _/ -_|_-<
+-- |_|\_\__,_|_|_|_\___/__/ .__/\__,_\__\___/__/
+--                        |_|
+
+attr NamespaceDecls NamespaceDecl
+  syn smeNamespaceNameRoots
+    use {Data.Map.unionWith (error "smeNamespaceNameRoots union")} {mempty}
+    :: MENamespaceNameRoots
+
+sem NamespaceDecl
+  | NamespaceDecl
+      lhs.smeNamespaceNameRoots = Data.Map.singleton @nsdTypeName.self @nsdNameRoots.self
+      loc.typeName              = @nsdTypeName.self
+
+attr BelowTermSpec
+  inh meNamespaceNameRoots :: MENamespaceNameRoots
+  inh meNamespaceTypeName  :: MENamespaceTypeName
+
+sem TermSpec
+  | TermSpec
+      loc.meNamespaceNameRoots =
+        @tsNamespaceDecls.smeNamespaceNameRoots
+      loc.meNamespaceTypeName  =
+        Data.Map.fromList
+          [ (nameRoot,typeName)
+          | (typeName,nameRoots) <-
+              Data.Map.toList @tsNamespaceDecls.smeNamespaceNameRoots
+          , nameRoot <- nameRoots
+          ]
+
+--  ___          _
+-- / __| ___ _ _| |_ ___
+-- \__ \/ _ \ '_|  _(_-<
+-- |___/\___/_|  \__/__/
+
+attr SortDecls SortDecl
+  syn smeSortNameRoots
+    use {Data.Map.unionWith (error "smeFieldNameRoots union")} {mempty}
+    :: MESortNameRoots
+  syn smeSortTypeName
+    use {Data.Map.unionWith (error "smeTypeName union")} {mempty}
+    :: MESortTypeName
+
+attr BelowTermSpec
+  inh meSortNameRoots  :: MESortNameRoots
+  inh meSortTypeName   :: MESortTypeName
+
+sem SortDecl
+  | SortDecl
+      lhs.smeSortNameRoots = Data.Map.singleton @sortTypeName.self @sortNameRoots.self
+      lhs.smeSortTypeName  = Data.Map.fromList
+                               [ (fnr,@sortTypeName.self)
+                               | fnr <- @sortNameRoots.self
+                               ]
+
+sem TermSpec
+  | TermSpec
+      loc.meSortNameRoots =
+        @tsSortDecls.smeSortNameRoots
+      loc.meSortTypeName =
+        Data.Map.fromList
+          [ (nameRoot,typeName)
+          | (typeName,nameRoots) <- Data.Map.toList @tsSortDecls.smeSortNameRoots
+          , nameRoot <- nameRoots
+          ]
+
+--  ___          _
+-- / __| ___ _ _| |_ ___
+-- \__ \/ _ \ '_|  _(_-<
+-- |___/\___/_|  \__/__/
+
+attr BelowSortDecl
+  inh sortTypeName :: TypeName
+
+sem SortDecl
+  | SortDecl
+      loc.sortTypeName    = @sortTypeName.self
+
+-- Variable constructor environment
+attr SortDecls SortDecl CtorDecls CtorDecl
+  syn smeNamespaceCtor
+    use {Data.Map.unionWith (error "smeVariableCtor union")} {mempty}
+    :: MENamespaceCtor
+
+attr BelowTermSpec
+  inh meNamespaceCtor :: MENamespaceCtor
+
+sem CtorDecl
+  | CtorVar
+      lhs.smeNamespaceCtor =
+        case Data.Map.lookup @ctorMetavar.root @lhs.meNamespaceTypeName of
+          Just typeName ->
+            Data.Map.singleton
+              typeName
+              (@lhs.sortTypeName,@ctorName)
+          Nothing ->
+            error $
+              "Did not find canonical namespacename for root" ++
+              fromNR @ctorMetavar.root
+
+sem TermSpec
+  | TermSpec
+      loc.meNamespaceCtor = @tsSortDecls.smeNamespaceCtor
+
+--  ___             _   _
+-- | __|  _ _ _  __| |_(_)___ _ _  ___
+-- | _| || | ' \/ _|  _| / _ \ ' \(_-<
+-- |_| \_,_|_||_\__|\__|_\___/_||_/__/
+
+attr FunDecls FunDecl
+  syn smeFunType
+    use {Data.Map.unionWith (error "smeFunType union")} {mempty}
+    :: MEFunType
+
+attr BelowTermSpec
+  inh meFunType :: MEFunType
+
+sem FunDecl
+  | FunDecl
+      lhs.smeFunType =
+        Data.Map.singleton @fdName (@fdSource.self,@fdTarget.self)
+
+sem TermSpec
+  | TermSpec
+      loc.meFunType = @tsFunDecls.smeFunType
+
+--  ___         _                            _
+-- | __|_ ___ _(_)_ _ ___ _ _  _ __  ___ _ _| |_ ___
+-- | _|| ' \ V / | '_/ _ \ ' \| '  \/ -_) ' \  _(_-<
+-- |___|_||_\_/|_|_| \___/_||_|_|_|_\___|_||_\__/__/
+
+attr EnvDecls EnvDecl
+  syn smeEnvNameRoots
+    use {Data.Map.unionWith (error "smeEnvNameRoots union")} {mempty}
+    :: MEEnvNameRoots
+
+attr BelowTermSpec
+  inh meEnvNameRoots :: MEEnvNameRoots
+  inh meEnvTypeName  :: MEEnvTypeName
+
+attr BelowEnvDecl
+  inh envTypeName  :: TypeName
+  inh envNameRoots :: NameRoots
+
+sem EnvDecl
+  | EnvDecl
+      lhs.smeEnvNameRoots = Data.Map.singleton @envTypeName.self @envNameRoots.self
+      loc.envTypeName     = @envTypeName.self
+      loc.envNameRoots    = @envNameRoots.self
+
+sem TermSpec
+  | TermSpec
+      loc.meEnvNameRoots =
+        @tsEnvDecls.smeEnvNameRoots
+      loc.meEnvTypeName =
+        Data.Map.fromList
+          [ (nameRoot,typeName)
+          | (typeName,nameRoots) <- Data.Map.toList @tsEnvDecls.smeEnvNameRoots
+          , nameRoot <- nameRoots
+          ]
+
+--  ___     _      _   _
+-- | _ \___| |__ _| |_(_)___ _ _  ___
+-- |   / -_) / _` |  _| / _ \ ' \(_-<
+-- |_|_\___|_\__,_|\__|_\___/_||_/__/
+
+attr RelationDecls RelationDecl
+  syn smeRelationEnv
+    use {Data.Map.unionWith (error "smeRelationEnv union")} {mempty}
+    :: MERelationEnv
+
+attr BelowTermSpec
+  inh meRelationEnv :: MERelationEnv
+
+sem RelationDecl
+  | RelationDecl
+      lhs.smeRelationEnv =
+        case @relEnv.self of
+          Just etn -> Data.Map.singleton @relTypeName.self etn
+          Nothing  -> mempty
+
+sem TermSpec
+  | TermSpec
+      loc.meRelationEnv =
+        @tsRelDecls.smeRelationEnv

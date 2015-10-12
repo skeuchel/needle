@@ -1,0 +1,365 @@
+
+module
+  {Coq.Syntax}
+  { module Coq.Syntax.Core
+  , module Coq.Syntax
+  }
+  {}
+
+imports
+{
+import Coq.Syntax.Core
+}
+
+data Root
+  | Root
+      sentences :: Sentences
+deriving Root : Eq,Ord,Show
+
+type Identifiers = [Identifier]
+
+data Modifier
+  | ModNone
+  | ModLocal
+  | ModGlobal
+deriving Modifier : Eq,Ord,Show
+
+type Sentences = [Sentence]
+data Sentence
+  | SentenceDefinition
+      definition    ::  Definition
+  | SentenceInductive
+      inductive     ::  Inductive
+  | SentenceFixpoint
+      fixpoint      ::  Fixpoint
+  | SentenceAssertionProof
+      assertion     ::  Assertion
+      proof         ::  Proof
+  | SentenceSection
+      ident         ::  Identifier
+      sentences     ::  Sentences
+  | SentenceOpaque
+      ident         ::  Identifier
+  | SentenceHint
+      modifier      ::  Modifier
+      hint          ::  Hint
+      databases     ::  Identifiers
+  | SentenceScheme
+      scheme        :: Scheme
+  | SentenceCombinedScheme
+      combinedId      :: Identifier
+      individualIds   :: Identifiers
+  | SentenceBlankline
+  | SentenceArguments
+      modifier   :: Modifier
+      identifier :: QualId
+      parameters :: PossiblyBracketedNames
+  | SentenceClassDecl
+      classDecl :: ClassDeclaration
+  | SentenceClassInst
+      classInst :: ClassInstance
+  | SentenceVerbatim
+      verbatim  :: String
+deriving Sentence : Eq,Ord,Show
+
+data Hint
+  | HintResolve
+      hints :: Terms
+  | HintRewrite
+      hints :: Terms
+  | HintConstructors
+      ids   :: Identifiers
+deriving Hint : Eq,Ord,Show
+
+type PossiblyBracketedNames = [PossiblyBracketedName]
+data PossiblyBracketedName
+  | BracketedName
+      name :: Name
+  | BracedName
+      name :: Name
+  | NormalName
+      name :: Name
+deriving PossiblyBracketedName : Eq,Ord,Show
+
+data Definition
+  | Definition
+      defIdent      ::  Identifier
+      defBinders    ::  Binders
+      defType       ::  MbTerm
+      defExpr       ::  Term
+deriving Definition : Eq,Ord,Show
+
+data Inductive
+  | Inductive
+      bodies        ::  InductiveBodies
+deriving Inductive : Eq,Ord,Show
+
+data Scheme
+  | Scheme
+      bodies        ::  SchemeBodies
+deriving Scheme : Eq,Ord,Show
+
+type SchemeBodies = [SchemeBody]
+data SchemeBody
+  | SchemeInduction
+      schemeIdent   ::  Identifier
+      schemeType    ::  Identifier
+deriving SchemeBody : Eq,Ord,Show
+
+type InductiveBodies = [InductiveBody]
+data InductiveBody
+  | InductiveBody
+      indIdent      ::  Identifier
+      indBinders    ::  Binders
+      indType       ::  Term
+      indCtors      ::  InductiveCtors
+deriving InductiveBody : Eq,Ord,Show
+
+type InductiveCtors = [InductiveCtor]
+data InductiveCtor
+  | InductiveCtor
+      ctorIdent     ::  Identifier
+      ctorBinders   ::  Binders
+      ctorType      ::  MbTerm
+deriving InductiveCtor : Eq,Ord,Show
+
+data Fixpoint
+  | Fixpoint
+      bodies        ::  FixpointBodies
+deriving Fixpoint : Eq,Ord,Show
+
+
+type FixpointBodies = [FixpointBody]
+data FixpointBody
+  | FixpointBody
+      fixIdent      ::  Identifier
+      fixBinders    ::  Binders
+      fixAnno       ::  MbAnnotation
+      fixType       ::  Term
+      fixExpr       ::  Term
+deriving FixpointBody : Eq,Ord,Show
+
+type MbAnnotation = maybe Annotation
+data Annotation
+  | Struct
+      ident :: Identifier
+deriving Annotation : Eq,Ord,Show
+
+type MbTerm = maybe Term
+type Terms = [Term]
+data Term
+  | TermApp
+      appFunction     ::  Term
+      appArguments    ::  Terms
+  | TermNum
+      num             ::  Int
+  | TermQualId
+      qualid          ::  QualId
+  | TermSort
+      sort            ::  Sort
+  | TermFunction
+      source          ::  Term
+      target          ::  Term
+  | TermAbs
+      binders         ::  Binders
+      body            ::  Term
+  | TermForall
+      binders         ::  Binders
+      term            ::  Term
+  | TermAnd
+      terms           ::  Terms
+  | TermEq
+      left  :: Term
+      right :: Term
+  | TermLet
+      id              :: Identifier
+      binders         :: Binders
+      type_           :: MbTerm
+      rhs             :: Term
+      body            :: Term
+  | TermUnderscore
+deriving Term : Eq,Ord,Show
+
+type Binders = [Binder]
+data Binder
+  | BinderName
+      binderName    ::  Name
+  | BinderNameType
+      binderNames   ::  Names
+      binderType    ::  Term
+  | BinderImplicitName
+      binderName    ::  Name
+  | BinderImplicitNameType
+      binderNames   ::  Names
+      binderType    ::  Term
+deriving Binder : Eq,Ord,Show
+
+type Names = [Name]
+type MbName = maybe Name
+data Name
+  | NameIdent
+      ident         ::  Identifier
+  | NameUnderscore
+deriving Name : Eq,Ord,Show
+
+data QualId
+  | Ident
+      ident         ::  Identifier
+deriving QualId : Eq,Ord,Show
+
+type MbSort = maybe Sort
+data Sort
+  | Prop
+  | Set
+  | Type
+deriving Sort : Eq,Ord,Show
+
+-- Case analysis
+data Term
+  | TermMatch
+      matchItem         ::  MatchItem
+      matchReturnType   ::  MbTerm
+      matchEquations    ::  Equations
+
+data MatchItem
+  | MatchItem
+      matchItemTerm     ::  Term
+      matchItemAs       ::  MbName
+      matchItemIn       ::  MbTerm
+deriving MatchItem : Eq,Ord,Show
+
+type Equations = [Equation]
+data Equation
+  | Equation
+      eqPattern :: Pattern
+      eqBody    :: Term
+deriving Equation : Eq,Ord,Show
+
+type MbPattern = maybe Pattern
+type Patterns = [Pattern]
+data Pattern
+  | PatCtor
+      patCtor   :: QualId
+      patFields :: Identifiers
+  | PatUnderscore
+deriving Pattern : Eq,Ord,Show
+
+data Assertion
+  | Assertion
+      assertKeyword    ::  AssertionKeyword
+      assertIdent      ::  Identifier
+      assertBinders    ::  Binders
+      assertType       ::  Term
+deriving Assertion : Eq,Ord,Show
+
+data AssertionKeyword
+  | AssTheorem
+  | AssLemma
+  | AssRemark
+  | AssFact
+  | AssCorollary
+  | AssProposition
+  | AssDefinition
+  | AssExample
+deriving AssertionKeyword : Eq,Ord,Show
+
+data Proof
+  | ProofWith
+      with  :: ProofSteps
+      proof :: ProofSteps
+  | ProofDefined
+      proof :: ProofSteps
+  | ProofQed
+      proof :: ProofSteps
+deriving Proof : Eq,Ord,Show
+
+type ProofSteps = [ProofStep]
+data ProofStep
+  | PrInduction
+      ident :: Identifier
+  | PrMutualInduction
+      ident    :: Identifier
+      numCases :: Int
+  | PrCrushInd
+  | PrApply
+      term  :: Term
+  | PrExact
+      term  :: Term
+  | PrSeq
+      steps :: ProofSteps
+  | PrIntros
+      ids   :: Identifiers
+  | PrRevert
+      ids   :: Identifiers
+  | PrTry
+      step  :: ProofStep
+  | PrConstructor
+  | PrAuto
+  | PrFail
+  | PrInversion
+      ident  :: Identifier
+  | PrSubst
+  | PrSimpl
+  | PrRepeat
+      step :: ProofStep
+  | PrRewrite
+      term :: Term
+  | PrRewriter
+  | PrEasy
+  | PrTactic
+      tactic :: String
+      terms  :: Terms
+  | PrPoseProof
+      term   :: Term
+  | PrPoseProofAs
+      term   :: Term
+      ident  :: Identifier
+  | PrBullet
+      lvl       :: Int
+      subproofs :: ProofSteps
+  | PrDestruct
+      term   :: Term
+  | PrFEqual
+      arity  :: Int
+      term   :: Term
+  | PrReflexivity
+deriving ProofStep : Eq,Ord,Show
+
+data ClassDeclaration
+  | ClassDeclaration
+      className    :: Identifier
+      classParams  :: Binders
+      classSort    :: MbSort
+      classMethods :: MethodDeclarations
+deriving ClassDeclaration : Eq,Ord,Show
+
+type MethodDeclarations = [MethodDeclaration]
+data MethodDeclaration
+  | MethodDeclaration
+      mdField   :: Identifier
+      mdBinders :: Binders
+      mdType    :: Term
+deriving MethodDeclaration : Eq,Ord,Show
+
+data ClassInstance
+  | ClassInstance
+      instName    :: Identifier
+      instBinders :: Binders
+      instClass   :: Identifier
+      instParams  :: Terms
+      instMethods :: Methods
+deriving ClassInstance : Eq,Ord,Show
+
+type Methods = [Method]
+data Method
+  | Method
+      mthName     :: Identifier
+      mthParams   :: Identifiers
+      mthBody     :: Term
+deriving Method : Eq,Ord,Show
+
+data Variable
+  | Variable
+      varName   :: Identifier
+      varType   :: Term
+deriving Variable : Eq,Ord,Show

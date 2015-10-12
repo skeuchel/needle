@@ -1,0 +1,21 @@
+namespace TmVar, x, y, z : Tm
+namespace TyVar, X, Y, Z : Ty
+
+sort Kind, K :=
+  | Star
+  | KPi x T [x]K
+
+sort Ty, S, T, U :=
+  + TVar X
+  | TPi  x T1 [x]T2
+  | TApp T t
+
+sort Tm, s, t, u :=
+  + Var x
+  | Abs x T [x]t
+  | App t1 t2
+
+env Ctx, G, D :=
+  + empty
+  | evar : x -> T
+  | etvar : X -> K

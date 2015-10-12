@@ -1,0 +1,12 @@
+
+namespace ty, X, Y, Z : Ty
+  - shift: "shift" - subst: "subst"
+
+sort Ty, S, T, U :=
+  + tvar X
+  | tarrow T1 T2
+  | tall X [X]T
+
+env Env, G, D :=
+  + empty
+  | etvar : X -> T1 T2

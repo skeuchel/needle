@@ -1,0 +1,22 @@
+namespace TmVar, x, y, z : Tm
+namespace TxVar, a, b, c : Tm
+namespace TyVar, X, Y, Z : Ty
+
+sort Ty, S, T, U :=
+  + TVar X
+  | TArr T1 T2
+  | TAll X [X]T
+
+sort Tm, s, t, u :=
+  + Var x
+  + XVar a
+  | Abs x T [x]t
+  | App t1 t2
+  | TAbs X [X]t
+  | TApp t T
+
+env Ctx, G, D :=
+  + empty
+  | evar  : x -> T
+  | evarx : a -> T
+  | etvar : X ->

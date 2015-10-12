@@ -1,0 +1,28 @@
+
+namespace TmVar , x : Tm
+  - shift: "shift"
+namespace TyVar , y : Ty
+  - shift: "tshift"
+
+sort Tm, s, t :=
+  + Var x
+  | App t1 t2
+  | Lam x T [x]t
+  | Let p t1 [bind p]t2
+
+sort Pat, p :=
+  | PVar x
+  | PProp p1 p2
+
+fun bind : Pat -> [TmVar]
+  | PVar x      -> x
+  | PProp p1 p2 -> bind p1 , bind p2
+
+sort Ty, S, T :=
+  + TVar y
+  | TArr T1 T2
+
+env Ctx, G, D :=
+  + empty
+  | evar : x -> T
+  | etvar : y ->

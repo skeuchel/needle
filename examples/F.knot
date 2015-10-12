@@ -1,0 +1,22 @@
+
+namespace TmVar, x, y, z : Tm
+  - shift: "shift" - subst: "subst"
+namespace TyVar, X, Y, Z : Ty
+  - shift: "tshift" - subst: "tsubst"
+
+sort Ty, S, T, U :=
+  + tvar X
+  | tarrow T1 T2
+  | tall X [X]T
+
+sort Tm, s, t, u :=
+  + var x
+  | abs x T [x]t
+  | app t1 t2
+  | tabs X [X]t
+  | tapp t T
+
+env Env, G, D :=
+  + empty
+  | evar : x -> T
+  | etvar : X ->

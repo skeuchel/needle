@@ -1,0 +1,12 @@
+namespace tm, x, y, z : Tm
+  - shift: "shift"
+  - subst: "subst"
+
+sort Tm, s, t, u :=
+  + var x
+  | abs x [x]t
+  | app t1 t2
+
+env Env, G, D :=
+  + empty
+  | evar : x ->
