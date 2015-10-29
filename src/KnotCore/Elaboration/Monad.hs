@@ -149,6 +149,11 @@ getNamespaces = map fst . M.toList . meNamespaceRoots <$> getMetaEnvironments
 getSorts :: Elab m => m [SortTypeName]
 getSorts = map fst . M.toList . meSortRoots <$> getMetaEnvironments
 
+getFunctions :: Elab m => m [(FunName,SortTypeName,[NamespaceTypeName])]
+getFunctions = do
+  ftns <- meFunType <$> getMetaEnvironments
+  return [ (fn,stn,ntns) | (fn,(stn,ntns))<- M.toList ftns ]
+
 getEnvironments :: Elab m => m [EnvTypeName]
 getEnvironments = map fst . M.toList . meEnvRoots <$> getMetaEnvironments
 

@@ -202,6 +202,15 @@ Ltac needleGenericSubstEnvLookup :=
 Ltac needleGenericLookupWellformedData :=
   induction 1; destruct_conjs; eauto with shift_wf.
 
+Ltac needleGenericSubHvlAppend :=
+  let k1 := fresh in
+    let k2 := fresh in
+      intros k1 k2; induction k2 as [|[]]; simpl; auto.
+
+Ltac needleGenericWellformedStrengthen :=
+  let k2 := fresh in
+    intro k2; induction k2 as [|[]]; intros; simpl; eauto with wf; intuition.
+
 (* Apply mutual induction and never introduce any hypotheses. *)
 Ltac apply_mutual_ind ind := first
  [ refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)

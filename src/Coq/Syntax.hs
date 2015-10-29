@@ -39,6 +39,16 @@ data ClassDeclaration = ClassDeclaration (Identifier) (Binders) (MbSort) (Method
 -- ClassInstance -----------------------------------------------
 data ClassInstance = ClassInstance (Identifier) (Binders) (Identifier) (Terms) (Methods)
                    deriving ( Eq,Ord,Show)
+-- ContextHyp --------------------------------------------------
+data ContextHyp = ContextHyp (Identifier) (Pattern)
+                deriving ( Eq,Ord,Show)
+-- ContextHyps -------------------------------------------------
+type ContextHyps = [ContextHyp]
+-- ContextRule -------------------------------------------------
+data ContextRule = ContextRule (ContextHyps) (Pattern) (ProofStep)
+                 deriving ( Eq,Ord,Show)
+-- ContextRules ------------------------------------------------
+type ContextRules = [ContextRule]
 -- Definition --------------------------------------------------
 data Definition = Definition (Identifier) (Binders) (MbTerm) (Term)
                 deriving ( Eq,Ord,Show)
@@ -59,6 +69,7 @@ data FixpointBody = FixpointBody (Identifier) (Binders) (MbAnnotation) (Term) (T
 data Hint = HintResolve (Terms)
           | HintRewrite (Terms)
           | HintConstructors (Identifiers)
+          | HintExtern (Int) (MbPattern) (ProofStep)
           deriving ( Eq,Ord,Show)
 -- Identifiers -------------------------------------------------
 type Identifiers = [(Identifier)]
@@ -111,6 +122,7 @@ data Name = NameIdent (Identifier)
 type Names = [Name]
 -- Pattern -----------------------------------------------------
 data Pattern = PatCtor (QualId) (Identifiers)
+             | PatCtorEx (QualId) (Patterns)
              | PatUnderscore
              deriving ( Eq,Ord,Show)
 -- Patterns ----------------------------------------------------
@@ -132,6 +144,7 @@ data ProofStep = PrInduction (Identifier)
                | PrMutualInduction (Identifier) (Int)
                | PrCrushInd
                | PrApply (Term)
+               | PrApplyIn (Term) (Identifier)
                | PrExact (Term)
                | PrSeq (ProofSteps)
                | PrIntros (Identifiers)
@@ -154,6 +167,8 @@ data ProofStep = PrInduction (Identifier)
                | PrDestruct (Term)
                | PrFEqual (Int) (Term)
                | PrReflexivity
+               | PrClear (Identifiers)
+               | PrMatchGoal (ContextRules)
                deriving ( Eq,Ord,Show)
 -- ProofSteps --------------------------------------------------
 type ProofSteps = [ProofStep]

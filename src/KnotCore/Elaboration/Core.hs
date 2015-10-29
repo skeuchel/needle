@@ -118,6 +118,10 @@ data SubstHvl
   = SubstHvl HVarlist Trace HVarlist HVarlist
   deriving (Eq,Ord,Show)
 
+data SubHvl
+  = SubHvl [NamespaceTypeName] HVarlist
+  deriving (Eq,Ord,Show)
+
 instance TypeNameOf Cutoff NamespaceTypeName where
   typeNameOf (C0 ntn)      = ntn
   typeNameOf (CS c)        = typeNameOf c
@@ -342,6 +346,12 @@ instance TermLike SubstHvl where
     Coq.TermApp
     <$> (idTypeSubstHvl (typeNameOf x) >>= toRef)
     <*> sequence [toTerm h, toTerm x, toTerm h1, toTerm h2]
+
+instance TermLike SubHvl where
+  toTerm (SubHvl ntns h) =
+    Coq.TermApp
+    <$> (idFunctionSubHvl ntns >>= toRef)
+    <*> sequence [toTerm h ]
 
 typeLookup :: Elab m => CtorName -> ETerm -> Index -> [STerm] -> m Coq.Term
 typeLookup cn e x ts =

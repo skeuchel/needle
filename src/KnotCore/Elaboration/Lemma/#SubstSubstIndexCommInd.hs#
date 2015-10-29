@@ -1,0 +1,71 @@
+
+module InfraCore.Elaboration.Lemma.SubstSubstIndexCommInd where
+
+import Control.Applicative
+
+import qualified Coq.Syntax as Coq
+
+import InfraCore.Syntax
+import InfraCore.Elaboration.Core
+
+lemmas :: Elab m => [NamespaceDecl] -> m [Coq.Sentence]
+lemmas _ = do
+  ntns <- getNamespaces
+  concat <$> sequence
+    [ do
+        stnb  <- getSortOfNamespace ntnb
+        depsb <- getSortNamespaceDependencies stnb
+        sequence [ lemma ntna ntnb | ntna <- depsb ]
+    | ntnb <- ntns
+    ]
+
+lemma :: Elab m => NamespaceTypeName -> NamespaceTypeName -> m Coq.Sentence
+lemma ntna ntnb = localNames $ do
+  stna  <- getSortOfNamespace ntna
+  stnb  <- getSortOfNamespace ntnb
+
+  xa     <- freshTraceVar ntna
+  ta     <- freshSubtreeVar stna
+  tb     <- freshSubtreeVar stnb
+  k      <- freshHVarlistVar
+  yb     <- freshIndexVar ntnb
+
+  let left   = SSubst (TWeaken (TVar xa) (HVVar k)) (SVar ta)
+                 (SSubstIndex (TWeaken (T0 ntnb) (HVVar k)) (SVar tb) (IVar yb))
+      right1 = SSubst (TWeaken (T0 ntnb) (HVVar k))
+                 (SSubst (TVar xa) (SVar ta) (SVar tb))
+                 (SSubstIndex (TWeaken (TS ntnb (TVar xa)) (HVVar k)) (SVar ta) (IVar yb))
+      right2 = SSubstIndex (TWeaken (T0 ntnb) (HVVar k)) (SVar tb) (IVar yb)
+      right  = if ntna == ntnb then right1 else right 2
+  
+  {-
+      -- α == β
+      subst (weaken xa hvl) ta (substIndex (weaken T0 hvl) tb yb) =
+      subst (weaken T0 hvl) (subst xa ta tb) (substIndex (weaken (TS b xa) hvl) ta ya).
+      -- α ∈ β, β ∉ α
+      subst (weaken xα hvl) tα (substIndex (weaken T0 hvl) tβ yb) =
+      substIndex (weaken T0 hvl) (subst xα tα tβ) yb.
+
+      -- α ∈ β, β ∈ α
+      subst (weaken xα hvl) tα (substIndex (weaken T0 hvl) tβ yb) =
+      substIndex (weaken T0 hvl) (subst xα tα tβ) yb.
+  -}
+
+
+
+  statement  <-
+    Coq.TermForall
+    <$> sequence [toBinder h, toBinder ya]
+    <*> (Coq.TermEq <$> toTerm left <*> toTerm right)
+
+  assertion <-
+    Coq.Assertion
+    <$> pure Coq.AssLemma
+    <*> idLemmaSubstSubstIndexCommInd ntna ntna
+    <*> sequence [toBinder xa, toBinder ta1, toBinder ta2]
+    <*> pure statement
+
+  let proof :: Coq.Proof
+      proof = Coq.ProofQed [Coq.PrTactic "gSubstSubstIndexCommInd" []]
+
+  return $ Coq.SentenceAssertionProof assertion proof

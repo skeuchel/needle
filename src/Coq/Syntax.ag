@@ -69,6 +69,10 @@ data Hint
       hints :: Terms
   | HintConstructors
       ids   :: Identifiers
+  | HintExtern
+      level :: Int
+      pattern :: MbPattern
+      tactic  :: ProofStep
 deriving Hint : Eq,Ord,Show
 
 type PossiblyBracketedNames = [PossiblyBracketedName]
@@ -241,6 +245,9 @@ data Pattern
   | PatCtor
       patCtor   :: QualId
       patFields :: Identifiers
+  | PatCtorEx
+      patCtor   :: QualId
+      patFields :: Patterns
   | PatUnderscore
 deriving Pattern : Eq,Ord,Show
 
@@ -283,6 +290,9 @@ data ProofStep
   | PrCrushInd
   | PrApply
       term  :: Term
+  | PrApplyIn
+      term  :: Term
+      ident :: Identifier
   | PrExact
       term  :: Term
   | PrSeq
@@ -323,7 +333,26 @@ data ProofStep
       arity  :: Int
       term   :: Term
   | PrReflexivity
+  | PrClear
+      ident :: Identifiers
+  | PrMatchGoal
+      contextrules :: ContextRules
 deriving ProofStep : Eq,Ord,Show
+
+type ContextRules = [ContextRule]
+data ContextRule
+  | ContextRule
+      hypotheses :: ContextHyps
+      goal       :: Pattern
+      tactic     :: ProofStep
+deriving ContextRule : Eq,Ord,Show
+
+type ContextHyps = [ContextHyp]
+data ContextHyp
+  | ContextHyp
+      ident      :: Identifier
+      pattern    :: Pattern
+deriving ContextHyp : Eq,Ord,Show
 
 data ClassDeclaration
   | ClassDeclaration

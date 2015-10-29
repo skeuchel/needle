@@ -4,6 +4,7 @@ module {KnotSpec.AG}
 import KnotSpec.Syntax
 
 import qualified Data.Map
+import Data.Monoid
 }
 
 optpragmas
@@ -19,5 +20,4 @@ fromTN (TN s) = s
 }
 
 include "src/KnotSpec/Environment.ag"
-include "src/KnotSpec/TypeCheck.ag"
 include "src/KnotSpec/Desugaring.ag"

@@ -7,6 +7,7 @@ module KnotSpec.AG where
 import KnotSpec.Syntax
 
 import qualified Data.Map
+import Data.Monoid
 
 {-# LINE 3 "src/KnotSpec/Desugaring.ag" #-}
 
@@ -22,13 +23,13 @@ import Data.Map (Map)
 import Data.Set (Set)
 import qualified Data.Map
 import qualified Data.Set
-{-# LINE 26 "src/KnotSpec/AG.hs" #-}
+{-# LINE 27 "src/KnotSpec/AG.hs" #-}
 
 {-# LINE 9 "src/KnotSpec/Syntax.ag" #-}
 
 import KnotSpec.Syntax.Core
 import Data.Map (Map)
-{-# LINE 32 "src/KnotSpec/AG.hs" #-}
+{-# LINE 33 "src/KnotSpec/AG.hs" #-}
 {-# LINE 18 "src/KnotSpec/Desugaring.ag" #-}
 
 {- This is the type-checking monad for the surface language.
@@ -89,14 +90,14 @@ data CoreTypeName
 data CoreFieldName
   = FRN Core.MetavarVar
   | FRS Core.SubtreeVar
-{-# LINE 93 "src/KnotSpec/AG.hs" #-}
+{-# LINE 94 "src/KnotSpec/AG.hs" #-}
 
 {-# LINE 204 "src/KnotSpec/Desugaring.ag" #-}
 
 desugarTermSpec :: TermSpec -> TcM Core.TermSpec
 desugarTermSpec ts = Core.analyze <$> desugared_Syn_TermSpec sem
   where sem = wrap_TermSpec (sem_TermSpec ts) defaultValues
-{-# LINE 100 "src/KnotSpec/AG.hs" #-}
+{-# LINE 101 "src/KnotSpec/AG.hs" #-}
 
 {-# LINE 462 "src/KnotSpec/Desugaring.ag" #-}
 
@@ -114,7 +115,7 @@ type DN  =
    Set Core.SortTypeName,
    Set Core.NamespaceTypeName
   )
-{-# LINE 118 "src/KnotSpec/AG.hs" #-}
+{-# LINE 119 "src/KnotSpec/AG.hs" #-}
 
 {-# LINE 530 "src/KnotSpec/Desugaring.ag" #-}
 
@@ -184,7 +185,7 @@ namespaceDepAnalysis dngs = namespaceDepAnalysis' dngs mempty
 
 dependencyAnalysis :: [DepNode] -> [Core.SortGroupDecl]
 dependencyAnalysis = namespaceDepAnalysis . sortDepAnalysis
-{-# LINE 188 "src/KnotSpec/AG.hs" #-}
+{-# LINE 189 "src/KnotSpec/AG.hs" #-}
 
 {-# LINE 2 "src/KnotSpec/Environment.ag" #-}
 
@@ -208,13 +209,13 @@ metaEnvironments ts = metaEnvironments_Syn_TermSpec sem
 
 defaultValues :: Inh_TermSpec
 defaultValues = (Inh_TermSpec {})
-{-# LINE 212 "src/KnotSpec/AG.hs" #-}
+{-# LINE 213 "src/KnotSpec/AG.hs" #-}
 
-{-# LINE 16 "src/KnotSpec/AG.ag" #-}
+{-# LINE 17 "src/KnotSpec/AG.ag" #-}
 
 fromTN :: TypeName -> String
 fromTN (TN s) = s
-{-# LINE 218 "src/KnotSpec/AG.hs" #-}
+{-# LINE 219 "src/KnotSpec/AG.hs" #-}
 -- BindSpec ----------------------------------------------------
 -- cata
 sem_BindSpec :: BindSpec ->
@@ -280,7 +281,7 @@ sem_BindSpec_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 180 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 284 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 285 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -289,92 +290,92 @@ sem_BindSpec_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 293 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 294 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 298 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 299 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 303 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 304 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 308 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 309 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 313 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 314 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 318 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 319 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 323 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 324 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 328 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 329 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 333 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 334 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 338 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 339 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 343 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 344 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 348 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 349 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 353 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 354 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 358 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 359 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 363 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 364 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 368 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 369 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 373 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 374 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 378 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 379 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -397,7 +398,7 @@ sem_BindSpec_Nil =
               _lhsOdesugared =
                   ({-# LINE 180 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 401 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 402 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -476,7 +477,7 @@ sem_CtorDecl_CtorVar ctorName_ ctorMetavar_ =
                   ({-# LINE 255 "src/KnotSpec/Desugaring.ag" #-}
                    Core.CtorVar (Core.CNS ctorName_ _lhsIcoreSortTypeName)
                      <$> _ctorMetavarImetavarName
-                   {-# LINE 480 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 481 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceDependencies =
                   ({-# LINE 489 "src/KnotSpec/Desugaring.ag" #-}
@@ -485,7 +486,7 @@ sem_CtorDecl_CtorVar ctorName_ ctorMetavar_ =
                      case coreTypeName of
                        NTN ntn -> return [ntn]
                        _       -> return []
-                   {-# LINE 489 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 490 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceCtor =
                   ({-# LINE 152 "src/KnotSpec/Environment.ag" #-}
@@ -498,17 +499,17 @@ sem_CtorDecl_CtorVar ctorName_ ctorMetavar_ =
                        error $
                          "Did not find canonical namespacename for root" ++
                          fromNR _ctorMetavarIroot
-                   {-# LINE 502 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 503 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 507 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 508 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsortDependencies =
                   ({-# LINE 480 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 512 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 513 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   CtorVar ctorName_ _ctorMetavarIself
@@ -517,52 +518,52 @@ sem_CtorDecl_CtorVar ctorName_ ctorMetavar_ =
               _lhsOdesugared =
                   ({-# LINE 173 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 521 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 522 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 526 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 527 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 531 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 532 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 536 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 537 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 541 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 542 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 546 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 547 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 551 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 552 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 556 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 557 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 561 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 562 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorMetavarOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 566 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 567 "src/KnotSpec/AG.hs" #-}
                    )
               ( _ctorMetavarIcoreFieldName,_ctorMetavarIcoreTypeName,_ctorMetavarIfieldMetaBinding,_ctorMetavarImetavarName,_ctorMetavarInamespaceTypeName,_ctorMetavarIroot,_ctorMetavarIself,_ctorMetavarIsubtreeName,_ctorMetavarIsuffix) =
                   ctorMetavar_ _ctorMetavarOmeEnvNameRoots _ctorMetavarOmeEnvTypeName _ctorMetavarOmeFunType _ctorMetavarOmeNamespaceCtor _ctorMetavarOmeNamespaceNameRoots _ctorMetavarOmeNamespaceTypeName _ctorMetavarOmeRelationEnv _ctorMetavarOmeSortNameRoots _ctorMetavarOmeSortTypeName
@@ -605,27 +606,27 @@ sem_CtorDecl_CtorTerm ctorName_ ctorFields_ =
                   ({-# LINE 258 "src/KnotSpec/Desugaring.ag" #-}
                    Core.CtorTerm (Core.CNS ctorName_ _lhsIcoreSortTypeName)
                      <$> _ctorFieldsIdesugared
-                   {-# LINE 609 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 610 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceDependencies =
                   ({-# LINE 483 "src/KnotSpec/Desugaring.ag" #-}
                    _ctorFieldsInamespaceDependencies
-                   {-# LINE 614 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 615 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 619 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 620 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceCtor =
                   ({-# LINE 143 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 624 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 625 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsortDependencies =
                   ({-# LINE 480 "src/KnotSpec/Desugaring.ag" #-}
                    _ctorFieldsIsortDependencies
-                   {-# LINE 629 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 630 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   CtorTerm ctorName_ _ctorFieldsIself
@@ -634,52 +635,52 @@ sem_CtorDecl_CtorTerm ctorName_ ctorFields_ =
               _lhsOdesugared =
                   ({-# LINE 173 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 638 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 639 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 643 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 644 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 648 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 649 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 653 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 654 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 658 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 659 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 663 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 664 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 668 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 669 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 673 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 674 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 678 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 679 "src/KnotSpec/AG.hs" #-}
                    )
               _ctorFieldsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 683 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 684 "src/KnotSpec/AG.hs" #-}
                    )
               ( _ctorFieldsIdesugared,_ctorFieldsInamespaceDependencies,_ctorFieldsIself,_ctorFieldsIsortDependencies) =
                   ctorFields_ _ctorFieldsOmeEnvNameRoots _ctorFieldsOmeEnvTypeName _ctorFieldsOmeFunType _ctorFieldsOmeNamespaceCtor _ctorFieldsOmeNamespaceNameRoots _ctorFieldsOmeNamespaceTypeName _ctorFieldsOmeRelationEnv _ctorFieldsOmeSortNameRoots _ctorFieldsOmeSortTypeName
@@ -769,27 +770,27 @@ sem_CtorDecls_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 172 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 773 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 774 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceDependencies =
                   ({-# LINE 483 "src/KnotSpec/Desugaring.ag" #-}
                    (mappendA _hdInamespaceDependencies _tlInamespaceDependencies)
-                   {-# LINE 778 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 779 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    (liftA2 (Data.Map.unionWith Data.Map.union) _hdIsFunctionDef _tlIsFunctionDef)
-                   {-# LINE 783 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 784 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceCtor =
                   ({-# LINE 143 "src/KnotSpec/Environment.ag" #-}
                    (Data.Map.unionWith (error "smeVariableCtor union") _hdIsmeNamespaceCtor _tlIsmeNamespaceCtor)
-                   {-# LINE 788 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 789 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsortDependencies =
                   ({-# LINE 480 "src/KnotSpec/Desugaring.ag" #-}
                    (mappendA _hdIsortDependencies _tlIsortDependencies)
-                   {-# LINE 793 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 794 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -798,112 +799,112 @@ sem_CtorDecls_Cons hd_ tl_ =
               _hdOcoreSortTypeName =
                   ({-# LINE 243 "src/KnotSpec/Desugaring.ag" #-}
                    _lhsIcoreSortTypeName
-                   {-# LINE 802 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 803 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 807 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 808 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 812 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 813 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 817 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 818 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 822 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 823 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 827 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 828 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 832 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 833 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 837 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 838 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 842 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 843 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 847 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 848 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOsortTypeName =
                   ({-# LINE 135 "src/KnotSpec/Environment.ag" #-}
                    _lhsIsortTypeName
-                   {-# LINE 852 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 853 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOcoreSortTypeName =
                   ({-# LINE 243 "src/KnotSpec/Desugaring.ag" #-}
                    _lhsIcoreSortTypeName
-                   {-# LINE 857 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 858 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 862 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 863 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 867 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 868 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 872 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 873 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 877 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 878 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 882 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 883 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 887 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 888 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 892 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 893 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 897 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 898 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 902 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 903 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOsortTypeName =
                   ({-# LINE 135 "src/KnotSpec/Environment.ag" #-}
                    _lhsIsortTypeName
-                   {-# LINE 907 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 908 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdInamespaceDependencies,_hdIsFunctionDef,_hdIself,_hdIsmeNamespaceCtor,_hdIsortDependencies) =
                   hd_ _hdOcoreSortTypeName _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName _hdOsortTypeName
@@ -932,27 +933,27 @@ sem_CtorDecls_Nil =
               _lhsOdesugared =
                   ({-# LINE 172 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 936 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 937 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceDependencies =
                   ({-# LINE 483 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 941 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 942 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 946 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 947 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceCtor =
                   ({-# LINE 143 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 951 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 952 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsortDependencies =
                   ({-# LINE 480 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 956 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 957 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -1011,7 +1012,7 @@ sem_EnvCtor_EnvCtorNil envCtorName_ =
               _desugared =
                   ({-# LINE 335 "src/KnotSpec/Desugaring.ag" #-}
                    pure $ Core.EnvCtorNil (Core.CNE envCtorName_ _lhsIcoreTypeName)
-                   {-# LINE 1015 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1016 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   EnvCtorNil envCtorName_
@@ -1020,7 +1021,7 @@ sem_EnvCtor_EnvCtorNil envCtorName_ =
               _lhsOdesugared =
                   ({-# LINE 331 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 1024 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1025 "src/KnotSpec/AG.hs" #-}
                    )
           in  ( _lhsOdesugared,_lhsOself)))
 sem_EnvCtor_EnvCtorCons :: CtorName ->
@@ -1078,7 +1079,7 @@ sem_EnvCtor_EnvCtorCons envCtorName_ envCtorMetavar_ envCtorFields_ =
                    Core.EnvCtorCons (Core.CNE envCtorName_ _lhsIcoreTypeName)
                      <$> _envCtorMetavarImetavarName
                      <*> _envCtorFieldsIsubtreeName
-                   {-# LINE 1082 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1083 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   EnvCtorCons envCtorName_ _envCtorMetavarIself _envCtorFieldsIself
@@ -1087,97 +1088,97 @@ sem_EnvCtor_EnvCtorCons envCtorName_ envCtorMetavar_ envCtorFields_ =
               _lhsOdesugared =
                   ({-# LINE 331 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 1091 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1092 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1096 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1097 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1101 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1102 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1106 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1107 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 1111 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1112 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 1116 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1117 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 1121 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1122 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 1126 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1127 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 1131 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1132 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorMetavarOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 1136 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1137 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1141 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1142 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1146 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1147 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1151 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1152 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 1156 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1157 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 1161 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1162 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 1166 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1167 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 1171 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1172 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 1176 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1177 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorFieldsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 1181 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1182 "src/KnotSpec/AG.hs" #-}
                    )
               ( _envCtorMetavarIcoreFieldName,_envCtorMetavarIcoreTypeName,_envCtorMetavarIfieldMetaBinding,_envCtorMetavarImetavarName,_envCtorMetavarInamespaceTypeName,_envCtorMetavarIroot,_envCtorMetavarIself,_envCtorMetavarIsubtreeName,_envCtorMetavarIsuffix) =
                   envCtorMetavar_ _envCtorMetavarOmeEnvNameRoots _envCtorMetavarOmeEnvTypeName _envCtorMetavarOmeFunType _envCtorMetavarOmeNamespaceCtor _envCtorMetavarOmeNamespaceNameRoots _envCtorMetavarOmeNamespaceTypeName _envCtorMetavarOmeRelationEnv _envCtorMetavarOmeSortNameRoots _envCtorMetavarOmeSortTypeName
@@ -1265,7 +1266,7 @@ sem_EnvCtors_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 330 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 1269 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1270 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -1274,132 +1275,132 @@ sem_EnvCtors_Cons hd_ tl_ =
               _hdOcoreEnvVar =
                   ({-# LINE 315 "src/KnotSpec/Desugaring.ag" #-}
                    _lhsIcoreEnvVar
-                   {-# LINE 1278 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1279 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOcoreTypeName =
                   ({-# LINE 314 "src/KnotSpec/Desugaring.ag" #-}
                    _lhsIcoreTypeName
-                   {-# LINE 1283 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1284 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOenvNameRoots =
                   ({-# LINE 205 "src/KnotSpec/Environment.ag" #-}
                    _lhsIenvNameRoots
-                   {-# LINE 1288 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1289 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOenvTypeName =
                   ({-# LINE 204 "src/KnotSpec/Environment.ag" #-}
                    _lhsIenvTypeName
-                   {-# LINE 1293 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1294 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1298 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1299 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1303 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1304 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1308 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1309 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 1313 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1314 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 1318 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1319 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 1323 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1324 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 1328 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1329 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 1333 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1334 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 1338 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1339 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOcoreEnvVar =
                   ({-# LINE 315 "src/KnotSpec/Desugaring.ag" #-}
                    _lhsIcoreEnvVar
-                   {-# LINE 1343 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1344 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOcoreTypeName =
                   ({-# LINE 314 "src/KnotSpec/Desugaring.ag" #-}
                    _lhsIcoreTypeName
-                   {-# LINE 1348 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1349 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOenvNameRoots =
                   ({-# LINE 205 "src/KnotSpec/Environment.ag" #-}
                    _lhsIenvNameRoots
-                   {-# LINE 1353 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1354 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOenvTypeName =
                   ({-# LINE 204 "src/KnotSpec/Environment.ag" #-}
                    _lhsIenvTypeName
-                   {-# LINE 1358 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1359 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1363 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1364 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1368 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1369 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1373 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1374 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 1378 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1379 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 1383 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1384 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 1388 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1389 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 1393 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1394 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 1398 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1399 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 1403 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1404 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOcoreEnvVar _hdOcoreTypeName _hdOenvNameRoots _hdOenvTypeName _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -1426,7 +1427,7 @@ sem_EnvCtors_Nil =
               _lhsOdesugared =
                   ({-# LINE 330 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 1430 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1431 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -1508,12 +1509,12 @@ sem_EnvDecl_EnvDecl envTypeName_ envNameRoots_ envCtors_ =
               _coreNameRoots =
                   ({-# LINE 319 "src/KnotSpec/Desugaring.ag" #-}
                    map (Core.NR . fromNR) _envNameRootsIself
-                   {-# LINE 1512 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1513 "src/KnotSpec/AG.hs" #-}
                    )
               _coreTypeName =
                   ({-# LINE 320 "src/KnotSpec/Desugaring.ag" #-}
                    Core.ETN _envTypeNameIfromTn
-                   {-# LINE 1517 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1518 "src/KnotSpec/AG.hs" #-}
                    )
               _coreEnvVar =
                   ({-# LINE 321 "src/KnotSpec/Desugaring.ag" #-}
@@ -1521,28 +1522,28 @@ sem_EnvDecl_EnvDecl envTypeName_ envNameRoots_ envCtors_ =
                      (head _coreNameRoots    )
                      ""
                      (_coreTypeName    )
-                   {-# LINE 1525 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1526 "src/KnotSpec/AG.hs" #-}
                    )
               _desugared =
                   ({-# LINE 326 "src/KnotSpec/Desugaring.ag" #-}
                    Core.EnvDecl _coreTypeName     _coreNameRoots
                      <$> _envCtorsIdesugared
-                   {-# LINE 1531 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1532 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeEnvNameRoots =
                   ({-# LINE 209 "src/KnotSpec/Environment.ag" #-}
                    Data.Map.singleton _envTypeNameIself _envNameRootsIself
-                   {-# LINE 1536 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1537 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeName =
                   ({-# LINE 210 "src/KnotSpec/Environment.ag" #-}
                    _envTypeNameIself
-                   {-# LINE 1541 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1542 "src/KnotSpec/AG.hs" #-}
                    )
               _envNameRoots =
                   ({-# LINE 211 "src/KnotSpec/Environment.ag" #-}
                    _envNameRootsIself
-                   {-# LINE 1546 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1547 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   EnvDecl _envTypeNameIself _envNameRootsIself _envCtorsIself
@@ -1551,117 +1552,117 @@ sem_EnvDecl_EnvDecl envTypeName_ envNameRoots_ envCtors_ =
               _lhsOdesugared =
                   ({-# LINE 311 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 1555 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1556 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1560 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1561 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1565 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1566 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1570 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1571 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 1575 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1576 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 1580 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1581 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 1585 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1586 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 1590 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1591 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 1595 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1596 "src/KnotSpec/AG.hs" #-}
                    )
               _envTypeNameOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 1600 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1601 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOcoreEnvVar =
                   ({-# LINE 315 "src/KnotSpec/Desugaring.ag" #-}
                    _coreEnvVar
-                   {-# LINE 1605 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1606 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOcoreTypeName =
                   ({-# LINE 314 "src/KnotSpec/Desugaring.ag" #-}
                    _coreTypeName
-                   {-# LINE 1610 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1611 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOenvNameRoots =
                   ({-# LINE 205 "src/KnotSpec/Environment.ag" #-}
                    _envNameRoots
-                   {-# LINE 1615 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1616 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOenvTypeName =
                   ({-# LINE 204 "src/KnotSpec/Environment.ag" #-}
                    _envTypeName
-                   {-# LINE 1620 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1621 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1625 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1626 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1630 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1631 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1635 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1636 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 1640 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1641 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 1645 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1646 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 1650 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1651 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 1655 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1656 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 1660 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1661 "src/KnotSpec/AG.hs" #-}
                    )
               _envCtorsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 1665 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1666 "src/KnotSpec/AG.hs" #-}
                    )
               ( _envTypeNameIfromTn,_envTypeNameInamespaceTypeName,_envTypeNameIrelationTypeName,_envTypeNameIself,_envTypeNameIsortTypeName) =
                   envTypeName_ _envTypeNameOmeEnvNameRoots _envTypeNameOmeEnvTypeName _envTypeNameOmeFunType _envTypeNameOmeNamespaceCtor _envTypeNameOmeNamespaceNameRoots _envTypeNameOmeNamespaceTypeName _envTypeNameOmeRelationEnv _envTypeNameOmeSortNameRoots _envTypeNameOmeSortTypeName
@@ -1738,12 +1739,12 @@ sem_EnvDecls_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 310 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 1742 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1743 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeEnvNameRoots =
                   ({-# LINE 195 "src/KnotSpec/Environment.ag" #-}
                    (Data.Map.unionWith (error "smeEnvNameRoots union") _hdIsmeEnvNameRoots _tlIsmeEnvNameRoots)
-                   {-# LINE 1747 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1748 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -1752,92 +1753,92 @@ sem_EnvDecls_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1756 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1757 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1761 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1762 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1766 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1767 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 1771 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1772 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 1776 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1777 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 1781 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1782 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 1786 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1787 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 1791 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1792 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 1796 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1797 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1801 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1802 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1806 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1807 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1811 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1812 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 1816 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1817 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 1821 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1822 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 1826 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1827 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 1831 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1832 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 1836 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1837 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 1841 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1842 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself,_hdIsmeEnvNameRoots) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -1861,12 +1862,12 @@ sem_EnvDecls_Nil =
               _lhsOdesugared =
                   ({-# LINE 310 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 1865 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1866 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeEnvNameRoots =
                   ({-# LINE 195 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 1870 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1871 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -1955,7 +1956,7 @@ sem_FieldDecl_FieldDecl fieldBindSpec_ fieldName_ =
                          if null _fieldBindSpecIself
                            then return (Core.FieldBinding metavarName)
                            else throwError "Invalid binding specification for variable field"
-                   {-# LINE 1959 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1960 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsortDependencies =
                   ({-# LINE 498 "src/KnotSpec/Desugaring.ag" #-}
@@ -1964,12 +1965,12 @@ sem_FieldDecl_FieldDecl fieldBindSpec_ fieldName_ =
                      case coreTypeName of
                        STN stn -> return [stn]
                        _       -> return []
-                   {-# LINE 1968 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1969 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceDependencies =
                   ({-# LINE 504 "src/KnotSpec/Desugaring.ag" #-}
                    return []
-                   {-# LINE 1973 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1974 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   FieldDecl _fieldBindSpecIself _fieldNameIself
@@ -1978,97 +1979,97 @@ sem_FieldDecl_FieldDecl fieldBindSpec_ fieldName_ =
               _lhsOdesugared =
                   ({-# LINE 175 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 1982 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1983 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 1987 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1988 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 1992 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1993 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 1997 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 1998 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2002 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2003 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2007 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2008 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2012 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2013 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2017 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2018 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2022 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2023 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldBindSpecOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2027 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2028 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2032 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2033 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2037 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2038 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2042 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2043 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2047 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2048 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2052 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2053 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2057 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2058 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2062 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2063 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2067 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2068 "src/KnotSpec/AG.hs" #-}
                    )
               _fieldNameOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2072 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2073 "src/KnotSpec/AG.hs" #-}
                    )
               ( _fieldBindSpecIdesugared,_fieldBindSpecIself) =
                   fieldBindSpec_ _fieldBindSpecOmeEnvNameRoots _fieldBindSpecOmeEnvTypeName _fieldBindSpecOmeFunType _fieldBindSpecOmeNamespaceCtor _fieldBindSpecOmeNamespaceNameRoots _fieldBindSpecOmeNamespaceTypeName _fieldBindSpecOmeRelationEnv _fieldBindSpecOmeSortNameRoots _fieldBindSpecOmeSortTypeName
@@ -2146,17 +2147,17 @@ sem_FieldDecls_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 174 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 2150 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2151 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceDependencies =
                   ({-# LINE 483 "src/KnotSpec/Desugaring.ag" #-}
                    (mappendA _hdInamespaceDependencies _tlInamespaceDependencies)
-                   {-# LINE 2155 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2156 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsortDependencies =
                   ({-# LINE 480 "src/KnotSpec/Desugaring.ag" #-}
                    (mappendA _hdIsortDependencies _tlIsortDependencies)
-                   {-# LINE 2160 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2161 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -2165,92 +2166,92 @@ sem_FieldDecls_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2169 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2170 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2174 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2175 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2179 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2180 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2184 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2185 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2189 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2190 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2194 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2195 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2199 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2200 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2204 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2205 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2209 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2210 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2214 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2215 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2219 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2220 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2224 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2225 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2229 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2230 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2234 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2235 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2239 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2240 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2244 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2245 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2249 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2250 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2254 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2255 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdInamespaceDependencies,_hdIself,_hdIsortDependencies) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -2275,17 +2276,17 @@ sem_FieldDecls_Nil =
               _lhsOdesugared =
                   ({-# LINE 174 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 2279 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2280 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceDependencies =
                   ({-# LINE 483 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 2284 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2285 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsortDependencies =
                   ({-# LINE 480 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 2289 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2290 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -2347,7 +2348,7 @@ sem_Formula_FormBinding fmlBinding_ =
               _desugared =
                   ({-# LINE 399 "src/KnotSpec/Desugaring.ag" #-}
                    Core.FormBinding <$> _fmlBindingIdesugared
-                   {-# LINE 2351 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2352 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   FormBinding _fmlBindingIself
@@ -2356,52 +2357,52 @@ sem_Formula_FormBinding fmlBinding_ =
               _lhsOdesugared =
                   ({-# LINE 395 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 2360 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2361 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2365 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2366 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2370 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2371 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2375 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2376 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2380 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2381 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2385 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2386 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2390 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2391 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2395 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2396 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2400 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2401 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2405 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2406 "src/KnotSpec/AG.hs" #-}
                    )
               ( _fmlBindingIdesugared,_fmlBindingIself) =
                   fmlBinding_ _fmlBindingOmeEnvNameRoots _fmlBindingOmeEnvTypeName _fmlBindingOmeFunType _fmlBindingOmeNamespaceCtor _fmlBindingOmeNamespaceNameRoots _fmlBindingOmeNamespaceTypeName _fmlBindingOmeRelationEnv _fmlBindingOmeSortNameRoots _fmlBindingOmeSortTypeName
@@ -2450,7 +2451,7 @@ sem_Formula_FormJudgement fmlBindings_ fmlJudgement_ =
                      Core.Judgement rtn mbEnv sts <- _fmlJudgementIdesugared
                      return $
                        Core.FormJudgement rbs rtn mbEnv sts
-                   {-# LINE 2454 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2455 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   FormJudgement _fmlBindingsIself _fmlJudgementIself
@@ -2459,97 +2460,97 @@ sem_Formula_FormJudgement fmlBindings_ fmlJudgement_ =
               _lhsOdesugared =
                   ({-# LINE 395 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 2463 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2464 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2468 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2469 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2473 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2474 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2478 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2479 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2483 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2484 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2488 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2489 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2493 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2494 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2498 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2499 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2503 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2504 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlBindingsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2508 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2509 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2513 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2514 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2518 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2519 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2523 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2524 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2528 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2529 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2533 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2534 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2538 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2539 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2543 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2544 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2548 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2549 "src/KnotSpec/AG.hs" #-}
                    )
               _fmlJudgementOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2553 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2554 "src/KnotSpec/AG.hs" #-}
                    )
               ( _fmlBindingsIdesugared,_fmlBindingsIself) =
                   fmlBindings_ _fmlBindingsOmeEnvNameRoots _fmlBindingsOmeEnvTypeName _fmlBindingsOmeFunType _fmlBindingsOmeNamespaceCtor _fmlBindingsOmeNamespaceNameRoots _fmlBindingsOmeNamespaceTypeName _fmlBindingsOmeRelationEnv _fmlBindingsOmeSortNameRoots _fmlBindingsOmeSortTypeName
@@ -2621,7 +2622,7 @@ sem_Formulas_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 394 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 2625 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2626 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -2630,92 +2631,92 @@ sem_Formulas_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2634 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2635 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2639 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2640 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2644 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2645 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2649 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2650 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2654 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2655 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2659 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2660 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2664 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2665 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2669 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2670 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2674 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2675 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2679 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2680 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2684 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2685 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2689 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2690 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2694 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2695 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2699 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2700 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2704 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2705 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2709 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2710 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2714 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2715 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2719 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2720 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -2738,7 +2739,7 @@ sem_Formulas_Nil =
               _lhsOdesugared =
                   ({-# LINE 394 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 2742 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2743 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -2814,7 +2815,7 @@ sem_FunCase_FunCase fcCtor_ fcFields_ fcRhs_ =
                    Core.FunCase (Core.CNO fcCtor_)
                      <$> _fcFieldsIfieldMetaBinding
                      <*> _fcRhsIdesugared
-                   {-# LINE 2818 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2819 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   FunCase fcCtor_ _fcFieldsIself _fcRhsIself
@@ -2823,97 +2824,97 @@ sem_FunCase_FunCase fcCtor_ fcFields_ fcRhs_ =
               _lhsOdesugared =
                   ({-# LINE 179 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 2827 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2828 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2832 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2833 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2837 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2838 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2842 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2843 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2847 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2848 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2852 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2853 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2857 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2858 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2862 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2863 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2867 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2868 "src/KnotSpec/AG.hs" #-}
                    )
               _fcFieldsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2872 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2873 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2877 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2878 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 2882 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2883 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 2887 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2888 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 2892 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2893 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 2897 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2898 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 2902 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2903 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 2907 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2908 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 2912 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2913 "src/KnotSpec/AG.hs" #-}
                    )
               _fcRhsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 2917 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2918 "src/KnotSpec/AG.hs" #-}
                    )
               ( _fcFieldsIfieldMetaBinding,_fcFieldsIself,_fcFieldsIsubtreeName) =
                   fcFields_ _fcFieldsOmeEnvNameRoots _fcFieldsOmeEnvTypeName _fcFieldsOmeFunType _fcFieldsOmeNamespaceCtor _fcFieldsOmeNamespaceNameRoots _fcFieldsOmeNamespaceTypeName _fcFieldsOmeRelationEnv _fcFieldsOmeSortNameRoots _fcFieldsOmeSortTypeName
@@ -2985,7 +2986,7 @@ sem_FunCases_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 178 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 2989 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2990 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -2994,92 +2995,92 @@ sem_FunCases_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 2998 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 2999 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3003 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3004 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3008 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3009 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3013 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3014 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3018 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3019 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3023 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3024 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3028 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3029 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3033 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3034 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3038 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3039 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3043 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3044 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3048 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3049 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3053 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3054 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3058 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3059 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3063 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3064 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3068 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3069 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3073 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3074 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3078 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3079 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3083 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3084 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -3102,7 +3103,7 @@ sem_FunCases_Nil =
               _lhsOdesugared =
                   ({-# LINE 178 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 3106 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3107 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -3200,7 +3201,7 @@ sem_FunDecl_FunDecl fdName_ fdSource_ fdTarget_ fdCases_ =
                      let matchItem = Core.SubtreeVar (Core.NR $ fromNR nr) "" stn
                      Core.FunDecl (Core.FN fdName_ stn ntns) stn ntns matchItem
                        <$> _fdCasesIdesugared
-                   {-# LINE 3204 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3205 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 607 "src/KnotSpec/Desugaring.ag" #-}
@@ -3210,12 +3211,12 @@ sem_FunDecl_FunDecl fdName_ fdSource_ fdTarget_ fdCases_ =
                      return $
                        Data.Map.singleton source
                          (Data.Map.singleton (Core.FN fdName_ source target) target)
-                   {-# LINE 3214 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3215 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeFunType =
                   ({-# LINE 182 "src/KnotSpec/Environment.ag" #-}
                    Data.Map.singleton fdName_ (_fdSourceIself,_fdTargetIself)
-                   {-# LINE 3219 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3220 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   FunDecl fdName_ _fdSourceIself _fdTargetIself _fdCasesIself
@@ -3224,142 +3225,142 @@ sem_FunDecl_FunDecl fdName_ fdSource_ fdTarget_ fdCases_ =
               _lhsOdesugared =
                   ({-# LINE 177 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 3228 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3229 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3233 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3234 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3238 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3239 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3243 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3244 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3248 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3249 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3253 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3254 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3258 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3259 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3263 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3264 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3268 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3269 "src/KnotSpec/AG.hs" #-}
                    )
               _fdSourceOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3273 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3274 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3278 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3279 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3283 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3284 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3288 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3289 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3293 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3294 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3298 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3299 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3303 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3304 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3308 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3309 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3313 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3314 "src/KnotSpec/AG.hs" #-}
                    )
               _fdTargetOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3318 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3319 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3323 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3324 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3328 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3329 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3333 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3334 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3338 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3339 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3343 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3344 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3348 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3349 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3353 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3354 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3358 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3359 "src/KnotSpec/AG.hs" #-}
                    )
               _fdCasesOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3363 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3364 "src/KnotSpec/AG.hs" #-}
                    )
               ( _fdSourceIfromTn,_fdSourceInamespaceTypeName,_fdSourceIrelationTypeName,_fdSourceIself,_fdSourceIsortTypeName) =
                   fdSource_ _fdSourceOmeEnvNameRoots _fdSourceOmeEnvTypeName _fdSourceOmeFunType _fdSourceOmeNamespaceCtor _fdSourceOmeNamespaceNameRoots _fdSourceOmeNamespaceTypeName _fdSourceOmeRelationEnv _fdSourceOmeSortNameRoots _fdSourceOmeSortTypeName
@@ -3439,17 +3440,17 @@ sem_FunDecls_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 176 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 3443 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3444 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    (liftA2 (Data.Map.unionWith Data.Map.union) _hdIsFunctionDef _tlIsFunctionDef)
-                   {-# LINE 3448 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3449 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeFunType =
                   ({-# LINE 173 "src/KnotSpec/Environment.ag" #-}
                    (Data.Map.unionWith (error "smeFunType union") _hdIsmeFunType _tlIsmeFunType)
-                   {-# LINE 3453 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3454 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -3458,92 +3459,92 @@ sem_FunDecls_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3462 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3463 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3467 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3468 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3472 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3473 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3477 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3478 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3482 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3483 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3487 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3488 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3492 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3493 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3497 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3498 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3502 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3503 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3507 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3508 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3512 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3513 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3517 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3518 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3522 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3523 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3527 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3528 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3532 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3533 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3537 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3538 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3542 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3543 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3547 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3548 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIsFunctionDef,_hdIself,_hdIsmeFunType) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -3568,17 +3569,17 @@ sem_FunDecls_Nil =
               _lhsOdesugared =
                   ({-# LINE 176 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 3572 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3573 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 3577 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3578 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeFunType =
                   ({-# LINE 173 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 3582 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3583 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -3656,7 +3657,7 @@ sem_Judgement_Judgement jmtTypeName_ jmtTerms_ =
                      tn@(TN etn) <- Data.Map.lookup _jmtTypeNameIself _lhsImeRelationEnv
                      nrs <- Data.Map.lookup tn _lhsImeEnvNameRoots
                      return (Core.EnvVar (Core.NR . fromNR $ head nrs) "" (Core.ETN etn))
-                   {-# LINE 3660 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3661 "src/KnotSpec/AG.hs" #-}
                    )
               _desugared =
                   ({-# LINE 418 "src/KnotSpec/Desugaring.ag" #-}
@@ -3664,7 +3665,7 @@ sem_Judgement_Judgement jmtTypeName_ jmtTerms_ =
                      <$> _jmtTypeNameIrelationTypeName
                      <*> pure _coreMbEnvName
                      <*> _jmtTermsIdesugared
-                   {-# LINE 3668 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3669 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   Judgement _jmtTypeNameIself _jmtTermsIself
@@ -3673,97 +3674,97 @@ sem_Judgement_Judgement jmtTypeName_ jmtTerms_ =
               _lhsOdesugared =
                   ({-# LINE 409 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 3677 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3678 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3682 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3683 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3687 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3688 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3692 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3693 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3697 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3698 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3702 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3703 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3707 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3708 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3712 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3713 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3717 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3718 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTypeNameOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3722 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3723 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3727 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3728 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3732 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3733 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3737 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3738 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3742 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3743 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3747 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3748 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3752 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3753 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3757 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3758 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3762 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3763 "src/KnotSpec/AG.hs" #-}
                    )
               _jmtTermsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3767 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3768 "src/KnotSpec/AG.hs" #-}
                    )
               ( _jmtTypeNameIfromTn,_jmtTypeNameInamespaceTypeName,_jmtTypeNameIrelationTypeName,_jmtTypeNameIself,_jmtTypeNameIsortTypeName) =
                   jmtTypeName_ _jmtTypeNameOmeEnvNameRoots _jmtTypeNameOmeEnvTypeName _jmtTypeNameOmeFunType _jmtTypeNameOmeNamespaceCtor _jmtTypeNameOmeNamespaceNameRoots _jmtTypeNameOmeNamespaceTypeName _jmtTypeNameOmeRelationEnv _jmtTypeNameOmeSortNameRoots _jmtTypeNameOmeSortTypeName
@@ -3835,7 +3836,7 @@ sem_Judgements_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 408 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 3839 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3840 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -3844,92 +3845,92 @@ sem_Judgements_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3848 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3849 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3853 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3854 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3858 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3859 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3863 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3864 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3868 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3869 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3873 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3874 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3878 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3879 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3883 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3884 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3888 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3889 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 3893 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3894 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 3898 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3899 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 3903 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3904 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 3908 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3909 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 3913 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3914 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 3918 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3919 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 3923 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3924 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 3928 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3929 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 3933 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3934 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -3952,7 +3953,7 @@ sem_Judgements_Nil =
               _lhsOdesugared =
                   ({-# LINE 408 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 3956 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 3957 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -4017,47 +4018,47 @@ sem_MEEnvNameRoots_Entry key_ val_ tl_ =
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4021 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4022 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4026 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4027 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4031 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4032 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4036 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4037 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4041 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4042 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4046 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4047 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4051 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4052 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4056 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4057 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4061 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4062 "src/KnotSpec/AG.hs" #-}
                    )
               ( _valIself) =
                   val_
@@ -4152,92 +4153,92 @@ sem_MEEnvTypeName_Entry key_ val_ tl_ =
               _valOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4156 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4157 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4161 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4162 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4166 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4167 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4171 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4172 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4176 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4177 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4181 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4182 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4186 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4187 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4191 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4192 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4196 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4197 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4201 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4202 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4206 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4207 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4211 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4212 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4216 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4217 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4221 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4222 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4226 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4227 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4231 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4232 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4236 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4237 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4241 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4242 "src/KnotSpec/AG.hs" #-}
                    )
               ( _valIfromTn,_valInamespaceTypeName,_valIrelationTypeName,_valIself,_valIsortTypeName) =
                   val_ _valOmeEnvNameRoots _valOmeEnvTypeName _valOmeFunType _valOmeNamespaceCtor _valOmeNamespaceNameRoots _valOmeNamespaceTypeName _valOmeRelationEnv _valOmeSortNameRoots _valOmeSortTypeName
@@ -4356,47 +4357,47 @@ sem_MENamespaceCtor_Entry key_ val_ tl_ =
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4360 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4361 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4365 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4366 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4370 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4371 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4375 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4376 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4380 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4381 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4385 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4386 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4390 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4391 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4395 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4396 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4400 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4401 "src/KnotSpec/AG.hs" #-}
                    )
               ( _tlIself) =
                   tl_ _tlOmeEnvNameRoots _tlOmeEnvTypeName _tlOmeFunType _tlOmeNamespaceCtor _tlOmeNamespaceNameRoots _tlOmeNamespaceTypeName _tlOmeRelationEnv _tlOmeSortNameRoots _tlOmeSortTypeName
@@ -4476,47 +4477,47 @@ sem_MENamespaceNameRoots_Entry key_ val_ tl_ =
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4480 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4481 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4485 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4486 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4490 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4491 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4495 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4496 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4500 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4501 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4505 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4506 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4510 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4511 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4515 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4516 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4520 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4521 "src/KnotSpec/AG.hs" #-}
                    )
               ( _valIself) =
                   val_
@@ -4611,92 +4612,92 @@ sem_MENamespaceTypeName_Entry key_ val_ tl_ =
               _valOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4615 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4616 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4620 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4621 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4625 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4626 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4630 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4631 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4635 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4636 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4640 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4641 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4645 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4646 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4650 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4651 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4655 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4656 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4660 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4661 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4665 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4666 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4670 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4671 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4675 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4676 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4680 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4681 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4685 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4686 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4690 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4691 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4695 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4696 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4700 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4701 "src/KnotSpec/AG.hs" #-}
                    )
               ( _valIfromTn,_valInamespaceTypeName,_valIrelationTypeName,_valIself,_valIsortTypeName) =
                   val_ _valOmeEnvNameRoots _valOmeEnvTypeName _valOmeFunType _valOmeNamespaceCtor _valOmeNamespaceNameRoots _valOmeNamespaceTypeName _valOmeRelationEnv _valOmeSortNameRoots _valOmeSortTypeName
@@ -4777,47 +4778,47 @@ sem_MERelationEnv_Entry key_ val_ tl_ =
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4781 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4782 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4786 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4787 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4791 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4792 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4796 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4797 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4801 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4802 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4806 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4807 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4811 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4812 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4816 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4817 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4821 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4822 "src/KnotSpec/AG.hs" #-}
                    )
               ( _tlIself) =
                   tl_ _tlOmeEnvNameRoots _tlOmeEnvTypeName _tlOmeFunType _tlOmeNamespaceCtor _tlOmeNamespaceNameRoots _tlOmeNamespaceTypeName _tlOmeRelationEnv _tlOmeSortNameRoots _tlOmeSortTypeName
@@ -4897,47 +4898,47 @@ sem_MESortNameRoots_Entry key_ val_ tl_ =
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 4901 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4902 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 4906 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4907 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 4911 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4912 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 4916 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4917 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 4921 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4922 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 4926 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4927 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 4931 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4932 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 4936 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4937 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 4941 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 4942 "src/KnotSpec/AG.hs" #-}
                    )
               ( _valIself) =
                   val_
@@ -5032,92 +5033,92 @@ sem_MESortTypeName_Entry key_ val_ tl_ =
               _valOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 5036 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5037 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 5041 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5042 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 5046 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5047 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 5051 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5052 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 5056 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5057 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 5061 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5062 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 5066 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5067 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 5071 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5072 "src/KnotSpec/AG.hs" #-}
                    )
               _valOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 5076 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5077 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 5081 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5082 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 5086 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5087 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 5091 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5092 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 5096 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5097 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 5101 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5102 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 5106 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5107 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 5111 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5112 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 5116 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5117 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 5121 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5122 "src/KnotSpec/AG.hs" #-}
                    )
               ( _valIfromTn,_valInamespaceTypeName,_valIrelationTypeName,_valIself,_valIsortTypeName) =
                   val_ _valOmeEnvNameRoots _valOmeEnvTypeName _valOmeFunType _valOmeNamespaceCtor _valOmeNamespaceNameRoots _valOmeNamespaceTypeName _valOmeRelationEnv _valOmeSortNameRoots _valOmeSortTypeName
@@ -5237,47 +5238,47 @@ sem_MbTypeName_Just just_ =
               _justOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 5241 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5242 "src/KnotSpec/AG.hs" #-}
                    )
               _justOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 5246 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5247 "src/KnotSpec/AG.hs" #-}
                    )
               _justOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 5251 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5252 "src/KnotSpec/AG.hs" #-}
                    )
               _justOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 5256 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5257 "src/KnotSpec/AG.hs" #-}
                    )
               _justOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 5261 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5262 "src/KnotSpec/AG.hs" #-}
                    )
               _justOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 5266 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5267 "src/KnotSpec/AG.hs" #-}
                    )
               _justOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 5271 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5272 "src/KnotSpec/AG.hs" #-}
                    )
               _justOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 5276 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5277 "src/KnotSpec/AG.hs" #-}
                    )
               _justOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 5281 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5282 "src/KnotSpec/AG.hs" #-}
                    )
               ( _justIfromTn,_justInamespaceTypeName,_justIrelationTypeName,_justIself,_justIsortTypeName) =
                   just_ _justOmeEnvNameRoots _justOmeEnvTypeName _justOmeFunType _justOmeNamespaceCtor _justOmeNamespaceNameRoots _justOmeNamespaceTypeName _justOmeRelationEnv _justOmeSortNameRoots _justOmeSortTypeName
@@ -5359,7 +5360,7 @@ sem_Name_Tuple x1_ x2_ =
                         (Nothing , Nothing, Just (TN etn)) ->
                           return . ETN $ Core.ETN etn
                         _ -> throwError $ "Cannot find typename for nameroot: " ++ fromNR _root
-                   {-# LINE 5363 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5364 "src/KnotSpec/AG.hs" #-}
                    )
               _coreFieldName =
                   ({-# LINE 105 "src/KnotSpec/Desugaring.ag" #-}
@@ -5377,7 +5378,7 @@ sem_Name_Tuple x1_ x2_ =
                                     _suffix
                                     stn
                        ETN _ -> throwError "coreFieldName"
-                   {-# LINE 5381 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5382 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceTypeName =
                   ({-# LINE 120 "src/KnotSpec/Desugaring.ag" #-}
@@ -5386,7 +5387,7 @@ sem_Name_Tuple x1_ x2_ =
                      case coreTypeName of
                        NTN ntn -> return ntn
                        ETN _ -> throwError "namespaceTypeName"
-                   {-# LINE 5390 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5391 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOmetavarName =
                   ({-# LINE 127 "src/KnotSpec/Desugaring.ag" #-}
@@ -5395,7 +5396,7 @@ sem_Name_Tuple x1_ x2_ =
                      case mbMetavarVar of
                        FRN metavarName -> return metavarName
                        _               -> throwError "metavarName"
-                   {-# LINE 5399 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5400 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsubtreeName =
                   ({-# LINE 133 "src/KnotSpec/Desugaring.ag" #-}
@@ -5404,7 +5405,7 @@ sem_Name_Tuple x1_ x2_ =
                      case mbSubtreeVar of
                        FRS subtreeName -> return subtreeName
                        _               -> throwError "subtreeName"
-                   {-# LINE 5408 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5409 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOfieldMetaBinding =
                   ({-# LINE 139 "src/KnotSpec/Desugaring.ag" #-}
@@ -5413,17 +5414,17 @@ sem_Name_Tuple x1_ x2_ =
                      case coreFieldRef of
                        FRN metavarName -> return $ Core.FieldMetaBindingMetavar metavarName
                        FRS subtreeName -> return $ Core.FieldMetaBindingSubtree subtreeName
-                   {-# LINE 5417 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5418 "src/KnotSpec/AG.hs" #-}
                    )
               _root =
                   ({-# LINE 35 "src/KnotSpec/Environment.ag" #-}
                    x1_
-                   {-# LINE 5422 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5423 "src/KnotSpec/AG.hs" #-}
                    )
               _suffix =
                   ({-# LINE 36 "src/KnotSpec/Environment.ag" #-}
                    x2_
-                   {-# LINE 5427 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5428 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (x1_,x2_)
@@ -5432,22 +5433,22 @@ sem_Name_Tuple x1_ x2_ =
               _lhsOcoreFieldName =
                   ({-# LINE 81 "src/KnotSpec/Desugaring.ag" #-}
                    _coreFieldName
-                   {-# LINE 5436 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5437 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOcoreTypeName =
                   ({-# LINE 80 "src/KnotSpec/Desugaring.ag" #-}
                    _coreTypeName
-                   {-# LINE 5441 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5442 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOroot =
                   ({-# LINE 31 "src/KnotSpec/Environment.ag" #-}
                    _root
-                   {-# LINE 5446 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5447 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsuffix =
                   ({-# LINE 32 "src/KnotSpec/Environment.ag" #-}
                    _suffix
-                   {-# LINE 5451 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5452 "src/KnotSpec/AG.hs" #-}
                    )
           in  ( _lhsOcoreFieldName,_lhsOcoreTypeName,_lhsOfieldMetaBinding,_lhsOmetavarName,_lhsOnamespaceTypeName,_lhsOroot,_lhsOself,_lhsOsubtreeName,_lhsOsuffix)))
 -- NameRoots ---------------------------------------------------
@@ -5561,12 +5562,12 @@ sem_Names_Cons hd_ tl_ =
               _lhsOfieldMetaBinding =
                   ({-# LINE 89 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIfieldMetaBinding _tlIfieldMetaBinding)
-                   {-# LINE 5565 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5566 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsubtreeName =
                   ({-# LINE 88 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIsubtreeName _tlIsubtreeName)
-                   {-# LINE 5570 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5571 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -5575,92 +5576,92 @@ sem_Names_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 5579 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5580 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 5584 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5585 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 5589 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5590 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 5594 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5595 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 5599 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5600 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 5604 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5605 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 5609 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5610 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 5614 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5615 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 5619 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5620 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 5624 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5625 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 5629 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5630 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 5634 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5635 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 5639 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5640 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 5644 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5645 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 5649 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5650 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 5654 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5655 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 5659 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5660 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 5664 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5665 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIcoreFieldName,_hdIcoreTypeName,_hdIfieldMetaBinding,_hdImetavarName,_hdInamespaceTypeName,_hdIroot,_hdIself,_hdIsubtreeName,_hdIsuffix) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -5684,12 +5685,12 @@ sem_Names_Nil =
               _lhsOfieldMetaBinding =
                   ({-# LINE 89 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 5688 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5689 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsubtreeName =
                   ({-# LINE 88 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 5693 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5694 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -5799,17 +5800,17 @@ sem_NamespaceDecl_NamespaceDecl nsdTypeName_ nsdNameRoots_ nsdSort_ nsdDirective
                                 (Core.CNS variableCtor (Core.STN _nsdSortIfromTn))
                                 shiftName
                                 substName
-                   {-# LINE 5803 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5804 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceNameRoots =
                   ({-# LINE 74 "src/KnotSpec/Environment.ag" #-}
                    Data.Map.singleton _nsdTypeNameIself _nsdNameRootsIself
-                   {-# LINE 5808 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5809 "src/KnotSpec/AG.hs" #-}
                    )
               _typeName =
                   ({-# LINE 75 "src/KnotSpec/Environment.ag" #-}
                    _nsdTypeNameIself
-                   {-# LINE 5813 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5814 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   NamespaceDecl _nsdTypeNameIself _nsdNameRootsIself _nsdSortIself _nsdDirectivesIself
@@ -5818,97 +5819,97 @@ sem_NamespaceDecl_NamespaceDecl nsdTypeName_ nsdNameRoots_ nsdSort_ nsdDirective
               _lhsOdesugared =
                   ({-# LINE 170 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 5822 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5823 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 5827 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5828 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 5832 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5833 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 5837 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5838 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 5842 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5843 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 5847 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5848 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 5852 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5853 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 5857 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5858 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 5862 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5863 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdTypeNameOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 5867 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5868 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 5872 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5873 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 5877 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5878 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 5882 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5883 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 5887 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5888 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 5892 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5893 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 5897 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5898 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 5902 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5903 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 5907 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5908 "src/KnotSpec/AG.hs" #-}
                    )
               _nsdSortOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 5912 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5913 "src/KnotSpec/AG.hs" #-}
                    )
               ( _nsdTypeNameIfromTn,_nsdTypeNameInamespaceTypeName,_nsdTypeNameIrelationTypeName,_nsdTypeNameIself,_nsdTypeNameIsortTypeName) =
                   nsdTypeName_ _nsdTypeNameOmeEnvNameRoots _nsdTypeNameOmeEnvTypeName _nsdTypeNameOmeFunType _nsdTypeNameOmeNamespaceCtor _nsdTypeNameOmeNamespaceNameRoots _nsdTypeNameOmeNamespaceTypeName _nsdTypeNameOmeRelationEnv _nsdTypeNameOmeSortNameRoots _nsdTypeNameOmeSortTypeName
@@ -5987,12 +5988,12 @@ sem_NamespaceDecls_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 169 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 5991 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5992 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceNameRoots =
                   ({-# LINE 68 "src/KnotSpec/Environment.ag" #-}
                    (Data.Map.unionWith (error "smeNamespaceNameRoots union") _hdIsmeNamespaceNameRoots _tlIsmeNamespaceNameRoots)
-                   {-# LINE 5996 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 5997 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -6001,92 +6002,92 @@ sem_NamespaceDecls_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6005 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6006 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6010 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6011 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6015 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6016 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6020 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6021 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6025 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6026 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6030 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6031 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6035 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6036 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6040 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6041 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6045 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6046 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6050 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6051 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6055 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6056 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6060 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6061 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6065 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6066 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6070 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6071 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6075 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6076 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6080 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6081 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6085 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6086 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6090 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6091 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself,_hdIsmeNamespaceNameRoots) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -6110,12 +6111,12 @@ sem_NamespaceDecls_Nil =
               _lhsOdesugared =
                   ({-# LINE 169 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 6114 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6115 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceNameRoots =
                   ({-# LINE 68 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 6119 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6120 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -6315,12 +6316,12 @@ sem_RelationDecl_RelationDecl relEnv_ relTypeName_ relIndices_ relRules_ =
                      tn@(TN etn) <- _relEnvIself
                      nrs <- Data.Map.lookup tn _lhsImeEnvNameRoots
                      return (Core.EnvVar (Core.NR . fromNR $ head nrs) "" (Core.ETN etn))
-                   {-# LINE 6319 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6320 "src/KnotSpec/AG.hs" #-}
                    )
               _coreIndices =
                   ({-# LINE 358 "src/KnotSpec/Desugaring.ag" #-}
                    map (Core.STN . fromTN) _relIndicesIself
-                   {-# LINE 6324 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6325 "src/KnotSpec/AG.hs" #-}
                    )
               _desugared =
                   ({-# LINE 359 "src/KnotSpec/Desugaring.ag" #-}
@@ -6329,14 +6330,14 @@ sem_RelationDecl_RelationDecl relEnv_ relTypeName_ relIndices_ relRules_ =
                      <*> _relTypeNameIrelationTypeName
                      <*> pure _coreIndices
                      <*> _relRulesIdesugared
-                   {-# LINE 6333 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6334 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeRelationEnv =
                   ({-# LINE 239 "src/KnotSpec/Environment.ag" #-}
                    case _relEnvIself of
                      Just etn -> Data.Map.singleton _relTypeNameIself etn
                      Nothing  -> mempty
-                   {-# LINE 6340 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6341 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   RelationDecl _relEnvIself _relTypeNameIself _relIndicesIself _relRulesIself
@@ -6345,187 +6346,187 @@ sem_RelationDecl_RelationDecl relEnv_ relTypeName_ relIndices_ relRules_ =
               _lhsOdesugared =
                   ({-# LINE 349 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 6349 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6350 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6354 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6355 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6359 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6360 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6364 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6365 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6369 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6370 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6374 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6375 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6379 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6380 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6384 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6385 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6389 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6390 "src/KnotSpec/AG.hs" #-}
                    )
               _relEnvOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6394 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6395 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6399 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6400 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6404 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6405 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6409 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6410 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6414 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6415 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6419 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6420 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6424 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6425 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6429 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6430 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6434 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6435 "src/KnotSpec/AG.hs" #-}
                    )
               _relTypeNameOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6439 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6440 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6444 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6445 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6449 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6450 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6454 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6455 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6459 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6460 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6464 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6465 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6469 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6470 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6474 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6475 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6479 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6480 "src/KnotSpec/AG.hs" #-}
                    )
               _relIndicesOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6484 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6485 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6489 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6490 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6494 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6495 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6499 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6500 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6504 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6505 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6509 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6510 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6514 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6515 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6519 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6520 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6524 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6525 "src/KnotSpec/AG.hs" #-}
                    )
               _relRulesOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6529 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6530 "src/KnotSpec/AG.hs" #-}
                    )
               ( _relEnvIself) =
                   relEnv_ _relEnvOmeEnvNameRoots _relEnvOmeEnvTypeName _relEnvOmeFunType _relEnvOmeNamespaceCtor _relEnvOmeNamespaceNameRoots _relEnvOmeNamespaceTypeName _relEnvOmeRelationEnv _relEnvOmeSortNameRoots _relEnvOmeSortTypeName
@@ -6604,12 +6605,12 @@ sem_RelationDecls_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 348 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 6608 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6609 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeRelationEnv =
                   ({-# LINE 230 "src/KnotSpec/Environment.ag" #-}
                    (Data.Map.unionWith (error "smeRelationEnv union") _hdIsmeRelationEnv _tlIsmeRelationEnv)
-                   {-# LINE 6613 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6614 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -6618,92 +6619,92 @@ sem_RelationDecls_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6622 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6623 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6627 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6628 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6632 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6633 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6637 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6638 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6642 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6643 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6647 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6648 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6652 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6653 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6657 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6658 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6662 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6663 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6667 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6668 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6672 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6673 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6677 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6678 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6682 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6683 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6687 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6688 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6692 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6693 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6697 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6698 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6702 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6703 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6707 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6708 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself,_hdIsmeRelationEnv) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -6727,12 +6728,12 @@ sem_RelationDecls_Nil =
               _lhsOdesugared =
                   ({-# LINE 348 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 6731 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6732 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeRelationEnv =
                   ({-# LINE 230 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 6736 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6737 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -6827,7 +6828,7 @@ sem_Rule_Rule ruleName_ rulePremises_ ruleConclusion_ ruleBindings_ =
                         premises
                         conclusion
                         rbinds
-                   {-# LINE 6831 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6832 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   Rule ruleName_ _rulePremisesIself _ruleConclusionIself _ruleBindingsIself
@@ -6836,142 +6837,142 @@ sem_Rule_Rule ruleName_ rulePremises_ ruleConclusion_ ruleBindings_ =
               _lhsOdesugared =
                   ({-# LINE 367 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 6840 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6841 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6845 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6846 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6850 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6851 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6855 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6856 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6860 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6861 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6865 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6866 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6870 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6871 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6875 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6876 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6880 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6881 "src/KnotSpec/AG.hs" #-}
                    )
               _rulePremisesOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6885 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6886 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6890 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6891 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6895 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6896 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6900 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6901 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6905 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6906 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6910 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6911 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6915 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6916 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6920 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6921 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6925 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6926 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleConclusionOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6930 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6931 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 6935 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6936 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 6940 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6941 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 6945 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6946 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 6950 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6951 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 6955 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6956 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 6960 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6961 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 6965 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6966 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 6970 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6971 "src/KnotSpec/AG.hs" #-}
                    )
               _ruleBindingsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 6975 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 6976 "src/KnotSpec/AG.hs" #-}
                    )
               ( _rulePremisesIdesugared,_rulePremisesIself) =
                   rulePremises_ _rulePremisesOmeEnvNameRoots _rulePremisesOmeEnvTypeName _rulePremisesOmeFunType _rulePremisesOmeNamespaceCtor _rulePremisesOmeNamespaceNameRoots _rulePremisesOmeNamespaceTypeName _rulePremisesOmeRelationEnv _rulePremisesOmeSortNameRoots _rulePremisesOmeSortTypeName
@@ -7054,7 +7055,7 @@ sem_RuleBinding_RuleBinding rbMetavar_ rbTerms_ =
                    Core.RuleBinding
                      <$> _rbMetavarImetavarName
                      <*> _rbTermsIdesugared
-                   {-# LINE 7058 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7059 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   RuleBinding _rbMetavarIself _rbTermsIself
@@ -7063,97 +7064,97 @@ sem_RuleBinding_RuleBinding rbMetavar_ rbTerms_ =
               _lhsOdesugared =
                   ({-# LINE 385 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 7067 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7068 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7072 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7073 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7077 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7078 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7082 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7083 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7087 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7088 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7092 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7093 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7097 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7098 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7102 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7103 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7107 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7108 "src/KnotSpec/AG.hs" #-}
                    )
               _rbMetavarOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7112 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7113 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7117 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7118 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7122 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7123 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7127 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7128 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7132 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7133 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7137 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7138 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7142 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7143 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7147 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7148 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7152 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7153 "src/KnotSpec/AG.hs" #-}
                    )
               _rbTermsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7157 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7158 "src/KnotSpec/AG.hs" #-}
                    )
               ( _rbMetavarIcoreFieldName,_rbMetavarIcoreTypeName,_rbMetavarIfieldMetaBinding,_rbMetavarImetavarName,_rbMetavarInamespaceTypeName,_rbMetavarIroot,_rbMetavarIself,_rbMetavarIsubtreeName,_rbMetavarIsuffix) =
                   rbMetavar_ _rbMetavarOmeEnvNameRoots _rbMetavarOmeEnvTypeName _rbMetavarOmeFunType _rbMetavarOmeNamespaceCtor _rbMetavarOmeNamespaceNameRoots _rbMetavarOmeNamespaceTypeName _rbMetavarOmeRelationEnv _rbMetavarOmeSortNameRoots _rbMetavarOmeSortTypeName
@@ -7225,7 +7226,7 @@ sem_RuleBindings_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 384 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 7229 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7230 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -7234,92 +7235,92 @@ sem_RuleBindings_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7238 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7239 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7243 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7244 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7248 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7249 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7253 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7254 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7258 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7259 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7263 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7264 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7268 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7269 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7273 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7274 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7278 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7279 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7283 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7284 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7288 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7289 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7293 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7294 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7298 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7299 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7303 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7304 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7308 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7309 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7313 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7314 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7318 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7319 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7323 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7324 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -7342,7 +7343,7 @@ sem_RuleBindings_Nil =
               _lhsOdesugared =
                   ({-# LINE 384 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 7346 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7347 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -7414,7 +7415,7 @@ sem_Rules_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 366 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 7418 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7419 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -7423,92 +7424,92 @@ sem_Rules_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7427 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7428 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7432 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7433 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7437 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7438 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7442 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7443 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7447 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7448 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7452 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7453 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7457 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7458 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7462 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7463 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7467 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7468 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7472 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7473 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7477 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7478 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7482 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7483 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7487 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7488 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7492 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7493 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7497 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7498 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7502 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7503 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7507 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7508 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7512 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7513 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -7531,7 +7532,7 @@ sem_Rules_Nil =
               _lhsOdesugared =
                   ({-# LINE 366 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 7535 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7536 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -7619,7 +7620,7 @@ sem_SortDecl_SortDecl sortTypeName_ sortNameRoots_ sortCtors_ =
               _coreSortTypeName =
                   ({-# LINE 247 "src/KnotSpec/Desugaring.ag" #-}
                    Core.STN _sortTypeNameIfromTn
-                   {-# LINE 7623 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7624 "src/KnotSpec/AG.hs" #-}
                    )
               _desugared =
                   ({-# LINE 248 "src/KnotSpec/Desugaring.ag" #-}
@@ -7627,7 +7628,7 @@ sem_SortDecl_SortDecl sortTypeName_ sortNameRoots_ sortCtors_ =
                      (_coreSortTypeName    )
                      (map (Core.NR . fromNR) _sortNameRootsIself)
                      <$> _sortCtorsIdesugared
-                   {-# LINE 7631 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7632 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOdependencyGraph =
                   ({-# LINE 519 "src/KnotSpec/Desugaring.ag" #-}
@@ -7640,12 +7641,12 @@ sem_SortDecl_SortDecl sortTypeName_ sortNameRoots_ sortCtors_ =
                                       Data.Set.fromList sortNames,
                                       Data.Set.fromList namespaceTypeNames)
                      return (nodeLabel,typeName,sortNames)
-                   {-# LINE 7644 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7645 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeSortNameRoots =
                   ({-# LINE 112 "src/KnotSpec/Environment.ag" #-}
                    Data.Map.singleton _sortTypeNameIself _sortNameRootsIself
-                   {-# LINE 7649 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7650 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeSortTypeName =
                   ({-# LINE 113 "src/KnotSpec/Environment.ag" #-}
@@ -7653,22 +7654,22 @@ sem_SortDecl_SortDecl sortTypeName_ sortNameRoots_ sortCtors_ =
                      [ (fnr,_sortTypeNameIself)
                      | fnr <- _sortNameRootsIself
                      ]
-                   {-# LINE 7657 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7658 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeName =
                   ({-# LINE 139 "src/KnotSpec/Environment.ag" #-}
                    _sortTypeNameIself
-                   {-# LINE 7662 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7663 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    _sortCtorsIsFunctionDef
-                   {-# LINE 7667 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7668 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceCtor =
                   ({-# LINE 143 "src/KnotSpec/Environment.ag" #-}
                    _sortCtorsIsmeNamespaceCtor
-                   {-# LINE 7672 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7673 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   SortDecl _sortTypeNameIself _sortNameRootsIself _sortCtorsIself
@@ -7677,107 +7678,107 @@ sem_SortDecl_SortDecl sortTypeName_ sortNameRoots_ sortCtors_ =
               _lhsOdesugared =
                   ({-# LINE 171 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 7681 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7682 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7686 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7687 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7691 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7692 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7696 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7697 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7701 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7702 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7706 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7707 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7711 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7712 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7716 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7717 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7721 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7722 "src/KnotSpec/AG.hs" #-}
                    )
               _sortTypeNameOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7726 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7727 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOcoreSortTypeName =
                   ({-# LINE 243 "src/KnotSpec/Desugaring.ag" #-}
                    _coreSortTypeName
-                   {-# LINE 7731 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7732 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7736 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7737 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7741 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7742 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7746 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7747 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7751 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7752 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7756 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7757 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7761 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7762 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7766 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7767 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7771 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7772 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7776 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7777 "src/KnotSpec/AG.hs" #-}
                    )
               _sortCtorsOsortTypeName =
                   ({-# LINE 135 "src/KnotSpec/Environment.ag" #-}
                    _sortTypeName
-                   {-# LINE 7781 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7782 "src/KnotSpec/AG.hs" #-}
                    )
               ( _sortTypeNameIfromTn,_sortTypeNameInamespaceTypeName,_sortTypeNameIrelationTypeName,_sortTypeNameIself,_sortTypeNameIsortTypeName) =
                   sortTypeName_ _sortTypeNameOmeEnvNameRoots _sortTypeNameOmeEnvTypeName _sortTypeNameOmeFunType _sortTypeNameOmeNamespaceCtor _sortTypeNameOmeNamespaceNameRoots _sortTypeNameOmeNamespaceTypeName _sortTypeNameOmeRelationEnv _sortTypeNameOmeSortNameRoots _sortTypeNameOmeSortTypeName
@@ -7864,27 +7865,27 @@ sem_SortDecls_Cons hd_ tl_ =
               _lhsOdependencyGraph =
                   ({-# LINE 514 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdependencyGraph _tlIdependencyGraph)
-                   {-# LINE 7868 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7869 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    (liftA2 (Data.Map.unionWith Data.Map.union) _hdIsFunctionDef _tlIsFunctionDef)
-                   {-# LINE 7873 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7874 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceCtor =
                   ({-# LINE 143 "src/KnotSpec/Environment.ag" #-}
                    (Data.Map.unionWith (error "smeVariableCtor union") _hdIsmeNamespaceCtor _tlIsmeNamespaceCtor)
-                   {-# LINE 7878 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7879 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeSortNameRoots =
                   ({-# LINE 99 "src/KnotSpec/Environment.ag" #-}
                    (Data.Map.unionWith (error "smeFieldNameRoots union") _hdIsmeSortNameRoots _tlIsmeSortNameRoots)
-                   {-# LINE 7883 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7884 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeSortTypeName =
                   ({-# LINE 102 "src/KnotSpec/Environment.ag" #-}
                    (Data.Map.unionWith (error "smeTypeName union") _hdIsmeSortTypeName _tlIsmeSortTypeName)
-                   {-# LINE 7888 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7889 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -7893,92 +7894,92 @@ sem_SortDecls_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7897 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7898 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7902 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7903 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7907 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7908 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7912 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7913 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7917 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7918 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7922 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7923 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7927 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7928 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7932 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7933 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7937 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7938 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 7942 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7943 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 7947 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7948 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 7952 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7953 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 7957 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7958 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 7962 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7963 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 7967 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7968 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 7972 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7973 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 7977 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7978 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 7982 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 7983 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdependencyGraph,_hdIdesugared,_hdIsFunctionDef,_hdIself,_hdIsmeNamespaceCtor,_hdIsmeSortNameRoots,_hdIsmeSortTypeName) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -8005,27 +8006,27 @@ sem_SortDecls_Nil =
               _lhsOdependencyGraph =
                   ({-# LINE 514 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 8009 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8010 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsFunctionDef =
                   ({-# LINE 603 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 8014 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8015 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeNamespaceCtor =
                   ({-# LINE 143 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 8019 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8020 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeSortNameRoots =
                   ({-# LINE 99 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 8024 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8025 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOsmeSortTypeName =
                   ({-# LINE 102 "src/KnotSpec/Environment.ag" #-}
                    mempty
-                   {-# LINE 8029 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8030 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -8102,7 +8103,7 @@ sem_SymbolicTerm_SymVar stVar_ =
                      case coreFieldName of
                        FRS subtreeName -> return $ Core.SymSubtree subtreeName
                        FRN metavarName -> return $ Core.SymBinding metavarName
-                   {-# LINE 8106 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8107 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   SymVar _stVarIself
@@ -8111,52 +8112,52 @@ sem_SymbolicTerm_SymVar stVar_ =
               _lhsOdesugared =
                   ({-# LINE 431 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 8115 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8116 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 8120 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8121 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 8125 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8126 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 8130 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8131 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 8135 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8136 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 8140 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8141 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 8145 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8146 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 8150 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8151 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 8155 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8156 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 8160 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8161 "src/KnotSpec/AG.hs" #-}
                    )
               ( _stVarIcoreFieldName,_stVarIcoreTypeName,_stVarIfieldMetaBinding,_stVarImetavarName,_stVarInamespaceTypeName,_stVarIroot,_stVarIself,_stVarIsubtreeName,_stVarIsuffix) =
                   stVar_ _stVarOmeEnvNameRoots _stVarOmeEnvTypeName _stVarOmeFunType _stVarOmeNamespaceCtor _stVarOmeNamespaceNameRoots _stVarOmeNamespaceTypeName _stVarOmeRelationEnv _stVarOmeSortNameRoots _stVarOmeSortTypeName
@@ -8199,7 +8200,7 @@ sem_SymbolicTerm_SymCtorVar stCtor_ stMetavar_ =
                    Core.SymCtorVar
                      <$> pure (Core.CNO stCtor_)
                      <*> _stMetavarImetavarName
-                   {-# LINE 8203 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8204 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   SymCtorVar stCtor_ _stMetavarIself
@@ -8208,52 +8209,52 @@ sem_SymbolicTerm_SymCtorVar stCtor_ stMetavar_ =
               _lhsOdesugared =
                   ({-# LINE 431 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 8212 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8213 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 8217 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8218 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 8222 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8223 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 8227 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8228 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 8232 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8233 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 8237 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8238 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 8242 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8243 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 8247 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8248 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 8252 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8253 "src/KnotSpec/AG.hs" #-}
                    )
               _stMetavarOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 8257 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8258 "src/KnotSpec/AG.hs" #-}
                    )
               ( _stMetavarIcoreFieldName,_stMetavarIcoreTypeName,_stMetavarIfieldMetaBinding,_stMetavarImetavarName,_stMetavarInamespaceTypeName,_stMetavarIroot,_stMetavarIself,_stMetavarIsubtreeName,_stMetavarIsuffix) =
                   stMetavar_ _stMetavarOmeEnvNameRoots _stMetavarOmeEnvTypeName _stMetavarOmeFunType _stMetavarOmeNamespaceCtor _stMetavarOmeNamespaceNameRoots _stMetavarOmeNamespaceTypeName _stMetavarOmeRelationEnv _stMetavarOmeSortNameRoots _stMetavarOmeSortTypeName
@@ -8289,7 +8290,7 @@ sem_SymbolicTerm_SymCtorTerm stCtor_ stFields_ =
                    Core.SymCtorTerm
                      <$> pure (Core.CNO stCtor_)
                      <*> _stFieldsIdesugared
-                   {-# LINE 8293 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8294 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   SymCtorTerm stCtor_ _stFieldsIself
@@ -8298,52 +8299,52 @@ sem_SymbolicTerm_SymCtorTerm stCtor_ stFields_ =
               _lhsOdesugared =
                   ({-# LINE 431 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 8302 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8303 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 8307 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8308 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 8312 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8313 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 8317 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8318 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 8322 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8323 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 8327 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8328 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 8332 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8333 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 8337 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8338 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 8342 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8343 "src/KnotSpec/AG.hs" #-}
                    )
               _stFieldsOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 8347 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8348 "src/KnotSpec/AG.hs" #-}
                    )
               ( _stFieldsIdesugared,_stFieldsIself) =
                   stFields_ _stFieldsOmeEnvNameRoots _stFieldsOmeEnvTypeName _stFieldsOmeFunType _stFieldsOmeNamespaceCtor _stFieldsOmeNamespaceNameRoots _stFieldsOmeNamespaceTypeName _stFieldsOmeRelationEnv _stFieldsOmeSortNameRoots _stFieldsOmeSortTypeName
@@ -8410,7 +8411,7 @@ sem_SymbolicTerm_SymSubst stVar_ stSubstitute_ stSubstitutee_ =
                      <$> _stVarImetavarName
                      <*> _stSubstituteIdesugared
                      <*> _stSubstituteeIdesugared
-                   {-# LINE 8414 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8415 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   SymSubst _stVarIself _stSubstituteIself _stSubstituteeIself
@@ -8419,142 +8420,142 @@ sem_SymbolicTerm_SymSubst stVar_ stSubstitute_ stSubstitutee_ =
               _lhsOdesugared =
                   ({-# LINE 431 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 8423 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8424 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 8428 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8429 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 8433 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8434 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 8438 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8439 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 8443 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8444 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 8448 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8449 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 8453 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8454 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 8458 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8459 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 8463 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8464 "src/KnotSpec/AG.hs" #-}
                    )
               _stVarOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 8468 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8469 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 8473 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8474 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 8478 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8479 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 8483 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8484 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 8488 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8489 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 8493 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8494 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 8498 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8499 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 8503 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8504 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 8508 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8509 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 8513 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8514 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 8518 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8519 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 8523 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8524 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 8528 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8529 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 8533 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8534 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 8538 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8539 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 8543 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8544 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 8548 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8549 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 8553 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8554 "src/KnotSpec/AG.hs" #-}
                    )
               _stSubstituteeOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 8558 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8559 "src/KnotSpec/AG.hs" #-}
                    )
               ( _stVarIcoreFieldName,_stVarIcoreTypeName,_stVarIfieldMetaBinding,_stVarImetavarName,_stVarInamespaceTypeName,_stVarIroot,_stVarIself,_stVarIsubtreeName,_stVarIsuffix) =
                   stVar_ _stVarOmeEnvNameRoots _stVarOmeEnvTypeName _stVarOmeFunType _stVarOmeNamespaceCtor _stVarOmeNamespaceNameRoots _stVarOmeNamespaceTypeName _stVarOmeRelationEnv _stVarOmeSortNameRoots _stVarOmeSortTypeName
@@ -8628,7 +8629,7 @@ sem_SymbolicTerms_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 430 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 8632 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8633 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -8637,92 +8638,92 @@ sem_SymbolicTerms_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 8641 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8642 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 8646 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8647 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 8651 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8652 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 8656 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8657 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 8661 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8662 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 8666 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8667 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 8671 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8672 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 8676 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8677 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 8681 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8682 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 8686 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8687 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 8691 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8692 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 8696 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8697 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 8701 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8702 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 8706 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8707 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 8711 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8712 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 8716 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8717 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 8721 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8722 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 8726 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8727 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -8745,7 +8746,7 @@ sem_SymbolicTerms_Nil =
               _lhsOdesugared =
                   ({-# LINE 430 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 8749 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 8750 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -8860,7 +8861,7 @@ sem_TermSpec_TermSpec tsNamespaceDecls_ tsSortDecls_ tsFunDecls_ tsEnvDecls_ tsR
                     )
                 <*> _tsEnvDeclsIdesugared
                 <*> _tsRelDeclsIdesugared
-              {-# LINE 8864 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8865 "src/KnotSpec/AG.hs" #-}
               )
          _metaEnvironments =
              ({-# LINE 49 "src/KnotSpec/Environment.ag" #-}
@@ -8874,12 +8875,12 @@ sem_TermSpec_TermSpec tsNamespaceDecls_ tsSortDecls_ tsFunDecls_ tsEnvDecls_ tsR
                 _meEnvTypeName
                 _meFunType
                 _meRelationEnv
-              {-# LINE 8878 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8879 "src/KnotSpec/AG.hs" #-}
               )
          _meNamespaceNameRoots =
              ({-# LINE 83 "src/KnotSpec/Environment.ag" #-}
               _tsNamespaceDeclsIsmeNamespaceNameRoots
-              {-# LINE 8883 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8884 "src/KnotSpec/AG.hs" #-}
               )
          _meNamespaceTypeName =
              ({-# LINE 85 "src/KnotSpec/Environment.ag" #-}
@@ -8889,12 +8890,12 @@ sem_TermSpec_TermSpec tsNamespaceDecls_ tsSortDecls_ tsFunDecls_ tsEnvDecls_ tsR
                     Data.Map.toList _tsNamespaceDeclsIsmeNamespaceNameRoots
                 , nameRoot <- nameRoots
                 ]
-              {-# LINE 8893 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8894 "src/KnotSpec/AG.hs" #-}
               )
          _meSortNameRoots =
              ({-# LINE 120 "src/KnotSpec/Environment.ag" #-}
               _tsSortDeclsIsmeSortNameRoots
-              {-# LINE 8898 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8899 "src/KnotSpec/AG.hs" #-}
               )
          _meSortTypeName =
              ({-# LINE 122 "src/KnotSpec/Environment.ag" #-}
@@ -8903,22 +8904,22 @@ sem_TermSpec_TermSpec tsNamespaceDecls_ tsSortDecls_ tsFunDecls_ tsEnvDecls_ tsR
                 | (typeName,nameRoots) <- Data.Map.toList _tsSortDeclsIsmeSortNameRoots
                 , nameRoot <- nameRoots
                 ]
-              {-# LINE 8907 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8908 "src/KnotSpec/AG.hs" #-}
               )
          _meNamespaceCtor =
              ({-# LINE 165 "src/KnotSpec/Environment.ag" #-}
               _tsSortDeclsIsmeNamespaceCtor
-              {-# LINE 8912 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8913 "src/KnotSpec/AG.hs" #-}
               )
          _meFunType =
              ({-# LINE 187 "src/KnotSpec/Environment.ag" #-}
               _tsFunDeclsIsmeFunType
-              {-# LINE 8917 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8918 "src/KnotSpec/AG.hs" #-}
               )
          _meEnvNameRoots =
              ({-# LINE 215 "src/KnotSpec/Environment.ag" #-}
               _tsEnvDeclsIsmeEnvNameRoots
-              {-# LINE 8922 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8923 "src/KnotSpec/AG.hs" #-}
               )
          _meEnvTypeName =
              ({-# LINE 217 "src/KnotSpec/Environment.ag" #-}
@@ -8927,12 +8928,12 @@ sem_TermSpec_TermSpec tsNamespaceDecls_ tsSortDecls_ tsFunDecls_ tsEnvDecls_ tsR
                 | (typeName,nameRoots) <- Data.Map.toList _tsEnvDeclsIsmeEnvNameRoots
                 , nameRoot <- nameRoots
                 ]
-              {-# LINE 8931 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8932 "src/KnotSpec/AG.hs" #-}
               )
          _meRelationEnv =
              ({-# LINE 246 "src/KnotSpec/Environment.ag" #-}
               _tsRelDeclsIsmeRelationEnv
-              {-# LINE 8936 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8937 "src/KnotSpec/AG.hs" #-}
               )
          _self =
              TermSpec _tsNamespaceDeclsIself _tsSortDeclsIself _tsFunDeclsIself _tsEnvDeclsIself _tsRelDeclsIself
@@ -8941,232 +8942,232 @@ sem_TermSpec_TermSpec tsNamespaceDecls_ tsSortDecls_ tsFunDecls_ tsEnvDecls_ tsR
          _lhsOmetaEnvironments =
              ({-# LINE 45 "src/KnotSpec/Environment.ag" #-}
               _metaEnvironments
-              {-# LINE 8945 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8946 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeEnvNameRoots =
              ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
               _meEnvNameRoots
-              {-# LINE 8950 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8951 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeEnvTypeName =
              ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
               _meEnvTypeName
-              {-# LINE 8955 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8956 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeFunType =
              ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
               _meFunType
-              {-# LINE 8960 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8961 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeNamespaceCtor =
              ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceCtor
-              {-# LINE 8965 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8966 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeNamespaceNameRoots =
              ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceNameRoots
-              {-# LINE 8970 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8971 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeNamespaceTypeName =
              ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceTypeName
-              {-# LINE 8975 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8976 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeRelationEnv =
              ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
               _meRelationEnv
-              {-# LINE 8980 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8981 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeSortNameRoots =
              ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
               _meSortNameRoots
-              {-# LINE 8985 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8986 "src/KnotSpec/AG.hs" #-}
               )
          _tsNamespaceDeclsOmeSortTypeName =
              ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
               _meSortTypeName
-              {-# LINE 8990 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8991 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeEnvNameRoots =
              ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
               _meEnvNameRoots
-              {-# LINE 8995 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 8996 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeEnvTypeName =
              ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
               _meEnvTypeName
-              {-# LINE 9000 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9001 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeFunType =
              ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
               _meFunType
-              {-# LINE 9005 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9006 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeNamespaceCtor =
              ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceCtor
-              {-# LINE 9010 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9011 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeNamespaceNameRoots =
              ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceNameRoots
-              {-# LINE 9015 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9016 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeNamespaceTypeName =
              ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceTypeName
-              {-# LINE 9020 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9021 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeRelationEnv =
              ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
               _meRelationEnv
-              {-# LINE 9025 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9026 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeSortNameRoots =
              ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
               _meSortNameRoots
-              {-# LINE 9030 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9031 "src/KnotSpec/AG.hs" #-}
               )
          _tsSortDeclsOmeSortTypeName =
              ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
               _meSortTypeName
-              {-# LINE 9035 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9036 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeEnvNameRoots =
              ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
               _meEnvNameRoots
-              {-# LINE 9040 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9041 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeEnvTypeName =
              ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
               _meEnvTypeName
-              {-# LINE 9045 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9046 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeFunType =
              ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
               _meFunType
-              {-# LINE 9050 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9051 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeNamespaceCtor =
              ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceCtor
-              {-# LINE 9055 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9056 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeNamespaceNameRoots =
              ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceNameRoots
-              {-# LINE 9060 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9061 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeNamespaceTypeName =
              ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceTypeName
-              {-# LINE 9065 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9066 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeRelationEnv =
              ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
               _meRelationEnv
-              {-# LINE 9070 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9071 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeSortNameRoots =
              ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
               _meSortNameRoots
-              {-# LINE 9075 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9076 "src/KnotSpec/AG.hs" #-}
               )
          _tsFunDeclsOmeSortTypeName =
              ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
               _meSortTypeName
-              {-# LINE 9080 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9081 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeEnvNameRoots =
              ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
               _meEnvNameRoots
-              {-# LINE 9085 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9086 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeEnvTypeName =
              ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
               _meEnvTypeName
-              {-# LINE 9090 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9091 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeFunType =
              ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
               _meFunType
-              {-# LINE 9095 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9096 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeNamespaceCtor =
              ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceCtor
-              {-# LINE 9100 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9101 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeNamespaceNameRoots =
              ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceNameRoots
-              {-# LINE 9105 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9106 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeNamespaceTypeName =
              ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceTypeName
-              {-# LINE 9110 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9111 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeRelationEnv =
              ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
               _meRelationEnv
-              {-# LINE 9115 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9116 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeSortNameRoots =
              ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
               _meSortNameRoots
-              {-# LINE 9120 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9121 "src/KnotSpec/AG.hs" #-}
               )
          _tsEnvDeclsOmeSortTypeName =
              ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
               _meSortTypeName
-              {-# LINE 9125 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9126 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeEnvNameRoots =
              ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
               _meEnvNameRoots
-              {-# LINE 9130 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9131 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeEnvTypeName =
              ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
               _meEnvTypeName
-              {-# LINE 9135 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9136 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeFunType =
              ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
               _meFunType
-              {-# LINE 9140 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9141 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeNamespaceCtor =
              ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceCtor
-              {-# LINE 9145 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9146 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeNamespaceNameRoots =
              ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceNameRoots
-              {-# LINE 9150 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9151 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeNamespaceTypeName =
              ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
               _meNamespaceTypeName
-              {-# LINE 9155 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9156 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeRelationEnv =
              ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
               _meRelationEnv
-              {-# LINE 9160 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9161 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeSortNameRoots =
              ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
               _meSortNameRoots
-              {-# LINE 9165 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9166 "src/KnotSpec/AG.hs" #-}
               )
          _tsRelDeclsOmeSortTypeName =
              ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
               _meSortTypeName
-              {-# LINE 9170 "src/KnotSpec/AG.hs" #-}
+              {-# LINE 9171 "src/KnotSpec/AG.hs" #-}
               )
          ( _tsNamespaceDeclsIdesugared,_tsNamespaceDeclsIself,_tsNamespaceDeclsIsmeNamespaceNameRoots) =
              tsNamespaceDecls_ _tsNamespaceDeclsOmeEnvNameRoots _tsNamespaceDeclsOmeEnvTypeName _tsNamespaceDeclsOmeFunType _tsNamespaceDeclsOmeNamespaceCtor _tsNamespaceDeclsOmeNamespaceNameRoots _tsNamespaceDeclsOmeNamespaceTypeName _tsNamespaceDeclsOmeRelationEnv _tsNamespaceDeclsOmeSortNameRoots _tsNamespaceDeclsOmeSortTypeName
@@ -9226,24 +9227,24 @@ sem_TypeName_TN tn_ =
                    case Data.Map.lookup _self     _lhsImeSortNameRoots of
                      Just _  -> return (Core.STN tn_)
                      Nothing -> throwError $ "Cannot find sort typename of " ++ tn_
-                   {-# LINE 9230 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9231 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOnamespaceTypeName =
                   ({-# LINE 160 "src/KnotSpec/Desugaring.ag" #-}
                    case Data.Map.lookup _self     _lhsImeNamespaceNameRoots of
                      Just _  -> return (Core.NTN tn_)
                      Nothing -> throwError $ "Cannot find namespace typename of " ++ tn_
-                   {-# LINE 9237 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9238 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOrelationTypeName =
                   ({-# LINE 164 "src/KnotSpec/Desugaring.ag" #-}
                    return (Core.RTN tn_)
-                   {-# LINE 9242 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9243 "src/KnotSpec/AG.hs" #-}
                    )
               _lhsOfromTn =
                   ({-# LINE 165 "src/KnotSpec/Desugaring.ag" #-}
                    tn_
-                   {-# LINE 9247 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9248 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   TN tn_
@@ -9318,7 +9319,7 @@ sem_TypeNames_Cons hd_ tl_ =
               _lhsOnamespaceTypeName =
                   ({-# LINE 152 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdInamespaceTypeName _tlInamespaceTypeName)
-                   {-# LINE 9322 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9323 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -9327,92 +9328,92 @@ sem_TypeNames_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 9331 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9332 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 9336 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9337 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 9341 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9342 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 9346 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9347 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 9351 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9352 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 9356 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9357 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 9361 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9362 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 9366 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9367 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 9371 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9372 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 9376 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9377 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 9381 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9382 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 9386 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9387 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 9391 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9392 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 9396 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9397 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 9401 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9402 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 9406 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9407 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 9411 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9412 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 9416 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9417 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIfromTn,_hdInamespaceTypeName,_hdIrelationTypeName,_hdIself,_hdIsortTypeName) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -9435,7 +9436,7 @@ sem_TypeNames_Nil =
               _lhsOnamespaceTypeName =
                   ({-# LINE 152 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 9439 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9440 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -9507,7 +9508,7 @@ sem_Vle_Cons hd_ tl_ =
               _lhsOdesugared =
                   ({-# LINE 181 "src/KnotSpec/Desugaring.ag" #-}
                    (consA _hdIdesugared _tlIdesugared)
-                   {-# LINE 9511 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9512 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   (:) _hdIself _tlIself
@@ -9516,92 +9517,92 @@ sem_Vle_Cons hd_ tl_ =
               _hdOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 9520 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9521 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 9525 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9526 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 9530 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9531 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 9535 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9536 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 9540 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9541 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 9545 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9546 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 9550 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9551 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 9555 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9556 "src/KnotSpec/AG.hs" #-}
                    )
               _hdOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 9560 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9561 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 9565 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9566 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 9570 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9571 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 9575 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9576 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 9580 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9581 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 9585 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9586 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 9590 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9591 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 9595 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9596 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 9600 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9601 "src/KnotSpec/AG.hs" #-}
                    )
               _tlOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 9605 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9606 "src/KnotSpec/AG.hs" #-}
                    )
               ( _hdIdesugared,_hdIself) =
                   hd_ _hdOmeEnvNameRoots _hdOmeEnvTypeName _hdOmeFunType _hdOmeNamespaceCtor _hdOmeNamespaceNameRoots _hdOmeNamespaceTypeName _hdOmeRelationEnv _hdOmeSortNameRoots _hdOmeSortTypeName
@@ -9624,7 +9625,7 @@ sem_Vle_Nil =
               _lhsOdesugared =
                   ({-# LINE 181 "src/KnotSpec/Desugaring.ag" #-}
                    memptyA
-                   {-# LINE 9628 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9629 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   []
@@ -9695,7 +9696,7 @@ sem_VleItem_VleBinding vleMetavar_ =
                    Core.VleBinding
                      <$> sequence [_vleMetavarInamespaceTypeName]
                      <*> _vleMetavarImetavarName
-                   {-# LINE 9699 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9700 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   VleBinding _vleMetavarIself
@@ -9704,52 +9705,52 @@ sem_VleItem_VleBinding vleMetavar_ =
               _lhsOdesugared =
                   ({-# LINE 182 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 9708 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9709 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 9713 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9714 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 9718 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9719 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 9723 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9724 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 9728 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9729 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 9733 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9734 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 9738 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9739 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 9743 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9744 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 9748 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9749 "src/KnotSpec/AG.hs" #-}
                    )
               _vleMetavarOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 9753 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9754 "src/KnotSpec/AG.hs" #-}
                    )
               ( _vleMetavarIcoreFieldName,_vleMetavarIcoreTypeName,_vleMetavarIfieldMetaBinding,_vleMetavarImetavarName,_vleMetavarInamespaceTypeName,_vleMetavarIroot,_vleMetavarIself,_vleMetavarIsubtreeName,_vleMetavarIsuffix) =
                   vleMetavar_ _vleMetavarOmeEnvNameRoots _vleMetavarOmeEnvTypeName _vleMetavarOmeFunType _vleMetavarOmeNamespaceCtor _vleMetavarOmeNamespaceNameRoots _vleMetavarOmeNamespaceTypeName _vleMetavarOmeRelationEnv _vleMetavarOmeSortNameRoots _vleMetavarOmeSortTypeName
@@ -9792,7 +9793,7 @@ sem_VleItem_VleCall vleFunName_ vleField_ =
                    do
                     (stn,ntns) <- lookupFunType vleFunName_ _lhsImeFunType
                     Core.VleCall ntns (Core.FN vleFunName_ stn ntns) <$> _vleFieldIsubtreeName
-                   {-# LINE 9796 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9797 "src/KnotSpec/AG.hs" #-}
                    )
               _self =
                   VleCall vleFunName_ _vleFieldIself
@@ -9801,52 +9802,52 @@ sem_VleItem_VleCall vleFunName_ vleField_ =
               _lhsOdesugared =
                   ({-# LINE 182 "src/KnotSpec/Desugaring.ag" #-}
                    _desugared
-                   {-# LINE 9805 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9806 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeEnvNameRoots =
                   ({-# LINE 200 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvNameRoots
-                   {-# LINE 9810 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9811 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeEnvTypeName =
                   ({-# LINE 201 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeEnvTypeName
-                   {-# LINE 9815 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9816 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeFunType =
                   ({-# LINE 178 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeFunType
-                   {-# LINE 9820 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9821 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeNamespaceCtor =
                   ({-# LINE 148 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceCtor
-                   {-# LINE 9825 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9826 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeNamespaceNameRoots =
                   ({-# LINE 78 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceNameRoots
-                   {-# LINE 9830 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9831 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeNamespaceTypeName =
                   ({-# LINE 79 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeNamespaceTypeName
-                   {-# LINE 9835 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9836 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeRelationEnv =
                   ({-# LINE 235 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeRelationEnv
-                   {-# LINE 9840 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9841 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeSortNameRoots =
                   ({-# LINE 107 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortNameRoots
-                   {-# LINE 9845 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9846 "src/KnotSpec/AG.hs" #-}
                    )
               _vleFieldOmeSortTypeName =
                   ({-# LINE 108 "src/KnotSpec/Environment.ag" #-}
                    _lhsImeSortTypeName
-                   {-# LINE 9850 "src/KnotSpec/AG.hs" #-}
+                   {-# LINE 9851 "src/KnotSpec/AG.hs" #-}
                    )
               ( _vleFieldIcoreFieldName,_vleFieldIcoreTypeName,_vleFieldIfieldMetaBinding,_vleFieldImetavarName,_vleFieldInamespaceTypeName,_vleFieldIroot,_vleFieldIself,_vleFieldIsubtreeName,_vleFieldIsuffix) =
                   vleField_ _vleFieldOmeEnvNameRoots _vleFieldOmeEnvTypeName _vleFieldOmeFunType _vleFieldOmeNamespaceCtor _vleFieldOmeNamespaceNameRoots _vleFieldOmeNamespaceTypeName _vleFieldOmeRelationEnv _vleFieldOmeSortNameRoots _vleFieldOmeSortTypeName

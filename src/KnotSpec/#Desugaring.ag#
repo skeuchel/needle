@@ -1,0 +1,613 @@
+
+imports
+{
+import qualified KnotCore.Syntax as Core
+import qualified KnotCore.Analysis as Core
+
+import Control.Applicative
+import Control.Monad.Error.Class
+import Data.Graph (flattenSCC, stronglyConnComp)
+import Data.List (intercalate)
+import Data.Maybe (catMaybes)
+import Data.Map (Map)
+import Data.Set (Set)
+import qualified Data.Map
+import qualified Data.Set
+}
+
+{
+{- This is the type-checking monad for the surface language.
+   At the moment it only keeps track of errors. Environments
+   are handled by the attribute grammar.
+-}
+
+type TcM = Either String
+consA :: (Applicative f) => f a -> f [a] -> f [a]
+consA = liftA2 (:)
+
+mappendA :: (Applicative f, Monoid m) => f m -> f m -> f m
+mappendA = liftA2 mappend
+
+memptyA :: (Applicative f, Monoid m) => f m
+memptyA = pure mempty
+
+{-
+lookupNamespaceTypeName
+  :: NameRoot
+  -> MENamespaceTypeName
+  -> TcM TypeName
+lookupNamespaceTypeName nnr me =
+  maybe
+    (throwError $
+     "Did not find canonical namespacename for root" ++ fromNR nnr)
+    return
+    (lookup nnr me)
+
+lookupSortTypeName
+  :: NameRoot
+  -> MESortTypeName
+  -> TcM TypeName
+lookupSortTypeName fnr me =
+  maybe
+    (throwError $
+     "Did not find typename for root" ++ fromNR fnr)
+    return
+    (lookup fnr me)
+-}
+
+lookupFunType
+  :: FunName
+  -> MEFunType
+  -> TcM (Core.SortTypeName,[Core.NamespaceTypeName])
+lookupFunType fn me =
+  maybe
+    (throwError $
+     "Did not find function type for " ++ fn)
+    (\(stn,ntns) -> return (Core.STN (fromTN stn), map (Core.NTN . fromTN) ntns))
+    (Data.Map.lookup fn me)
+  where fromTN (TN tn) = tn
+data CoreTypeName
+  = NTN Core.NamespaceTypeName
+  | STN Core.SortTypeName
+  | ETN Core.EnvTypeName
+
+data CoreFieldName
+  = FRN Core.MetavarVar
+  | FRS Core.SubtreeVar
+}
+
+attr Name
+  syn coreTypeName      :: {TcM CoreTypeName}
+  syn coreFieldName     :: {TcM CoreFieldName}
+  syn metavarName       :: {TcM Core.MetavarVar}
+  syn namespaceTypeName :: {TcM Core.NamespaceTypeName}
+  syn subtreeName       :: {TcM Core.SubtreeVar}
+  syn fieldMetaBinding  :: {TcM Core.FieldMetaBinding}
+
+attr Names
+  syn subtreeName use {consA} {memptyA} :: {TcM [Core.SubtreeVar]}
+  syn fieldMetaBinding use {consA} {memptyA} :: {TcM [Core.FieldMetaBinding]}
+
+sem Name
+  | Tuple
+      loc.coreTypeName =
+        let mb_ntn = Data.Map.lookup @loc.root @lhs.meNamespaceTypeName
+            mb_stn = Data.Map.lookup @loc.root @lhs.meSortTypeName
+            mb_etn = Data.Map.lookup @loc.root @lhs.meEnvTypeName
+        in case (mb_ntn,mb_stn,mb_etn) of
+             (Just (TN ntn), Nothing, Nothing) ->
+               return . NTN $ Core.NTN ntn
+             (Nothing , Just (TN stn), Nothing) ->
+               return . STN $ Core.STN stn
+             (Nothing , Nothing, Just (TN etn)) ->
+               return . ETN $ Core.ETN etn
+             _ -> throwError $ "Cannot find typename for nameroot: " ++ fromNR @loc.root
+      loc.coreFieldName =
+        do
+          coreTypeName <- @loc.coreTypeName
+          case coreTypeName of
+            NTN ntn -> return . FRN $
+                       Core.MetavarVar
+                         (Core.NR (fromNR @loc.root))
+                         @loc.suffix
+                         ntn
+            STN stn -> return . FRS $
+                       Core.SubtreeVar
+                         (Core.NR (fromNR @loc.root))
+                         @loc.suffix
+                         stn
+            ETN _ -> throwError "coreFieldName"
+      lhs.namespaceTypeName =
+        do
+          coreTypeName <- @loc.coreTypeName
+          case coreTypeName of
+            NTN ntn -> return ntn
+            ETN _ -> throwError "namespaceTypeName"
+
+      lhs.metavarName =
+        do
+          mbMetavarVar <- @loc.coreFieldName
+          case mbMetavarVar of
+            FRN metavarName -> return metavarName
+            _               -> throwError "metavarName"
+      lhs.subtreeName =
+        do
+          mbSubtreeVar <- @loc.coreFieldName
+          case mbSubtreeVar of
+            FRS subtreeName -> return subtreeName
+            _               -> throwError "subtreeName"
+      lhs.fieldMetaBinding =
+        do
+          coreFieldRef <- @loc.coreFieldName
+          case coreFieldRef of
+            FRN metavarName -> return $ Core.FieldMetaBindingMetavar metavarName
+            FRS subtreeName -> return $ Core.FieldMetaBindingSubtree subtreeName
+
+attr TypeName
+  syn sortTypeName      :: {TcM Core.SortTypeName}
+  syn namespaceTypeName :: {TcM Core.NamespaceTypeName}
+  syn relationTypeName  :: {TcM Core.RelationTypeName}
+  syn fromTn            :: {String}
+attr TypeNames
+  syn namespaceTypeName use {consA} {memptyA} :: {TcM [Core.NamespaceTypeName]}
+
+sem TypeName
+  | TN
+      lhs.sortTypeName =
+        case Data.Map.lookup @loc.self @lhs.meSortNameRoots of
+          Just _  -> return (Core.STN @tn)
+          Nothing -> throwError $ "Cannot find sort typename of " ++ @tn
+      lhs.namespaceTypeName =
+        case Data.Map.lookup @loc.self @lhs.meNamespaceNameRoots of
+          Just _  -> return (Core.NTN @tn)
+          Nothing -> throwError $ "Cannot find namespace typename of " ++ @tn
+      lhs.relationTypeName = return (Core.RTN @tn)
+      lhs.fromTn = @tn
+
+
+attr TermSpec          syn desugared                          :: {TcM Core.TermSpec}
+attr NamespaceDecls    syn desugared use {consA}    {memptyA} :: {TcM [Core.NamespaceDecl]}
+attr NamespaceDecl     syn desugared                          :: {TcM Core.NamespaceDecl}
+attr SortDecl          syn desugared                          :: {TcM Core.SortDecl}
+attr CtorDecls         syn desugared use {consA}    {memptyA} :: {TcM [Core.CtorDecl]}
+attr CtorDecl          syn desugared                          :: {TcM Core.CtorDecl}
+attr FieldDecls        syn desugared use {consA}    {memptyA} :: {TcM [Core.FieldDecl]}
+attr FieldDecl         syn desugared                          :: {TcM Core.FieldDecl}
+attr FunDecls          syn desugared use {consA}    {memptyA} :: {TcM [Core.FunDecl]}
+attr FunDecl           syn desugared                          :: {TcM Core.FunDecl}
+attr FunCases          syn desugared use {consA}    {memptyA} :: {TcM [Core.FunCase]}
+attr FunCase           syn desugared                          :: {TcM Core.FunCase}
+attr BindSpec          syn desugared use {consA}    {memptyA} :: {TcM Core.BindSpec}
+attr Vle               syn desugared use {consA}    {memptyA} :: {TcM Core.Vle}
+attr VleItem           syn desugared                          :: {TcM Core.VleItem}
+
+sem TermSpec
+  | TermSpec
+      lhs.desugared =
+        Core.TermSpec
+          <$> @tsNamespaceDecls.desugared
+          <*> @tsSortDecls.sFunctionDef
+          <*> (dependencyAnalysis <$> @tsSortDecls.dependencyGraph)
+          <*> (do
+                 fds <- @tsFunDecls.desugared
+                 return [ Core.FunGroupDecl
+                            fgn
+                            (Core.groupName [Core.fdSource fd])
+                            [(Core.fdSource fd, [fd])]
+                        | fd <- fds
+                        , let fgn = Core.FGN (Core.fnName $ Core.fdName fd)
+                        ]
+              )
+          <*> @tsEnvDecls.desugared
+          <*> @tsRelDecls.desugared
+
+{
+desugarTermSpec :: TermSpec -> TcM Core.TermSpec
+desugarTermSpec ts = Core.analyze <$> desugared_Syn_TermSpec sem
+  where sem = wrap_TermSpec (sem_TermSpec ts) defaultValues
+}
+
+sem NamespaceDecl
+  | NamespaceDecl
+      loc.desugared =
+        do
+          (variableSort,variableCtor) <-
+            maybe
+              (throwError $
+                 "No variable constructor for namespace " ++ @nsdTypeName.fromTn)
+              return
+              (Data.Map.lookup
+                 @loc.typeName
+                 @lhs.meNamespaceCtor)
+          shiftName <-
+            case [s | NamespaceShift s <- @nsdDirectives.self] of
+              []  -> return $ "shift_" ++ @nsdTypeName.fromTn ++ "_"
+              [s] -> return s
+              ss  -> throwError $ "more than one shift root defined: " ++
+                       intercalate ", " ss
+          substName <-
+            case [s | NamespaceSubst s <- @nsdDirectives.self] of
+              []  -> return $ "subst_" ++ @nsdTypeName.fromTn ++ "_"
+              [s] -> return s
+              ss  -> throwError $ "more than one subst root defined: " ++
+                       intercalate ", " ss
+          return $ Core.NamespaceDecl
+                     (Core.NTN @nsdTypeName.fromTn)
+                     (map (Core.NR . fromNR) @nsdNameRoots.self)
+                     (Core.STN @nsdSort.fromTn)
+                     (Core.CNS variableCtor (Core.STN @nsdSort.fromTn))
+                     shiftName
+                     substName
+
+attr CtorDecls CtorDecl
+  inh coreSortTypeName :: {Core.SortTypeName}
+
+sem SortDecl
+  | SortDecl
+      loc.coreSortTypeName = Core.STN @sortTypeName.fromTn
+      loc.desugared = Core.SortDecl
+                        (@loc.coreSortTypeName)
+                        (map (Core.NR . fromNR) @sortNameRoots.self)
+                        <$> @sortCtors.desugared
+
+sem CtorDecl
+  | CtorVar
+      loc.desugared = Core.CtorVar (Core.CNS @ctorName @lhs.coreSortTypeName)
+                        <$> @ctorMetavar.metavarName
+  | CtorTerm
+      loc.desugared = Core.CtorTerm (Core.CNS @ctorName @lhs.coreSortTypeName)
+                        <$> @ctorFields.desugared
+
+sem FieldDecl
+  | FieldDecl
+      loc.desugared =
+        do
+          coreFieldName <- @fieldName.coreFieldName
+          case coreFieldName of
+            FRS subtreeName ->
+              Core.FieldSubtree subtreeName <$> @fieldBindSpec.desugared
+            FRN metavarName ->
+              if null @fieldBindSpec.self
+                then return (Core.FieldBinding metavarName)
+                else throwError "Invalid binding specification for variable field"
+
+sem FunDecl
+  | FunDecl
+      loc.desugared =
+        do
+          stn  <- @fdSource.sortTypeName
+          ntns <- @fdTarget.namespaceTypeName
+          nr <- case Data.Map.lookup @fdSource.self @lhs.meSortNameRoots of
+                  Just nrs -> return (head nrs)
+                  Nothing  -> throwError "No nameroots for function domain"
+          let matchItem = Core.SubtreeVar (Core.NR $ fromNR nr) "" stn
+          Core.FunDecl (Core.FN @fdName stn ntns) stn ntns matchItem
+            <$> @fdCases.desugared
+
+sem FunCase
+  | FunCase
+      loc.desugared = Core.FunCase (Core.CNO @fcCtor)
+                        <$> @fcFields.fieldMetaBinding
+                        <*> @fcRhs.desugared
+
+sem VleItem
+  | VleCall
+      loc.desugared =
+       do
+        (stn,ntns) <- lookupFunType @vleFunName @lhs.meFunType
+        Core.VleCall ntns (Core.FN @vleFunName stn ntns) <$> @vleField.subtreeName
+  | VleBinding
+      loc.desugared =
+        Core.VleBinding
+          <$> sequence [@vleMetavar.namespaceTypeName]
+          <*> @vleMetavar.metavarName
+
+--  ___         _                            _
+-- | __|_ ___ _(_)_ _ ___ _ _  _ __  ___ _ _| |_ ___
+-- | _|| ' \ V / | '_/ _ \ ' \| '  \/ -_) ' \  _(_-<
+-- |___|_||_\_/|_|_| \___/_||_|_|_|_\___|_||_\__/__/
+
+attr EnvDecls syn desugared use {consA} {memptyA} :: {TcM [Core.EnvDecl]}
+attr EnvDecl  syn desugared                       :: {TcM Core.EnvDecl}
+
+attr EnvCtors EnvCtor
+  inh coreTypeName :: {Core.EnvTypeName}
+  inh coreEnvVar :: {Core.EnvVar}
+
+sem EnvDecl
+  | EnvDecl
+      loc.coreNameRoots = map (Core.NR . fromNR) @envNameRoots.self
+      loc.coreTypeName  = Core.ETN @envTypeName.fromTn
+      loc.coreEnvVar   =
+        Core.EnvVar
+          (head @loc.coreNameRoots)
+          ""
+          (@loc.coreTypeName)
+      loc.desugared =
+        Core.EnvDecl @loc.coreTypeName @loc.coreNameRoots
+          <$> @envCtors.desugared
+
+attr EnvCtors        syn desugared use {consA}    {memptyA} :: {TcM [Core.EnvCtor]}
+attr EnvCtor         syn desugared                          :: {TcM Core.EnvCtor}
+
+sem EnvCtor
+  | EnvCtorNil
+      loc.desugared =
+        pure $ Core.EnvCtorNil (Core.CNE @envCtorName @lhs.coreTypeName)
+  | EnvCtorCons
+      loc.desugared =
+        Core.EnvCtorCons (Core.CNE @envCtorName @lhs.coreTypeName)
+          <$> @envCtorMetavar.metavarName
+          <*> @envCtorFields.subtreeName
+
+--  ___     _      _   _
+-- | _ \___| |__ _| |_(_)___ _ _  ___
+-- |   / -_) / _` |  _| / _ \ ' \(_-<
+-- |_|_\___|_\__,_|\__|_\___/_||_/__/
+
+attr RelationDecls syn desugared use {consA} {memptyA} :: {TcM [Core.RelationDecl]}
+attr RelationDecl  syn desugared                       :: {TcM Core.RelationDecl}
+
+sem RelationDecl
+  | RelationDecl
+      loc.coreMbEnvName =
+        do
+          tn@(TN etn) <- @relEnv.self
+          nrs <- Data.Map.lookup tn @lhs.meEnvNameRoots
+          return (Core.EnvVar (Core.NR . fromNR $ head nrs) "" (Core.ETN etn))
+      loc.coreIndices = map (Core.STN . fromTN) @relIndices.self
+      loc.desugared =
+        Core.RelationDecl
+          <$> pure @loc.coreMbEnvName
+          <*> @relTypeName.relationTypeName
+          <*> pure @loc.coreIndices
+          <*> @relRules.desugared
+
+attr Rules        syn desugared use {consA}    {memptyA} :: {TcM [Core.Rule]}
+attr Rule         syn desugared                          :: {TcM Core.Rule}
+
+sem Rule
+  | Rule
+      loc.desugared =
+        do
+          premises   <- @rulePremises.desugared
+          conclusion <- @ruleConclusion.desugared
+          rbinds     <- @ruleBindings.desugared
+          return $
+            Core.Rule
+             (Core.CNO @ruleName)
+             []
+             premises
+             conclusion
+             rbinds
+
+attr RuleBindings syn desugared use {consA}    {memptyA} :: {TcM [Core.RuleBinding]}
+attr RuleBinding  syn desugared                          :: {TcM Core.RuleBinding}
+
+sem RuleBinding
+  | RuleBinding
+      loc.desugared =
+        Core.RuleBinding
+          <$> @rbMetavar.metavarName
+          <*> @rbTerms.desugared
+
+attr Formulas syn desugared use {consA}    {memptyA} :: {TcM [Core.Formula]}
+attr Formula  syn desugared                          :: {TcM Core.Formula}
+
+sem Formula
+  | FormBinding
+      loc.desugared = Core.FormBinding <$> @fmlBinding.desugared
+  | FormJudgement
+      loc.desugared =
+        do
+          rbs <- @fmlBindings.desugared
+          Core.Judgement rtn mbEnv sts <- @fmlJudgement.desugared
+          return $
+            Core.FormJudgement rbs rtn mbEnv sts
+
+attr Judgements syn desugared use {consA}    {memptyA} :: {TcM [Core.Judgement]}
+attr Judgement  syn desugared                          :: {TcM Core.Judgement}
+
+sem Judgement
+  | Judgement
+      loc.coreMbEnvName =
+        do
+          tn@(TN etn) <- Data.Map.lookup @jmtTypeName.self @lhs.meRelationEnv
+          nrs <- Data.Map.lookup tn @lhs.meEnvNameRoots
+          return (Core.EnvVar (Core.NR . fromNR $ head nrs) "" (Core.ETN etn))
+      loc.desugared =
+        Core.Judgement
+          <$> @jmtTypeName.relationTypeName
+          <*> pure @loc.coreMbEnvName
+          <*> @jmtTerms.desugared
+
+--  ___            _         _ _      _
+-- / __|_  _ _ __ | |__  ___| (_)__  | |_ ___ _ _ _ __  ___
+-- \__ \ || | '  \| '_ \/ _ \ | / _| |  _/ -_) '_| '  \(_-<
+-- |___/\_, |_|_|_|_.__/\___/_|_\__|  \__\___|_| |_|_|_/__/
+--      |__/
+
+attr SymbolicTerms syn desugared use {consA} {memptyA} :: {TcM [Core.SymbolicTerm]}
+attr SymbolicTerm  syn desugared                       :: {TcM Core.SymbolicTerm}
+
+sem SymbolicTerm
+  | SymVar
+      loc.desugared =
+        do
+          coreFieldName <- @stVar.coreFieldName
+          case coreFieldName of
+            FRS subtreeName -> return $ Core.SymSubtree subtreeName
+            FRN metavarName -> return $ Core.SymBinding metavarName
+  | SymCtorVar
+      loc.desugared =
+        Core.SymCtorVar
+          <$> pure (Core.CNO @stCtor)
+          <*> @stMetavar.metavarName
+  | SymCtorTerm
+      loc.desugared =
+        Core.SymCtorTerm
+          <$> pure (Core.CNO @stCtor)
+          <*> @stFields.desugared
+  | SymSubst
+      loc.desugared =
+        Core.SymSubst
+          <$> @stVar.metavarName
+          <*> @stSubstitute.desugared
+          <*> @stSubstitutee.desugared
+
+--------------------------------------------------------------------------------
+-- Sort dependency analysis
+--------------------------------------------------------------------------------
+
+{
+-- This defines a node 'Core.SortName' in the graph with
+-- label 'DN' and adjacent nodes 'Core.SortNames'.
+type DepNode =
+  (DN,
+   Core.SortTypeName,
+   [Core.SortTypeName]
+  )
+-- The label includes the desugared SortDecl, the sort and
+-- namespace dependencies.
+type DN  =
+  (Core.SortDecl,
+   Set Core.SortTypeName,
+   Set Core.NamespaceTypeName
+  )
+}
+
+attr CtorDecls CtorDecl FieldDecls FieldDecl
+  syn sortDependencies
+    use {mappendA} {memptyA}
+    :: {TcM [Core.SortTypeName]}
+  syn namespaceDependencies
+    use {mappendA} {memptyA}
+    :: {TcM [Core.NamespaceTypeName]}
+
+sem CtorDecl
+  | CtorVar
+      lhs.namespaceDependencies =
+        do
+          coreTypeName <- @ctorMetavar.coreTypeName
+          case coreTypeName of
+            NTN ntn -> return [ntn]
+            _       -> return []
+
+sem FieldDecl
+  | FieldDecl
+      lhs.sortDependencies =
+        do
+          coreTypeName <- @fieldName.coreTypeName
+          case coreTypeName of
+            STN stn -> return [stn]
+            _       -> return []
+      lhs.namespaceDependencies = return []
+        --do
+        --  coreTypeName <- @fieldName.coreTypeName
+        --  case coreTypeName of
+        --    NTN ntn -> return [ntn]
+        --    _       -> return []
+
+attr SortDecl
+  syn dependencyGraph :: {TcM DepNode}
+attr SortDecls
+  syn dependencyGraph
+    use {consA} {memptyA} :: {TcM [DepNode]}
+
+sem SortDecl
+  | SortDecl
+      lhs.dependencyGraph =
+        do
+          sortDecl           <- @loc.desugared
+          sortNames          <- @sortCtors.sortDependencies
+          namespaceTypeNames <- @sortCtors.namespaceDependencies
+          let typeName  = Core.STN @sortTypeName.fromTn
+              nodeLabel = (sortDecl,
+                           Data.Set.fromList sortNames,
+                           Data.Set.fromList namespaceTypeNames)
+          return (nodeLabel,typeName,sortNames)
+
+{
+-- A strongly connected component with combined labels.
+type DNG =
+  ([Core.SortDecl],
+   Set Core.SortTypeName,
+   Set Core.NamespaceTypeName
+  )
+
+sortDepAnalysis :: [DepNode] -> [DNG]
+sortDepAnalysis = map (flattenDNS . flattenSCC) . stronglyConnComp
+
+flattenDNS :: [DN] -> DNG
+flattenDNS dns = (sds, Data.Set.unions sortDeps, Data.Set.unions namespaceDeps)
+  where (sds,sortDeps,namespaceDeps) = unzip3 dns
+
+-- This function folds the strongly connected components in topological
+-- order. It builds a mapping [SortName -> Set NamespaceName] so that the
+-- namespace dependencies for each component can be resolved.
+namespaceDepAnalysis' :: [DNG] -> Map Core.SortTypeName (Set Core.NamespaceTypeName) -> [Core.SortGroupDecl]
+namespaceDepAnalysis' []                                              namespaceDepAcc = []
+namespaceDepAnalysis' ((sortDecls,sortNames,namespaceDepDirect):dngs) namespaceDepAcc = res
+  where
+    -- These are the namespace dependencies we inherit from the sort
+    -- dependencies.
+    namespaceDepIndirect :: Set Core.NamespaceTypeName
+    namespaceDepIndirect = Data.Set.unions $ catMaybes
+                             [ Data.Map.lookup sortName namespaceDepAcc
+                             | sortName <- Data.Set.toList sortNames
+                             ]
+
+    -- The final set is the union of direct and indirect dependencies
+    namespaceDepFinal :: Set Core.NamespaceTypeName
+    namespaceDepFinal = Data.Set.union namespaceDepDirect namespaceDepIndirect
+
+    -- This is the namespace dependency mapping for each sort declaration in
+    -- this group.
+    namespaceDepAcc' :: Map Core.SortTypeName (Set Core.NamespaceTypeName)
+    namespaceDepAcc' = Data.Map.fromList
+                         [ (sortName,namespaceDepFinal)
+                         | (Core.SortDecl sortName _ _) <- sortDecls
+                         ]
+
+    -- The group of sort declarations that we construct for the current
+    -- component.
+    sgtn :: Core.SortGroupTypeName
+    sgtn = Core.groupName (map Core.typeNameOf sortDecls)
+    hasBindspecs :: Bool
+    hasBindspecs = not . null $
+                     [ ()
+                     | sd <- sortDecls
+                     , Core.CtorTerm _ fds <- Core.sdCtors sd
+                     , Core.FieldSubtree _ (_:_) <- fds
+                     ]
+    sg :: Core.SortGroupDecl
+    sg = Core.SortGroupDecl
+           sgtn
+           sortDecls
+           (Data.Set.toList namespaceDepFinal)
+           hasBindspecs
+
+    res = sg : namespaceDepAnalysis' dngs (Data.Map.union namespaceDepAcc' namespaceDepAcc)
+
+namespaceDepAnalysis :: [DNG] -> [Core.SortGroupDecl]
+namespaceDepAnalysis dngs = namespaceDepAnalysis' dngs mempty
+
+dependencyAnalysis :: [DepNode] -> [Core.SortGroupDecl]
+dependencyAnalysis = namespaceDepAnalysis . sortDepAnalysis
+}
+
+-- HACK: Function environment
+attr SortDecls SortDecl
+     CtorDecls CtorDecl
+     FunDecls FunDecl
+  syn sFunctionDef use {liftA2 (Data.Map.unionWith Data.Map.union)} {memptyA} :: {TcM Core.FunctionEnv}
+
+sem FunDecl
+  | FunDecl
+      lhs.sFunctionDef =
+        do
+          source <- @fdSource.sortTypeName
+          target <- @fdTarget.namespaceTypeName
+          return $
+            Data.Map.singleton source
+              (Data.Map.singleton (Core.FN @fdName source target) target)

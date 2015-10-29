@@ -11,9 +11,8 @@ instance Pretty Identifier where
 
 instance Pretty Root where
   pretty (Root ss) =
-    text "Require Export Coq.Program.Equality." <> line <>
-    text "Require Export Coq.Program.Tactics." <> line <>
-    text "Require Export Coq.Unicode.Utf8." <> line <>
+    text "Require Import Coq.Program.Equality." <> line <>
+    text "Require Import Coq.Program.Tactics." <> line <>
     text "Require Export Needle." <> line <>
     vpretty ss
 
@@ -74,7 +73,19 @@ instance Pretty Hint where
     hsep (text "Hint Rewrite" : lpretty tms)
   pretty (HintConstructors ids) =
     hsep (text "Hint Constructors" : lpretty ids)
-
+  pretty (HintExtern lvl Nothing tac) =
+    hsep [ text "Hint Extern"
+         , text (show lvl)
+         , text "=>"
+         , pretty tac
+         ]
+  pretty (HintExtern lvl (Just pat) tac) =
+    hsep [ text "Hint Extern"
+         , text (show lvl)
+         , parens (pretty pat)
+         , text "=>"
+         , pretty tac
+         ]
 instance Pretty PossiblyBracketedName where
   pretty (BracketedName name) = brackets (pretty name)
   pretty (BracedName name)    = braces (pretty name)
@@ -235,7 +246,9 @@ instance Pretty Equation where
 
 instance Pretty Pattern where
   pretty (PatCtor id fields) =
-    hsep (pretty id : lpretty fields)
+    parens (hsep (pretty id : lpretty fields))
+  pretty (PatCtorEx id fields) =
+    parens (hsep (pretty id : lpretty fields))
   pretty (PatUnderscore) =
     text "_"
 
@@ -291,6 +304,7 @@ instance Pretty ProofStep where
   pretty (PrMutualInduction id _) = text "apply_mutual_ind" <+> pretty id
   pretty (PrCrushInd)             = text "crush_ind"
   pretty (PrApply tm)             = text "apply" <+> parens (pretty tm)
+  pretty (PrApplyIn tm id)        = text "apply" <+> parens (pretty tm) <+> text "in" <+> pretty id
   pretty (PrExact tm)             = text "exact" <+> parens (pretty tm)
   pretty (PrSeq steps)            = hsep (punctuate (char ';') (lpretty steps))
   pretty (PrIntros ids)           = hsep (text "intros":map pretty ids)
@@ -329,7 +343,22 @@ instance Pretty ProofStep where
               | otherwise = "f_equal" ++ show a
           fe = TermQualId . Ident $ ID fe'
   pretty (PrReflexivity) = text "reflexivity"
+  pretty (PrMatchGoal contextrules) =
+    vsep
+      [ text "match goal with"
+      , indent 2 (vpretty contextrules)
+      , text "end"
+      ]
+  pretty (PrClear ids) = hsep (text "clear":map pretty ids)
 
+instance Pretty ContextRule where
+  pretty (ContextRule hyps goal tactic) =
+    hsep $ text "|" : punctuate comma (lpretty hyps) ++
+          [ text "|-", pretty goal, text "=>", pretty tactic ]
+
+instance Pretty ContextHyp where
+  pretty (ContextHyp id pat) =
+    hsep [ pretty id, colon , pretty pat ]
 
 instance Pretty ClassDeclaration where
   pretty (ClassDeclaration name params mbSort methods) =

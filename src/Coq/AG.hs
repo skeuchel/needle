@@ -361,6 +361,151 @@ sem_ClassInstance_ClassInstance instName_ instBinders_ instClass_ instParams_ in
          ( _instMethodsIself) =
              instMethods_
      in  ( _lhsOself))
+-- ContextHyp --------------------------------------------------
+-- cata
+sem_ContextHyp :: ContextHyp ->
+                  T_ContextHyp
+sem_ContextHyp (ContextHyp _ident _pattern) =
+    (sem_ContextHyp_ContextHyp _ident (sem_Pattern _pattern))
+-- semantic domain
+type T_ContextHyp = ( ContextHyp)
+data Inh_ContextHyp = Inh_ContextHyp {}
+data Syn_ContextHyp = Syn_ContextHyp {self_Syn_ContextHyp :: ContextHyp}
+wrap_ContextHyp :: T_ContextHyp ->
+                   Inh_ContextHyp ->
+                   Syn_ContextHyp
+wrap_ContextHyp sem (Inh_ContextHyp) =
+    (let ( _lhsOself) = sem
+     in  (Syn_ContextHyp _lhsOself))
+sem_ContextHyp_ContextHyp :: Identifier ->
+                             T_Pattern ->
+                             T_ContextHyp
+sem_ContextHyp_ContextHyp ident_ pattern_ =
+    (let _lhsOself :: ContextHyp
+         _patternIself :: Pattern
+         _self =
+             ContextHyp ident_ _patternIself
+         _lhsOself =
+             _self
+         ( _patternIself) =
+             pattern_
+     in  ( _lhsOself))
+-- ContextHyps -------------------------------------------------
+-- cata
+sem_ContextHyps :: ContextHyps ->
+                   T_ContextHyps
+sem_ContextHyps list =
+    (Prelude.foldr sem_ContextHyps_Cons sem_ContextHyps_Nil (Prelude.map sem_ContextHyp list))
+-- semantic domain
+type T_ContextHyps = ( ContextHyps)
+data Inh_ContextHyps = Inh_ContextHyps {}
+data Syn_ContextHyps = Syn_ContextHyps {self_Syn_ContextHyps :: ContextHyps}
+wrap_ContextHyps :: T_ContextHyps ->
+                    Inh_ContextHyps ->
+                    Syn_ContextHyps
+wrap_ContextHyps sem (Inh_ContextHyps) =
+    (let ( _lhsOself) = sem
+     in  (Syn_ContextHyps _lhsOself))
+sem_ContextHyps_Cons :: T_ContextHyp ->
+                        T_ContextHyps ->
+                        T_ContextHyps
+sem_ContextHyps_Cons hd_ tl_ =
+    (let _lhsOself :: ContextHyps
+         _hdIself :: ContextHyp
+         _tlIself :: ContextHyps
+         _self =
+             (:) _hdIself _tlIself
+         _lhsOself =
+             _self
+         ( _hdIself) =
+             hd_
+         ( _tlIself) =
+             tl_
+     in  ( _lhsOself))
+sem_ContextHyps_Nil :: T_ContextHyps
+sem_ContextHyps_Nil =
+    (let _lhsOself :: ContextHyps
+         _self =
+             []
+         _lhsOself =
+             _self
+     in  ( _lhsOself))
+-- ContextRule -------------------------------------------------
+-- cata
+sem_ContextRule :: ContextRule ->
+                   T_ContextRule
+sem_ContextRule (ContextRule _hypotheses _goal _tactic) =
+    (sem_ContextRule_ContextRule (sem_ContextHyps _hypotheses) (sem_Pattern _goal) (sem_ProofStep _tactic))
+-- semantic domain
+type T_ContextRule = ( ContextRule)
+data Inh_ContextRule = Inh_ContextRule {}
+data Syn_ContextRule = Syn_ContextRule {self_Syn_ContextRule :: ContextRule}
+wrap_ContextRule :: T_ContextRule ->
+                    Inh_ContextRule ->
+                    Syn_ContextRule
+wrap_ContextRule sem (Inh_ContextRule) =
+    (let ( _lhsOself) = sem
+     in  (Syn_ContextRule _lhsOself))
+sem_ContextRule_ContextRule :: T_ContextHyps ->
+                               T_Pattern ->
+                               T_ProofStep ->
+                               T_ContextRule
+sem_ContextRule_ContextRule hypotheses_ goal_ tactic_ =
+    (let _lhsOself :: ContextRule
+         _hypothesesIself :: ContextHyps
+         _goalIself :: Pattern
+         _tacticIself :: ProofStep
+         _self =
+             ContextRule _hypothesesIself _goalIself _tacticIself
+         _lhsOself =
+             _self
+         ( _hypothesesIself) =
+             hypotheses_
+         ( _goalIself) =
+             goal_
+         ( _tacticIself) =
+             tactic_
+     in  ( _lhsOself))
+-- ContextRules ------------------------------------------------
+-- cata
+sem_ContextRules :: ContextRules ->
+                    T_ContextRules
+sem_ContextRules list =
+    (Prelude.foldr sem_ContextRules_Cons sem_ContextRules_Nil (Prelude.map sem_ContextRule list))
+-- semantic domain
+type T_ContextRules = ( ContextRules)
+data Inh_ContextRules = Inh_ContextRules {}
+data Syn_ContextRules = Syn_ContextRules {self_Syn_ContextRules :: ContextRules}
+wrap_ContextRules :: T_ContextRules ->
+                     Inh_ContextRules ->
+                     Syn_ContextRules
+wrap_ContextRules sem (Inh_ContextRules) =
+    (let ( _lhsOself) = sem
+     in  (Syn_ContextRules _lhsOself))
+sem_ContextRules_Cons :: T_ContextRule ->
+                         T_ContextRules ->
+                         T_ContextRules
+sem_ContextRules_Cons hd_ tl_ =
+    (let _lhsOself :: ContextRules
+         _hdIself :: ContextRule
+         _tlIself :: ContextRules
+         _self =
+             (:) _hdIself _tlIself
+         _lhsOself =
+             _self
+         ( _hdIself) =
+             hd_
+         ( _tlIself) =
+             tl_
+     in  ( _lhsOself))
+sem_ContextRules_Nil :: T_ContextRules
+sem_ContextRules_Nil =
+    (let _lhsOself :: ContextRules
+         _self =
+             []
+         _lhsOself =
+             _self
+     in  ( _lhsOself))
 -- Definition --------------------------------------------------
 -- cata
 sem_Definition :: Definition ->
@@ -589,6 +734,8 @@ sem_Hint (HintRewrite _hints) =
     (sem_Hint_HintRewrite (sem_Terms _hints))
 sem_Hint (HintConstructors _ids) =
     (sem_Hint_HintConstructors (sem_Identifiers _ids))
+sem_Hint (HintExtern _level _pattern _tactic) =
+    (sem_Hint_HintExtern _level (sem_MbPattern _pattern) (sem_ProofStep _tactic))
 -- semantic domain
 type T_Hint = ( Hint)
 data Inh_Hint = Inh_Hint {}
@@ -634,6 +781,23 @@ sem_Hint_HintConstructors ids_ =
              _self
          ( _idsIself) =
              ids_
+     in  ( _lhsOself))
+sem_Hint_HintExtern :: Int ->
+                       T_MbPattern ->
+                       T_ProofStep ->
+                       T_Hint
+sem_Hint_HintExtern level_ pattern_ tactic_ =
+    (let _lhsOself :: Hint
+         _patternIself :: MbPattern
+         _tacticIself :: ProofStep
+         _self =
+             HintExtern level_ _patternIself _tacticIself
+         _lhsOself =
+             _self
+         ( _patternIself) =
+             pattern_
+         ( _tacticIself) =
+             tactic_
      in  ( _lhsOself))
 -- Identifiers -------------------------------------------------
 -- cata
@@ -1347,6 +1511,8 @@ sem_Pattern :: Pattern ->
                T_Pattern
 sem_Pattern (PatCtor _patCtor _patFields) =
     (sem_Pattern_PatCtor (sem_QualId _patCtor) (sem_Identifiers _patFields))
+sem_Pattern (PatCtorEx _patCtor _patFields) =
+    (sem_Pattern_PatCtorEx (sem_QualId _patCtor) (sem_Patterns _patFields))
 sem_Pattern (PatUnderscore) =
     (sem_Pattern_PatUnderscore)
 -- semantic domain
@@ -1368,6 +1534,22 @@ sem_Pattern_PatCtor patCtor_ patFields_ =
          _patFieldsIself :: Identifiers
          _self =
              PatCtor _patCtorIself _patFieldsIself
+         _lhsOself =
+             _self
+         ( _patCtorIself) =
+             patCtor_
+         ( _patFieldsIself) =
+             patFields_
+     in  ( _lhsOself))
+sem_Pattern_PatCtorEx :: T_QualId ->
+                         T_Patterns ->
+                         T_Pattern
+sem_Pattern_PatCtorEx patCtor_ patFields_ =
+    (let _lhsOself :: Pattern
+         _patCtorIself :: QualId
+         _patFieldsIself :: Patterns
+         _self =
+             PatCtorEx _patCtorIself _patFieldsIself
          _lhsOself =
              _self
          ( _patCtorIself) =
@@ -1591,6 +1773,8 @@ sem_ProofStep (PrCrushInd) =
     (sem_ProofStep_PrCrushInd)
 sem_ProofStep (PrApply _term) =
     (sem_ProofStep_PrApply (sem_Term _term))
+sem_ProofStep (PrApplyIn _term _ident) =
+    (sem_ProofStep_PrApplyIn (sem_Term _term) _ident)
 sem_ProofStep (PrExact _term) =
     (sem_ProofStep_PrExact (sem_Term _term))
 sem_ProofStep (PrSeq _steps) =
@@ -1635,6 +1819,10 @@ sem_ProofStep (PrFEqual _arity _term) =
     (sem_ProofStep_PrFEqual _arity (sem_Term _term))
 sem_ProofStep (PrReflexivity) =
     (sem_ProofStep_PrReflexivity)
+sem_ProofStep (PrClear _ident) =
+    (sem_ProofStep_PrClear (sem_Identifiers _ident))
+sem_ProofStep (PrMatchGoal _contextrules) =
+    (sem_ProofStep_PrMatchGoal (sem_ContextRules _contextrules))
 -- semantic domain
 type T_ProofStep = ( ProofStep)
 data Inh_ProofStep = Inh_ProofStep {}
@@ -1679,6 +1867,19 @@ sem_ProofStep_PrApply term_ =
          _termIself :: Term
          _self =
              PrApply _termIself
+         _lhsOself =
+             _self
+         ( _termIself) =
+             term_
+     in  ( _lhsOself))
+sem_ProofStep_PrApplyIn :: T_Term ->
+                           Identifier ->
+                           T_ProofStep
+sem_ProofStep_PrApplyIn term_ ident_ =
+    (let _lhsOself :: ProofStep
+         _termIself :: Term
+         _self =
+             PrApplyIn _termIself ident_
          _lhsOself =
              _self
          ( _termIself) =
@@ -1916,6 +2117,30 @@ sem_ProofStep_PrReflexivity =
              PrReflexivity
          _lhsOself =
              _self
+     in  ( _lhsOself))
+sem_ProofStep_PrClear :: T_Identifiers ->
+                         T_ProofStep
+sem_ProofStep_PrClear ident_ =
+    (let _lhsOself :: ProofStep
+         _identIself :: Identifiers
+         _self =
+             PrClear _identIself
+         _lhsOself =
+             _self
+         ( _identIself) =
+             ident_
+     in  ( _lhsOself))
+sem_ProofStep_PrMatchGoal :: T_ContextRules ->
+                             T_ProofStep
+sem_ProofStep_PrMatchGoal contextrules_ =
+    (let _lhsOself :: ProofStep
+         _contextrulesIself :: ContextRules
+         _self =
+             PrMatchGoal _contextrulesIself
+         _lhsOself =
+             _self
+         ( _contextrulesIself) =
+             contextrules_
      in  ( _lhsOself))
 -- ProofSteps --------------------------------------------------
 -- cata

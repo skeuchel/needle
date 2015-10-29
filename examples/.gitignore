@@ -23,3 +23,5 @@ DoubleData.v
 Het.v
 FSubRcd.v
 HeterogeneousBinder.v
+Untyped.v
+LambdaLFHetSeqLet.v

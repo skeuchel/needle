@@ -2,7 +2,8 @@
 module KnotCore.Elaboration where
 
 import Control.Applicative
-
+import Control.Monad
+import Data.List (nub, intersect)
 import qualified Coq.StdLib as Coq
 import qualified Coq.Syntax as Coq
 
@@ -62,6 +63,8 @@ import qualified KnotCore.Elaboration.Lemma.ShiftWellFormed as ShiftWellFormed
 import qualified KnotCore.Elaboration.Lemma.SubstHvlWfIndexHom as SubstHvlWfIndexHom
 import qualified KnotCore.Elaboration.Lemma.SubstHvlWfIndexHet as SubstHvlWfIndexHet
 import qualified KnotCore.Elaboration.Lemma.SubstHvlWfTerm as SubstHvlWfTerm
+import qualified KnotCore.Elaboration.WellFormedInversion as WellFormedInversion
+import qualified KnotCore.Elaboration.Lemma.WellFormedStrengthen as WellFormedStrengthen
 
 -- Context related
 import qualified KnotCore.Elaboration.TermEnv as TermEnv
@@ -91,6 +94,7 @@ import qualified KnotCore.Elaboration.Size as Size
 import qualified KnotCore.Elaboration.Lemma.ShiftSize as ShiftSize
 import qualified KnotCore.Elaboration.Lemma.WeakenSize as WeakenSize
 
+import qualified KnotCore.Elaboration.SubHvl as SubHvl
 --import qualified KnotCore.Elaboration.Relation as Relation
 
 elaborateSpec :: TermSpec -> Coq.Root
@@ -165,6 +169,7 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
   substHvlRelations           <- SubstHvlRelation.eSubstHvlRelations
   shiftwfindex                <- ShiftWellFormedIndex.lemmas
   shiftwfterm                 <- ShiftWellFormed.lemmas sgds
+  strengthenwfterm            <- WellFormedStrengthen.lemmas
   substwfindexhom             <- SubstHvlWfIndexHom.lemmas
   substwfindexhet             <- SubstHvlWfIndexHet.lemmas
   substwfterm                 <- SubstHvlWfTerm.lemmas sgds
@@ -219,6 +224,9 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
             [Coq.ID "cong_shift0"]
     | shift <- shiftFunIds
     ]
+  allFuns <- getFunctions
+  let ntnsets = nub [ ntns | (_,_,ntns) <- allFuns ]
+  subhvls <- concat <$> mapM SubHvl.eSubHvl ntnsets
 
   let mkRewriteHints :: [String] -> [Coq.Identifier] -> ElM [Coq.Sentence]
       mkRewriteHints _   []  = return []
@@ -272,6 +280,7 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
   substHvlHints             <- setTypeSubstHvl                      >>= mkConstructorsHints ["infra", "subst", "subst_wf", "wf"]
   substwfindexHints         <- setLemmaSubstHvlWfIndex              >>= mkResolveHints      ["infra", "subst", "subst_wf", "wf"]
   substwftermHints          <- setLemmaSubstWellFormedSort          >>= mkResolveHints      ["infra", "subst", "subst_wf", "wf"]
+  subhvlAppendHints         <- (mapM idLemmaSubHvlAppend ntnsets)   >>= mkResolveHints      ["infra", "wf"]
 
   -- Environment terms
   domainEnvAppendEnvHints   <- setLemmaDomainEnvAppendEnv           >>= mkRewriteHints      ["interaction", "env_domain_append" ]
@@ -293,6 +302,47 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
   weakenSubstEnvHints       <- setLemmaWeakenSubstEnv               >>= mkResolveHints      ["infra", "subst"]
   substEnvSubstHvlHints     <- setLemmaSubstEnvSubstHvl             >>= mkResolveHints      ["infra", "subst", "subst_wf", "wf", "substenv_substhvl"]
   substEnvLookupHints       <- setLemmaSubstEnvLookup               >>= mkResolveHints      ["infra", "lookup", "subst"]
+
+  wellformedRelations <- setRelationWellFormed
+  wellformedDomainAppendHints <-
+    forM wellformedRelations $ \wf -> localNames $ do
+      qid <- toQualId wf
+
+      return $ Coq.SentenceHint Coq.ModNone
+        (Coq.HintExtern 10 (Just $ Coq.PatCtor qid [Coq.ID "_", Coq.ID "_"])
+           (Coq.PrTactic "autorewrite with env_domain_append in *" []))
+           [Coq.ID "infra", Coq.ID "wf"]
+  wellformedInversionHints <- WellFormedInversion.eSortGroupDecls sgds
+
+  allStns <- getSorts
+  strengthenHintss <-
+    forM allStns $ \stn -> do
+      deps <- getSortNamespaceDependencies stn
+      sequence
+        [ do
+            qid <- idRelationWellFormed stn >>= toQualId
+            lem <- idLemmaWellFormedStrengthen stn ntns >>= toRef
+            h   <- freshVariable "H" Coq.true >>= toId
+
+            hyp <- Coq.ContextHyp h
+                   <$> (Coq.PatCtorEx qid
+                        <$> sequence
+                            [ Coq.PatCtor
+                              <$> (idAppendHVarlist >>= toQualId)
+                              <*> pure [ Coq.ID "_", Coq.ID "_" ]
+                            , Coq.PatCtor
+                              <$> (idFunctionWeakenTerm stn >>= toQualId)
+                              <*> pure [ Coq.ID "_", Coq.ID "_" ]
+                            ]
+                       )
+            return $ Coq.SentenceHint Coq.ModNone
+              (Coq.HintExtern 2 (Just $ Coq.PatCtor qid [Coq.ID "_", Coq.ID "_"])
+                (Coq.PrMatchGoal [Coq.ContextRule [hyp] Coq.PatUnderscore (Coq.PrApplyIn lem h)]))
+              [Coq.ID "infra", Coq.ID "wf"]
+        | ntns <- ntnsets
+        , null (intersect deps ntns)
+        ]
+  let wellformedStrengthenHints = concat strengthenHintss
 
   return . Coq.Root . concat $
     [ [ section (Coq.ID "Namespace") namespace,    blank
@@ -380,6 +430,10 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
     , substwfindexHints
     , substwftermHints
     , substHvlHints
+    , subhvls
+    , subhvlAppendHints
+    , strengthenwfterm
+    , wellformedStrengthenHints
     , [ section (Coq.ID "Context") $ concat
         [ ctx
         , appendEnvAssoc
@@ -414,6 +468,8 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
     , weakenLookupHints
     , weakenLookupHere
     , wellFormedTermHints
+    , wellformedDomainAppendHints
+    , wellformedInversionHints
     , lookupWellformedDataHints
     , lookupwfindexHints
     , insertEnvCtorHints

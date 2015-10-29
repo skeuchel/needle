@@ -2,6 +2,7 @@
 
 module KnotCore.Elaboration.Eq where
 
+import Control.Applicative
 import Coq.Syntax
 import Coq.StdLib
 
@@ -170,9 +171,10 @@ instance TermLike EqTrace where
   toTerm (EqxTrans eqx1 eqx2)      = eqTrans <$> toTerm eqx1 <*> toTerm eqx2
 
 instance TermLike EqTerm where
-  toTerm (EqtRefl _)                = pure eqRefl
+  toTerm (EqtRefl _)               = pure eqRefl
   toTerm (EqtAssumption _ tm)      = pure tm
-  toTerm (EqtCongWeaken _ _)       = error "NOT IMPLEMENTED"
+  toTerm (EqtCongWeaken _ _)       = -- So far we never ever do multiplace weakenings.
+                                     error "NOT IMPLEMENTED"
   toTerm (EqtCongShift eqc eqt)    =
     eqFEqual2
     <$> (idFunctionShift (typeNameOf eqc) (typeNameOf eqt) >>= toRef)

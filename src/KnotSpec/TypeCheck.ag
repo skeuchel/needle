@@ -1,3 +1,0 @@
-module {KnotSpec.TypeCheck} {} {import KnotSpec.Syntax}
-
-include "src/KnotSpec/Syntax.ag"

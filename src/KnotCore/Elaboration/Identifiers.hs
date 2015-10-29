@@ -4,7 +4,7 @@ module KnotCore.Elaboration.Identifiers where
 
 import Control.Applicative
 
-import Data.List ((\\))
+import Data.List ((\\),intercalate)
 import qualified Data.Map as M
 
 import KnotCore.Syntax
@@ -1315,3 +1315,19 @@ setLemmaLookupWellformedData = do
 
 setRelationWellFormed :: Elab m => m [Coq.Identifier]
 setRelationWellFormed = getSorts >>= mapM idRelationWellFormed
+
+idFunctionSubHvl :: Elab m => [NamespaceTypeName] -> m Coq.Identifier
+idFunctionSubHvl ntns =
+  return (Coq.ID $ "subhvl_" ++ intercalate "_" (map fromNtn ntns))
+
+idLemmaSubHvlAppend :: Elab m => [NamespaceTypeName] -> m Coq.Identifier
+idLemmaSubHvlAppend ntns = do
+  Coq.ID subhvl <- idFunctionSubHvl ntns
+  return (Coq.ID $ subhvl ++ "_append")
+
+idLemmaWellFormedStrengthen :: Elab m =>
+  SortTypeName -> [NamespaceTypeName] -> m Coq.Identifier
+idLemmaWellFormedStrengthen stn ntns = do
+  Coq.ID wf <- idRelationWellFormed stn
+  Coq.ID subhvl <- idFunctionSubHvl ntns
+  return (Coq.ID $ wf ++ "_strengthen_" ++ subhvl)
