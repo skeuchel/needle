@@ -732,6 +732,8 @@ sem_Hint (HintResolve _hints) =
     (sem_Hint_HintResolve (sem_Terms _hints))
 sem_Hint (HintRewrite _hints) =
     (sem_Hint_HintRewrite (sem_Terms _hints))
+sem_Hint (HintRewriteRightToLeft _hints) =
+    (sem_Hint_HintRewriteRightToLeft (sem_Terms _hints))
 sem_Hint (HintConstructors _ids) =
     (sem_Hint_HintConstructors (sem_Identifiers _ids))
 sem_Hint (HintExtern _level _pattern _tactic) =
@@ -765,6 +767,18 @@ sem_Hint_HintRewrite hints_ =
          _hintsIself :: Terms
          _self =
              HintRewrite _hintsIself
+         _lhsOself =
+             _self
+         ( _hintsIself) =
+             hints_
+     in  ( _lhsOself))
+sem_Hint_HintRewriteRightToLeft :: T_Terms ->
+                                   T_Hint
+sem_Hint_HintRewriteRightToLeft hints_ =
+    (let _lhsOself :: Hint
+         _hintsIself :: Terms
+         _self =
+             HintRewriteRightToLeft _hintsIself
          _lhsOself =
              _self
          ( _hintsIself) =
@@ -1513,6 +1527,12 @@ sem_Pattern (PatCtor _patCtor _patFields) =
     (sem_Pattern_PatCtor (sem_QualId _patCtor) (sem_Identifiers _patFields))
 sem_Pattern (PatCtorEx _patCtor _patFields) =
     (sem_Pattern_PatCtorEx (sem_QualId _patCtor) (sem_Patterns _patFields))
+sem_Pattern (PatAtCtor _patCtor _patFields) =
+    (sem_Pattern_PatAtCtor (sem_QualId _patCtor) (sem_Identifiers _patFields))
+sem_Pattern (PatAtCtorEx _patCtor _patFields) =
+    (sem_Pattern_PatAtCtorEx (sem_QualId _patCtor) (sem_Patterns _patFields))
+sem_Pattern (PatQualId _patQualId) =
+    (sem_Pattern_PatQualId (sem_QualId _patQualId))
 sem_Pattern (PatUnderscore) =
     (sem_Pattern_PatUnderscore)
 -- semantic domain
@@ -1556,6 +1576,50 @@ sem_Pattern_PatCtorEx patCtor_ patFields_ =
              patCtor_
          ( _patFieldsIself) =
              patFields_
+     in  ( _lhsOself))
+sem_Pattern_PatAtCtor :: T_QualId ->
+                         T_Identifiers ->
+                         T_Pattern
+sem_Pattern_PatAtCtor patCtor_ patFields_ =
+    (let _lhsOself :: Pattern
+         _patCtorIself :: QualId
+         _patFieldsIself :: Identifiers
+         _self =
+             PatAtCtor _patCtorIself _patFieldsIself
+         _lhsOself =
+             _self
+         ( _patCtorIself) =
+             patCtor_
+         ( _patFieldsIself) =
+             patFields_
+     in  ( _lhsOself))
+sem_Pattern_PatAtCtorEx :: T_QualId ->
+                           T_Patterns ->
+                           T_Pattern
+sem_Pattern_PatAtCtorEx patCtor_ patFields_ =
+    (let _lhsOself :: Pattern
+         _patCtorIself :: QualId
+         _patFieldsIself :: Patterns
+         _self =
+             PatAtCtorEx _patCtorIself _patFieldsIself
+         _lhsOself =
+             _self
+         ( _patCtorIself) =
+             patCtor_
+         ( _patFieldsIself) =
+             patFields_
+     in  ( _lhsOself))
+sem_Pattern_PatQualId :: T_QualId ->
+                         T_Pattern
+sem_Pattern_PatQualId patQualId_ =
+    (let _lhsOself :: Pattern
+         _patQualIdIself :: QualId
+         _self =
+             PatQualId _patQualIdIself
+         _lhsOself =
+             _self
+         ( _patQualIdIself) =
+             patQualId_
      in  ( _lhsOself))
 sem_Pattern_PatUnderscore :: T_Pattern
 sem_Pattern_PatUnderscore =
@@ -2361,6 +2425,8 @@ sem_Sentence (SentenceClassInst _classInst) =
     (sem_Sentence_SentenceClassInst (sem_ClassInstance _classInst))
 sem_Sentence (SentenceVerbatim _verbatim) =
     (sem_Sentence_SentenceVerbatim _verbatim)
+sem_Sentence (SentenceContext _binders) =
+    (sem_Sentence_SentenceContext (sem_Binders _binders))
 -- semantic domain
 type T_Sentence = ( Sentence)
 data Inh_Sentence = Inh_Sentence {}
@@ -2550,6 +2616,18 @@ sem_Sentence_SentenceVerbatim verbatim_ =
              SentenceVerbatim verbatim_
          _lhsOself =
              _self
+     in  ( _lhsOself))
+sem_Sentence_SentenceContext :: T_Binders ->
+                                T_Sentence
+sem_Sentence_SentenceContext binders_ =
+    (let _lhsOself :: Sentence
+         _bindersIself :: Binders
+         _self =
+             SentenceContext _bindersIself
+         _lhsOself =
+             _self
+         ( _bindersIself) =
+             binders_
      in  ( _lhsOself))
 -- Sentences ---------------------------------------------------
 -- cata

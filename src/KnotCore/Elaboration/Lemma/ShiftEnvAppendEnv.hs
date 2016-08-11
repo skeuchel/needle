@@ -1,18 +1,19 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.ShiftEnvAppendEnv where
-
-import Control.Applicative
 
 import qualified Coq.Syntax as Coq
 
 import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
+import Control.Applicative
+
 lemmas :: Elab m => [EnvDecl] -> m [Coq.Sentence]
-lemmas eds = sequence
-  [ eEnvDecl (typeNameOf mv) (typeNameOf ed)
+lemmas eds = sequenceA
+  [ eEnvDecl (typeNameOf bv) (typeNameOf ed)
   | ed <- eds
-  , EnvCtorCons _ mv _ <- edCtors ed
+  , EnvCtorCons _cn bv _fds _mbRtn <- edCtors ed
   ]
 
 eEnvDecl :: Elab m => NamespaceTypeName -> EnvTypeName -> m Coq.Sentence
@@ -21,12 +22,12 @@ eEnvDecl ntn etn = localNames $ do
   lemma      <- idLemmaShiftEnvAppendEnv ntn etn
 
   c          <- freshCutoffVar ntn
-  d1         <- freshEnvVar etn
-  d2         <- freshEnvVar etn
+  d1         <- freshEnvVariable etn
+  d2         <- freshEnvVariable etn
 
   statement  <-
     Coq.TermForall
-    <$> sequence [toBinder c, toBinder d1, toBinder d2]
+    <$> sequenceA [toBinder c, toBinder d1, toBinder d2]
     <*> (Coq.TermEq
          <$> toTerm (EShift (CVar c) (EAppend (EVar d1) (EVar d2)))
          <*> toTerm (EAppend

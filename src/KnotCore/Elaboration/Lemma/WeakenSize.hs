@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.WeakenSize where
 
@@ -10,30 +11,29 @@ import Coq.Syntax
 import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 import KnotCore.Elaboration.Eq
-import KnotCore.Elaboration.Lemma.Mutual
 
 lemmas :: Elab m => m [Sentence]
-lemmas = getSorts >>= mapM sortDecl
+lemmas = getSorts >>= traverse sortDecl
 
 sortDecl :: Elab m => SortTypeName -> m Sentence
 sortDecl stn = localNames $ do
 
   lemma <- idLemmaWeakenSize stn
   size  <- idFunctionSize stn
-  t     <- freshSubtreeVar stn
+  t     <- freshSortVariable stn
   h     <- freshHVarlistVar
 
   statement <-
     TermForall
-    <$> sequence [toBinder h, toBinder t]
+    <$> sequenceA [toBinder h, toBinder t]
     <*> (eq
          <$> (TermApp
               <$> toRef size
-              <*> sequence [ toTerm (SWeaken (SVar t) (HVVar h)) ]
+              <*> sequenceA [ toTerm (SWeaken (SVar t) (HVVar h)) ]
              )
          <*> (TermApp
               <$> toRef size
-              <*> sequence [ toTerm (SVar t) ]
+              <*> sequenceA [ toTerm (SVar t) ]
              )
         )
 

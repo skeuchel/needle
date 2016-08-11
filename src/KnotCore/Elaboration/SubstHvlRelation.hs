@@ -13,9 +13,9 @@ import KnotCore.Elaboration.Core
 eSubstHvlRelations :: Elab m => m [Sentence]
 eSubstHvlRelations = do
   ntns <- getNamespaces
-  concat <$> sequence
-    [ mapM eSubstHvlRelation ntns
-    , mapM eWeakenSubstHvl ntns
+  concat <$> sequenceA
+    [ traverse eSubstHvlRelation ntns
+    , traverse eWeakenSubstHvl ntns
     ]
 
 eSubstHvlRelation :: Elab m => NamespaceTypeName -> m Sentence
@@ -32,10 +32,10 @@ eSubstHvlRelation ntn = localNames $ do
           <*> (Just <$> toTerm (SubstHvl (HVVar h) (T0 ntn) (HVS ntn (HVVar h)) (HVVar h)))
 
   ntns   <- getNamespaces
-  theres <- forM ntns $ \tntn ->
+  theres <- for ntns $ \tntn ->
               InductiveCtor
               <$> idCtorSubstHvlThere ntn tntn
-              <*> sequence
+              <*> sequenceA
                   [ toImplicitBinder x
                   , toImplicitBinder h1
                   , toImplicitBinder h2
@@ -53,9 +53,9 @@ eSubstHvlRelation ntn = localNames $ do
 
   body <- InductiveBody
           <$> idTypeSubstHvl ntn
-          <*> sequence [toBinder h]
+          <*> sequenceA [toBinder h]
           <*> (TermForall
-               <$> sequence [toBinder x, toBinder h1, toBinder h2 ]
+               <$> sequenceA [toBinder x, toBinder h1, toBinder h2 ]
                <*> pure (TermSort Prop)
               )
           <*> pure (here:theres)
@@ -73,7 +73,7 @@ eWeakenSubstHvl ntn = localNames $ do
   h2    <- freshHVarlistVar
 
   statement <- TermForall
-               <$> sequence
+               <$> sequenceA
                    [ toImplicitBinder h
                    , toBinder d
                    , toImplicitBinder x

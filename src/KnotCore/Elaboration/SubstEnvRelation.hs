@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module KnotCore.Elaboration.SubstEnvRelation where
@@ -12,61 +13,62 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 eSubstEnvRelationss :: Elab m => [EnvDecl] -> m [Sentence]
-eSubstEnvRelationss = fmap concat . mapM eSubstEnvRelations
+eSubstEnvRelationss = fmap concat . traverse eSubstEnvRelations
 
 eSubstEnvRelations :: Elab m => EnvDecl -> m [Sentence]
 eSubstEnvRelations (EnvDecl etn _ ecs) =
-  concat <$> sequence
+  concat <$> sequenceA
     [ localNames $ do
-        henv     <- freshEnvVar etn
+        henv     <- freshEnvVariable etn
         (stn,_)  <- getNamespaceCtor hntn
-        ht       <- freshSubtreeVar stn
+        ht       <- freshSortVariable stn
         hfields' <- freshen hfields
 
         eSubstEnvRelation henv hcn hntn hfields' ht ecs
-    | EnvCtorCons hcn hmv hfields <- ecs
+    | EnvCtorCons hcn hmv hfields _mbRtn <- ecs
     , let hntn = typeNameOf hmv
     ]
 
 eSubstEnvRelation ::
-  forall m. Elab m =>
-  EnvVar ->
-  CtorName -> NamespaceTypeName -> [SubtreeVar] -> SubtreeVar ->
-  [EnvCtor] -> m [Sentence]
-eSubstEnvRelation henv hcn hntn hfields ht ecs = sequence [ eDeclaration, eWeakenSubstEnv ]
+  Elab m => EnvVariable -> CtorName -> NamespaceTypeName ->
+  [FieldDecl 'WOMV] -> SortVariable -> [EnvCtor] -> m [Sentence]
+eSubstEnvRelation henv hcn hntn hfields ht ecs =
+  sequenceA [ eDeclaration, eWeakenSubstEnv ]
   where
     etn :: EnvTypeName
     etn = typeNameOf henv
 
-    eDeclaration :: m Sentence
+    eDeclaration :: Elab m => m Sentence
     eDeclaration = do
+      ecs' <- freshen' ecs
       body <-
         InductiveBody
           <$> idTypeSubstEnv hcn
-          <*> sequence
+          <*> sequenceA
               ([toBinder henv] ++
-               map toBinder hfields ++
+               eFieldDeclBinders hfields ++
                [toBinder ht]
               )
           <*> (prop
-               <$> sequence
+               <$> sequenceA
                    [ typeTrace hntn
                    , toRef etn
                    , toRef etn
                    ]
                )
-          <*> sequence
+          <*> sequenceA
               (eSubstEnvHere:
                [ eSubstEnvThere tcn tntn tfields
-               | EnvCtorCons tcn tmv tfields <- ecs
+               | EnvCtorCons tcn tmv tfields _mbRtn <- ecs'
                , let tntn = typeNameOf tmv
                ]
               )
 
       return $ SentenceInductive (Inductive [body])
 
-    eSubstEnvHere :: m InductiveCtor
+    eSubstEnvHere :: Elab m => m InductiveCtor
     eSubstEnvHere = localNames $ do
+      hfs <- eFieldDeclFields hfields
 
       InductiveCtor
         <$> idCtorSubstEnvHere hcn
@@ -74,25 +76,29 @@ eSubstEnvRelation henv hcn hntn hfields ht ecs = sequence [ eDeclaration, eWeake
         <*> (Just
              <$> toTerm (SubstEnv
                           (EVar henv)
-                          (map SVar hfields)
+                          hfs
                           (SVar ht)
                           (T0 hntn)
-                          (ECtor hcn (EVar henv) (map SVar hfields))
+                          (ECons (EVar henv) hntn hfs)
                           (EVar henv)
                         )
             )
 
-    eSubstEnvThere :: CtorName -> NamespaceTypeName -> [SubtreeVar] -> m InductiveCtor
+    eSubstEnvThere :: Elab m => CtorName -> NamespaceTypeName ->
+      [FieldDecl 'WOMV] -> m InductiveCtor
     eSubstEnvThere tcn tntn tfields = localNames $ do
 
       x       <- freshTraceVar hntn
-      ev1     <- freshEnvVar etn
-      ev2     <- freshEnvVar etn
+      ev1     <- freshEnvVariable etn
+      ev2     <- freshEnvVariable etn
+
+      hfs <- eFieldDeclFields hfields
+      tfs <- eFieldDeclFields tfields
 
       premise <- toTerm
                  (SubstEnv
                     (EVar henv)
-                    (map SVar hfields)
+                    hfs
                     (SVar ht)
                     (TVar x)
                     (EVar ev1)
@@ -101,38 +107,40 @@ eSubstEnvRelation henv hcn hntn hfields ht ecs = sequence [ eDeclaration, eWeake
       concl   <- toTerm
                  (SubstEnv
                     (EVar henv)
-                    (map SVar hfields)
+                    hfs
                     (SVar ht)
                     (TS tntn (TVar x))
-                    (ECtor tcn (EVar ev1) (map SVar tfields))
-                    (ECtor tcn (EVar ev2) (map (SSubst' (TVar x) (SVar ht) . SVar) tfields))
+                    (ECons (EVar ev1) tntn tfs)
+                    (ECons (EVar ev2) tntn (map (substField (TVar x) (SVar ht)) tfs))
                  )
 
       InductiveCtor
         <$> idCtorSubstEnvThere hcn tcn
-        <*> sequence (toImplicitBinder x:
+        <*> sequenceA (toImplicitBinder x:
                       toImplicitBinder ev1:
                       toImplicitBinder ev2:
-                      map toImplicitBinder tfields)
+                      eFieldDeclBinders tfields)
         <*> pure (Just $ TermFunction premise concl)
 
-    eWeakenSubstEnv :: m Sentence
+    eWeakenSubstEnv :: Elab m => m Sentence
     eWeakenSubstEnv = localNames $ do
 
       lemma <- idLemmaWeakenSubstEnv hcn
-      delta <- freshEnvVar etn
+      delta <- freshEnvVariable etn
       x     <- freshTraceVar hntn
-      ev1   <- freshEnvVar etn
-      ev2   <- freshEnvVar etn
+      ev1   <- freshEnvVariable etn
+      ev2   <- freshEnvVariable etn
 
-      binders   <- sequence
+      binders   <- sequenceA
                    ([ toImplicitBinder henv ] ++
-                    map toImplicitBinder hfields ++
+                    eFieldDeclBinders hfields ++
                     [ toImplicitBinder ht ]
                    )
 
+      fs <- eFieldDeclFields hfields
+
       statement <- TermForall
-                   <$> sequence
+                   <$> sequenceA
                        [ toBinder delta
                        , toImplicitBinder x
                        , toImplicitBinder ev1
@@ -142,7 +150,7 @@ eSubstEnvRelation henv hcn hntn hfields ht ecs = sequence [ eDeclaration, eWeake
                         <$> toTerm
                             (SubstEnv
                               (EVar henv)
-                              (map SVar hfields)
+                              fs
                               (SVar ht)
                               (TVar x)
                               (EVar ev1)
@@ -150,7 +158,7 @@ eSubstEnvRelation henv hcn hntn hfields ht ecs = sequence [ eDeclaration, eWeake
                         <*> toTerm
                             (SubstEnv
                               (EVar henv)
-                              (map SVar hfields)
+                              fs
                               (SVar ht)
                               (TWeaken (TVar x) (HVDomainEnv (EVar delta)))
                               (EAppend (EVar ev1) (EVar delta))

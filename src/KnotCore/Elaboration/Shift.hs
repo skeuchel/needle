@@ -13,8 +13,8 @@ import KnotCore.Elaboration.Shift.ShiftTerm
 
 eShift :: Elab m => TermSpec -> m Sentences
 eShift ts =
-  concat <$> sequence
+  concat <$> sequenceA
     [ eCutoff (tsNamespaceDecls ts),
-      mapM eShiftIndex (tsNamespaceDecls ts),
+      traverse eShiftIndex (tsNamespaceDecls ts),
       eSortGroupDecls (tsSortGroupDecls ts)
     ]

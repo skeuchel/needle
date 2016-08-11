@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans -fno-warn-name-shadowing #-}
 
 module Coq.Pretty (
   module Coq.Pretty.Common,
@@ -65,12 +66,16 @@ instance Pretty Sentence where
   pretty (SentenceClassDecl cd) = pretty cd <> char '.'
   pretty (SentenceClassInst ci) = pretty ci <> char '.'
   pretty (SentenceVerbatim verbatim) = text verbatim
+  pretty (SentenceContext binders) =
+    hsep $ [text "Context"] ++ lpretty binders ++ [char '.']
 
 instance Pretty Hint where
   pretty (HintResolve tms) =
     hsep (text "Hint Resolve" : lpretty tms)
   pretty (HintRewrite tms) =
     hsep (text "Hint Rewrite" : lpretty tms)
+  pretty (HintRewriteRightToLeft tms) =
+    hsep (text "Hint Rewrite <-" : lpretty tms)
   pretty (HintConstructors ids) =
     hsep (text "Hint Constructors" : lpretty ids)
   pretty (HintExtern lvl Nothing tac) =
@@ -179,10 +184,12 @@ instance Pretty FixpointBody where
       ([ pretty id ] ++
        lpretty bds ++
        prettyMbAnnotation mbAnno ++
-       [ char ':'
-       , pretty ty
-       , text ":="
-       ]) <$$>
+       [ char ':' ]
+      ) <$$>
+    hsep
+      [ pretty ty
+      , text ":="
+      ] <$$>
     indent 2 (pretty tm)
 
 instance Pretty Binder where
@@ -225,7 +232,7 @@ instance Pretty Term where
     hsep ([ text "forall" ] ++ lpretty bds ++ [ char ',' ]) <$$>
     indent 2 (pretty tm)
   pretty (TermAnd tms) = vsep (punctuate' (text "/\\") (lpretty tms))
-  pretty (TermEq l r)  = parens (pretty l <+> char '=' <$$> pretty r)
+  pretty (TermEq l r)  = parens (pretty l <+> char '=' <+> pretty r)
   pretty (TermLet id bds type_ rhs body) = parens $
     hsep ([text "let", pretty id]
           ++ lpretty bds
@@ -237,8 +244,12 @@ instance Pretty Term where
   pretty TermUnderscore = text "_"
 
 instance Pretty MatchItem where
-  pretty (MatchItem tm _ _) =
-     hsep [ pretty tm ] -- TODO
+  pretty (MatchItem tm itemAs itemIn) =
+     hsep . concat $
+     [ [ pretty tm ]
+     , maybe [] (\name -> [text "as", pretty name]) itemAs
+     , maybe [] (\ty   -> [text "in", pretty ty]) itemIn
+     ]
 
 instance Pretty Equation where
   pretty (Equation pat body) =
@@ -249,6 +260,12 @@ instance Pretty Pattern where
     parens (hsep (pretty id : lpretty fields))
   pretty (PatCtorEx id fields) =
     parens (hsep (pretty id : lpretty fields))
+  pretty (PatAtCtor id fields) =
+    parens (hsep ((text "@" <> pretty id) : lpretty fields))
+  pretty (PatAtCtorEx id fields) =
+    parens (hsep ((text "@" <> pretty id) : lpretty fields))
+  pretty (PatQualId id) =
+    pretty id
   pretty (PatUnderscore) =
     text "_"
 

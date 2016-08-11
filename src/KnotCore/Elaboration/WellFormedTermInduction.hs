@@ -9,7 +9,7 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 eSortGroupDecls :: Elab m => [SortGroupDecl] -> m [Coq.Sentence]
-eSortGroupDecls = fmap concat . mapM eSortGroupDecl
+eSortGroupDecls = fmap concat . traverse eSortGroupDecl
 
 eSortGroupDecl :: Elab m => SortGroupDecl -> m [Coq.Sentence]
 eSortGroupDecl sg =
@@ -18,10 +18,10 @@ eSortGroupDecl sg =
         sds  = sgSorts sg
 
     individual <- Coq.SentenceScheme . Coq.Scheme
-                    <$> mapM eSortDecl sds
+                    <$> traverse eSortDecl sds
     group      <- Coq.SentenceCombinedScheme
                     <$> idInductionWellFormedSortGroup sgtn
-                    <*> mapM (idInductionWellFormedSort . typeNameOf) sds
+                    <*> traverse (idInductionWellFormedSort . typeNameOf) sds
     case sds of
       [_] -> return [individual]
       _   -> return [individual,group]

@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.LookupWellformedIndex where
 
@@ -13,24 +14,25 @@ import KnotCore.Elaboration.Core
 import KnotCore.Elaboration.LookupRelation
 
 eLookupWellformedIndex :: Elab m => EnvDecl -> m [Sentence]
-eLookupWellformedIndex = mkLookupRelations >=> mapM lemmaLookupWellformedIndex
+eLookupWellformedIndex = mkLookupRelations >=> traverse lemmaLookupWellformedIndex
 
 lemmaLookupWellformedIndex :: Elab m => LookupRelation -> m Sentence
-lemmaLookupWellformedIndex (LookupRelation etn cn ntn stns _ _) = localNames $ do
+lemmaLookupWellformedIndex (LookupRelation etn cn ntn fds _ _) = localNames $ do
 
-  en  <- freshEnvVar etn
+  en  <- freshEnvVariable etn
   x   <- freshIndexVar ntn
-  tvs <- mapM freshSubtreeVar stns
+  fds' <- freshen fds
+  fs  <- eFieldDeclFields fds'
 
   statement <-
     TermForall
-    <$> sequence
+    <$> sequenceA
         ( toImplicitBinder en
         : toImplicitBinder x
-        : map toImplicitBinder tvs
+        : eFieldDeclBinders fds'
         )
     <*> (TermFunction
-         <$> toTerm (Lookup (EVar en) (IVar x) (map SVar tvs))
+         <$> toTerm (Lookup (EVar en) (IVar x) fs)
          <*> toTerm (WfIndex (HVDomainEnv (EVar en)) (IVar x))
         )
 

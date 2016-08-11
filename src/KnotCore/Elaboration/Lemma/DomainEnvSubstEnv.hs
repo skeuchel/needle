@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.DomainEnvSubstEnv where
 
@@ -9,10 +10,10 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 lemmas :: Elab m => [EnvDecl] -> m [Coq.Sentence]
-lemmas eds = sequence
-  [ eEnvDecl (typeNameOf mv) (typeNameOf ed)
+lemmas eds = sequenceA
+  [ eEnvDecl (typeNameOf bv) (typeNameOf ed)
   | ed <- eds
-  , EnvCtorCons _ mv _ <- edCtors ed
+  , EnvCtorCons _cn bv _fds _mbRtn <- edCtors ed
   ]
 
 eEnvDecl :: Elab m => NamespaceTypeName -> EnvTypeName -> m Coq.Sentence
@@ -23,12 +24,12 @@ eEnvDecl ntn etn = localNames $ do
   (stnSub,_) <- getNamespaceCtor ntn
 
   x          <- freshTraceVar ntn
-  s          <- freshSubtreeVar stnSub
-  d          <- freshEnvVar etn
+  s          <- freshSortVariable stnSub
+  d          <- freshEnvVariable etn
 
   statement  <-
     Coq.TermForall
-    <$> sequence [toBinder x, toBinder s, toBinder d]
+    <$> sequenceA [toBinder x, toBinder s, toBinder d]
     <*> (Coq.TermEq
          <$> toTerm (HVDomainEnv (ESubst (TVar x) (SVar s) (EVar d)))
          <*> toTerm (HVDomainEnv (EVar d))

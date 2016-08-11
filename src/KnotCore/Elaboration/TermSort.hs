@@ -11,7 +11,7 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 eSortGroupDecls :: Elab m => [SortGroupDecl] -> m [Sentence]
-eSortGroupDecls sgds = intercalate [SentenceBlankline] <$> mapM eSortGroupDecl sgds
+eSortGroupDecls sgds = intercalate [SentenceBlankline] <$> traverse eSortGroupDecl sgds
 
 eSortGroupDecl :: Elab m => SortGroupDecl -> m [Sentence]
 eSortGroupDecl sgd = do
@@ -23,7 +23,7 @@ eSortGroupDecl sgd = do
 eTermSortGroupDecl :: Elab m => SortGroupDecl -> m Sentence
 eTermSortGroupDecl sg =
   fmap SentenceInductive $
-    Inductive <$> mapM eTermSortDecl (sgSorts sg)
+    Inductive <$> traverse eTermSortDecl (sgSorts sg)
 
 eTermSortDecl :: Elab m => SortDecl -> m InductiveBody
 eTermSortDecl (SortDecl stn _ ctors) =
@@ -31,38 +31,33 @@ eTermSortDecl (SortDecl stn _ ctors) =
     <$> toId stn
     <*> pure []
     <*> pure (TermSort Set)
-    <*> mapM eTermCtorDecl ctors
+    <*> traverse eTermCtorDecl ctors
 
 eTermCtorDecl :: Elab m => CtorDecl -> m InductiveCtor
-eTermCtorDecl (CtorVar cn mv)      =
+eTermCtorDecl (CtorVar cn fv _)      =
   InductiveCtor
     <$> toId cn
-    <*> sequence [ toIndex mv >>= toBinder ] -- Single Field
+    <*> sequenceA [ toIndex fv >>= toBinder ] -- Single Field
     <*> pure Nothing                  -- Normal ADT constructor
-eTermCtorDecl (CtorTerm cn fields) =
+eTermCtorDecl (CtorReg cn fields) =
   InductiveCtor
     <$> toId cn
-    <*> (catMaybes <$> mapM eTermFieldDecl fields)
+    <*> sequenceA (eFieldDeclBinders fields)
     <*> pure Nothing                  -- Normal ADT constructor
-
-eTermFieldDecl :: Elab m => FieldDecl -> m (Maybe Binder)
-eTermFieldDecl (FieldSubtree name _) = Just <$> toBinder name
-eTermFieldDecl (FieldBinding _)   = return Nothing
 
 eSchemeSortGroupDecl :: Elab m => SortGroupDecl -> m [Sentence]
-eSchemeSortGroupDecl sg =
-  do
-    let sgtn = typeNameOf sg
-        sds  = sgSorts sg
+eSchemeSortGroupDecl sg = do
+  let sgtn = typeNameOf sg
+      sds  = sgSorts sg
 
-    individual <- SentenceScheme . Scheme
-                    <$> mapM eSchemeSortDecl sds
-    group      <- SentenceCombinedScheme
-                    <$> idInductionSortGroup sgtn
-                    <*> mapM (idInductionSort . typeNameOf) sds
-    case sds of
-      [_] -> return [individual]
-      _   -> return [individual,group]
+  individual <- SentenceScheme . Scheme
+                  <$> traverse eSchemeSortDecl sds
+  group      <- SentenceCombinedScheme
+                  <$> idInductionSortGroup sgtn
+                  <*> traverse (idInductionSort . typeNameOf) sds
+  case sds of
+    [_] -> return [individual]
+    _   -> return [individual,group]
 
 eSchemeSortDecl :: Elab m => SortDecl -> m SchemeBody
 eSchemeSortDecl (SortDecl stn _ _) =

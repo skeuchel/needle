@@ -3,7 +3,7 @@ namespace tm, x, y, z : Tm
   - subst: "subst"
 
 sort Tm, s, t, u :=
-  + var x
+  + var {x}
   | abs x [x]t
   | app t1 t2
 

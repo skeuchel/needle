@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.StabilityShift where
 
@@ -10,18 +11,18 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 lemmas :: Elab m => [FunGroupDecl] -> m Coq.Sentences
-lemmas fgds = concat <$> mapM funGroupDecl fgds
+lemmas fgds = concat <$> traverse funGroupDecl fgds
 
 funGroupDecl :: Elab m => FunGroupDecl -> m Coq.Sentences
 funGroupDecl fgd = do
   deps <- getSortNamespaceDependencies (fst . head $ fgdFuns fgd)
-  concat <$> sequence
+  concat <$> sequenceA
     [ do
         glem  <- groupLemma ntn fgd
         let fns = [ fdName fd | (_,fds) <- fgdFuns fgd, fd <- fds ]
         ilems <- case fns of
                    [_] -> return []
-                   _   -> mapM (individualLemma ntn (fgdName fgd)) fns
+                   _   -> traverse (individualLemma ntn (fgdName fgd)) fns
         return (glem:ilems)
     | ntn <- deps
     ]
@@ -29,14 +30,14 @@ funGroupDecl fgd = do
 individualLemma :: Elab m => NamespaceTypeName -> FunGroupName -> FunName -> m Coq.Sentence
 individualLemma ntn fgn fn = do
 
+  (stn,_ntns) <- lookupFunctionType fn
   glem  <- idLemmaStabilityShiftGroup ntn fgn
   lem   <- idLemmaStabilityShift ntn fn
-  let stn = fnSort fn
-  sv    <- freshSubtreeVar stn
+  sv    <- freshSortVariable stn
   ass   <- individualAssertion ntn sv fn
-  proof <- sequence
+  proof <- sequenceA
            [ pure (Coq.PrIntros [])
-           , Coq.PrTactic "eapply" <$> sequence [toRef glem]
+           , Coq.PrTactic "eapply" <$> sequenceA [toRef glem]
            ]
   svbinder <- toBinder sv
   return $ Coq.SentenceAssertionProof
@@ -52,12 +53,12 @@ groupLemma ntn fgd = do
   shiftFuns  <- idLemmaStabilityShiftGroup ntn fgn
   induction  <- idFunctionInductionSortGroup fgn sgtn
   assertion <- Coq.all <$>
-                  sequence
+                  sequenceA
                     [ groupAssertion ntn stn fds
                     | (stn,fds) <- fgdFuns fgd
                     ]
-  proof <- sequence
-           [ Coq.PrTactic "apply_mutual_ind" <$> sequence [toRef induction]
+  proof <- sequenceA
+           [ Coq.PrTactic "apply_mutual_ind" <$> sequenceA [toRef induction]
            , pure Coq.PrSimpl
            , pure (Coq.PrIntros [])
            , pure (Coq.PrTactic "congruence" [])
@@ -71,17 +72,17 @@ groupLemma ntn fgd = do
 groupAssertion :: Elab m => NamespaceTypeName -> SortTypeName -> [FunDecl] -> m Coq.Term
 groupAssertion ntn stn fds = do
 
-  sv <- freshSubtreeVar stn
-  assertions <- Coq.all <$> sequence
+  sv <- freshSortVariable stn
+  assertions <- Coq.all <$> sequenceA
                   [ individualAssertion ntn sv (fdName fd)
                   | fd <- fds
                   ]
 
   Coq.TermForall
-    <$> sequence [toBinder sv]
+    <$> sequenceA [toBinder sv]
     <*> pure assertions
 
-individualAssertion :: Elab m => NamespaceTypeName -> SubtreeVar -> FunName -> m Coq.Term
+individualAssertion :: Elab m => NamespaceTypeName -> SortVariable -> FunName -> m Coq.Term
 individualAssertion ntn sv fn = do
 
   let stn = typeNameOf sv
@@ -91,13 +92,13 @@ individualAssertion ntn sv fn = do
 
   left  <- Coq.TermApp
            <$> toRef fn
-           <*> sequence
+           <*> sequenceA
                [Coq.TermApp
                 <$> toRef shift
-                <*> sequence [toRef c, toRef sv]]
+                <*> sequenceA [toRef c, toRef sv]]
 
-  right <- Coq.TermApp <$> toRef fn <*> sequence [toRef sv]
+  right <- Coq.TermApp <$> toRef fn <*> sequenceA [toRef sv]
 
   Coq.TermForall
-    <$> sequence [toBinder c]
+    <$> sequenceA [toBinder c]
     <*> pure (Coq.eq left right)

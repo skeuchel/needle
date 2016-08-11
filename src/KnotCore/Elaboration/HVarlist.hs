@@ -10,7 +10,7 @@ import KnotCore.Elaboration.Core
 
 eHVarlist :: Elab m => m [Sentence]
 eHVarlist =
-  sequence
+  sequenceA
   [ eTypeHVarlist
   , pure SentenceBlankline
   , eFunctionAppendHVarlist
@@ -31,19 +31,19 @@ eTypeHVarlist = localNames $ do
 
   k         <- freshHVarlistVar
 
-  SentenceInductive . Inductive <$> sequence
+  SentenceInductive . Inductive <$> sequenceA
     [ InductiveBody
       <$> toId hvl
       <*> pure []
       <*> pure (TermSort Type)
-      <*> sequence
+      <*> sequenceA
           [ InductiveCtor
             <$> toId nil
             <*> pure []
             <*> pure Nothing,
             InductiveCtor
             <$> toId cons
-            <*> sequence [toBinder a, toBinder k]
+            <*> sequenceA [toBinder a, toBinder k]
             <*> pure Nothing
           ]
     ]
@@ -61,10 +61,10 @@ eFunctionAppendHVarlist = localNames $ do
   k1        <- freshHVarlistVar
   k2        <- freshHVarlistVar
 
-  SentenceFixpoint . Fixpoint <$> sequence
+  SentenceFixpoint . Fixpoint <$> sequenceA
     [ FixpointBody
       <$> toId append
-      <*> sequence [toBinder k1, toBinder k2]
+      <*> sequenceA [toBinder k1, toBinder k2]
       <*> (Just . Struct <$> toId k2)
       <*> toRef hvl
       <*> (TermMatch
@@ -73,21 +73,21 @@ eFunctionAppendHVarlist = localNames $ do
                 <*> pure Nothing
                 <*> pure Nothing)
            <*> pure Nothing
-           <*> sequence
+           <*> sequenceA
                [ Equation
                  <$> (PatCtor <$> toQualId nil <*> pure [])
                  <*> toRef k1,
                  Equation
                  <$> (PatCtor
                       <$> toQualId cons
-                      <*> sequence [toId a, toId k2])
+                      <*> sequenceA [toId a, toId k2])
                  <*> (TermApp
                       <$> toRef cons
-                      <*> sequence
+                      <*> sequenceA
                           [ toRef a,
                             TermApp
                             <$> toRef append
-                            <*> sequence [toRef k1, toRef k2]
+                            <*> sequenceA [toRef k1, toRef k2]
                           ]
                      )
                ]
@@ -105,7 +105,7 @@ eLemmaHVarlistAppendAssoc = localNames $ do
 
   statement  <-
     TermForall
-    <$> sequence [toBinder h0, toBinder h1, toBinder h2]
+    <$> sequenceA [toBinder h0, toBinder h1, toBinder h2]
     <*> (TermEq
          <$> toTerm (HVAppend (HVAppend (HVVar h0) (HVVar h1)) (HVVar h2))
          <*> toTerm (HVAppend (HVVar h0) (HVAppend (HVVar h1) (HVVar h2)))

@@ -12,7 +12,7 @@ import KnotCore.Elaboration.Subst.SubstTerm
 
 eSubst :: Elab m => TermSpec -> m Sentences
 eSubst ts =
-  concat <$> sequence
-    [ mapM eSubstIndex (tsNamespaceDecls ts),
+  concat <$> sequenceA
+    [ traverse eSubstIndex (tsNamespaceDecls ts),
       eSortGroupDecls (tsSortGroupDecls ts)
     ]

@@ -11,19 +11,19 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 eNamespace :: Elab m => [NamespaceDecl] -> m Sentences
-eNamespace nds = sequence
+eNamespace nds = sequenceA
   [ eTypeNamespace nds,
     eEqNamespaceDec nds
   ]
 
 eTypeNamespace :: Elab m => [NamespaceDecl] -> m Sentence
 eTypeNamespace nds =
-  SentenceInductive . Inductive <$> sequence
+  SentenceInductive . Inductive <$> sequenceA
     [ InductiveBody
       <$> idTypeNamespace
       <*> pure []
       <*> pure (TermSort Type)
-      <*> forM nds (\nd ->
+      <*> for nds (\nd ->
             InductiveCtor
             <$> idCtorNamespace (typeNameOf nd)
             <*> pure []
@@ -39,7 +39,7 @@ eEqNamespaceDec _ = localNames $ do
   namespace <- idTypeNamespace
   a         <- freshVariable "a" =<< toRef namespace
   b         <- freshVariable "b" =<< toRef namespace
-  binders   <- sequence [toBinder a, toBinder b]
+  binders   <- sequenceA [toBinder a, toBinder b]
   eq_ab     <- eq <$> toRef a <*> toRef b
 
   let assertion = sumbool eq_ab (Coq.StdLib.not eq_ab)

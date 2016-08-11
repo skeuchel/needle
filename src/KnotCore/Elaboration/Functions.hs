@@ -10,32 +10,33 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 eFunGroupDecls :: Elab m => [FunGroupDecl] -> m [Sentence]
-eFunGroupDecls fgds = concat <$> mapM eFunGroupDecl fgds
+eFunGroupDecls fgds = concat <$> traverse eFunGroupDecl fgds
 
 eFunGroupDecl :: Elab m => FunGroupDecl -> m [Sentence]
 eFunGroupDecl (FunGroupDecl fgn _ fdss) = do
   fixpoint <-
     SentenceFixpoint . Fixpoint
-      <$> sequence [ eFunDecl fd | (_,fds) <- fdss, fd <- fds ]
+      <$> sequenceA [ eFunDecl fd | (_,fds) <- fdss, fd <- fds ]
   let stns = [ stn | (stn,_) <- fdss ]
   inductions <- eSchemeSortGroupDecl fgn stns
   return (fixpoint:inductions)
 
 eFunDecl :: Elab m => FunDecl -> m FixpointBody
-eFunDecl (FunDecl fn _ _ matchItem cases) =
-    FixpointBody
-      <$> toId fn
-      <*> sequence [ toBinder matchItem ]
-      <*> (Just . Struct <$> toId matchItem)
-      <*> (idTypeHVarlist >>= toRef)
-      <*> (TermMatch
-             <$> (MatchItem
-                    <$> toRef matchItem
-                    <*> pure Nothing
-                    <*> pure Nothing)
-             <*> pure Nothing
-             <*> mapM eFunCase cases
-          )
+eFunDecl (FunDecl fn stn _ cases) = do
+  matchItem <- freshSortVariable stn
+  FixpointBody
+    <$> toId fn
+    <*> sequenceA [ toBinder matchItem ]
+    <*> (Just . Struct <$> toId matchItem)
+    <*> (idTypeHVarlist >>= toRef)
+    <*> (TermMatch
+           <$> (MatchItem
+                  <$> toRef matchItem
+                  <*> pure Nothing
+                  <*> pure Nothing)
+           <*> pure Nothing
+           <*> traverse eFunCase cases
+        )
 
 eFunCase :: Elab m => FunCase -> m Equation
 eFunCase (FunCase cn fields rhs) =
@@ -43,15 +44,17 @@ eFunCase (FunCase cn fields rhs) =
     <$> (PatCtor
            <$> (Ident <$> toId cn)
            <*> eFieldMetaIdentifiers fields)
-    <*> toTerm (evalBindSpec rhs)
+    <*> toTerm (evalBindSpec HV0 rhs)
 
-eFieldMetaIdentifiers :: Elab m => [FieldMetaBinding] -> m [Identifier]
-eFieldMetaIdentifiers = fmap catMaybes . mapM eFieldMetaIdentifier
+eFieldMetaIdentifiers :: Elab m => [FunField] -> m [Identifier]
+eFieldMetaIdentifiers = fmap catMaybes . traverse eFieldMetaIdentifier
 
-eFieldMetaIdentifier :: Elab m => FieldMetaBinding -> m (Maybe Identifier)
-eFieldMetaIdentifier (FieldMetaBindingSubtree sv) = Just <$> toId sv
-eFieldMetaIdentifier (FieldMetaBindingMetavar _)  = pure Nothing
-eFieldMetaIdentifier (FieldMetaBindingOutput ev)  = Just <$> toId ev
+eFieldMetaIdentifier :: Elab m => FunField -> m (Maybe Identifier)
+eFieldMetaIdentifier (FunFieldSort _bs sv)     = Just <$> toId sv
+eFieldMetaIdentifier (FunFieldBinding _bs _bv) = pure Nothing
+eFieldMetaIdentifier (FunFieldEnv _bs ev)      = Just <$> toId ev
+eFieldMetaIdentifier (FunFieldReference _fv)   =
+  error "KnotCore.Elaboration.eFieldMetaIdentifier.FunFieldReference: NOT IMPLEMENTED"
 
 eSchemeSortGroupDecl :: Elab m => FunGroupName -> [SortTypeName] -> m [Sentence]
 eSchemeSortGroupDecl fgn stns =
@@ -59,10 +62,10 @@ eSchemeSortGroupDecl fgn stns =
     let sgtn = groupName stns
 
     individual <- SentenceScheme . Scheme
-                    <$> mapM (eSchemeSortDecl fgn) stns
+                    <$> traverse (eSchemeSortDecl fgn) stns
     group      <- SentenceCombinedScheme
                     <$> idFunctionInductionSortGroup fgn sgtn
-                    <*> mapM (idFunctionInductionSort fgn) stns
+                    <*> traverse (idFunctionInductionSort fgn) stns
     case stns of
       [_] -> return [individual]
       _   -> return [individual,group]

@@ -1,7 +1,7 @@
 namespace TmVar, x, y, z : Tm
 
 sort Tm, s, t, S, T :=
-   + Var x
+   + Var {x}
    | Abs d [bind d]t
    | Pi  d [bind d]T
    | App t ts

@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.WellFormedStrengthen where
 
@@ -16,12 +17,12 @@ lemmas = do
   stns <- getSorts
   allFuns <- getFunctions
   let ntnsets = nub [ ntns | (_,_,ntns) <- allFuns ]
-  lemss <- forM stns $ \stn -> do
+  lemss <- for stns $ \stn -> do
              deps <- getSortNamespaceDependencies stn
-             sequence
+             sequenceA
                [ eWellFormedStrengthen stn ntns
                | ntns <- ntnsets
-               , null (intersect deps ntns)
+               , null (deps `intersect` ntns)
                ]
 
   return $ concat lemss
@@ -32,22 +33,22 @@ eWellFormedStrengthen stn ntns = do
   strengthen   <- idLemmaWellFormedStrengthen stn ntns
   k1           <- freshHVarlistVar
   k2           <- freshHVarlistVar
-  t            <- freshSubtreeVar stn
+  t            <- freshSortVariable stn
 
   assertion <-
     TermForall
-    <$> sequence [toBinder k2, toBinder k1, toBinder t]
+    <$> sequenceA [toBinder k2, toBinder k1, toBinder t]
     <*> (foldr1 TermFunction <$>
-         sequence
+         sequenceA
          [ toTerm (SubHvl ntns (HVVar k2))
-         , toTerm (WfTerm
+         , toTerm (WfSort
                      (HVAppend (HVVar k1) (HVVar k2))
                      (SWeaken (SVar t) (HVVar k2)))
-         , toTerm (WfTerm (HVVar k1) (SVar t))
+         , toTerm (WfSort (HVVar k1) (SVar t))
          ]
         )
 
-  proof <- sequence
+  proof <- sequenceA
     [ pure $ PrTactic "needleGenericWellformedStrengthen" []
     ]
 

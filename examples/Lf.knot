@@ -1,21 +1,89 @@
-
 namespace TmVar, x, y, z : Tm
 namespace TyVar, X, Y, Z : Ty
 
-sort Tm, s, t, u :=
-  + Var x
-  | Abs x T [x]t
-  | App t1 t2
+sort Kind, K :=
+  | star
+  | kpi x T [x]K
 
 sort Ty, S, T, U :=
-  + TVar X
-  | TPi x T1 [x]T2
-  | TApp T t
+  + tvar {X}
+  | tpi x T1 [x]T2
+  | tapp T t
+  | tsig x T [x]U
 
-sort Kind, K :=
-  | Star
-  | KPi x T [x]K
+sort Tm, s, t, u :=
+  + var {x}
+  | abs x T [x]t
+  | app t1 t2
+  | pair t1 t2 x S1 [x]T
+  | prj1 t
+  | prj2 t
 
-env Ctx, G, D :=
-  | CTm : x -> T
-  | CTy : X -> K
+env Env, G, D :=
+  + empty
+  | evar  : x -> T ; Typing
+  | etvar : X -> K ; Kinding
+
+relation [Env] WfKind K :=
+  | WfStar   :  WfKind (star)
+  | WfPi     :  Kinding T (star) -> WfKind K -> WfKind (kpi x T (weaken K x))
+
+relation [Env] Kinding T K :=
+  + K_TVar   :  {X -> K} -> Kinding {tvar X} K
+  | K_Pi     :  Kinding T1 (star) -> [x -> T1] Kinding T2 (star) ->
+                Kinding (tpi x T1 T2) (star)
+  | K_App    :  Kinding S1 (kpi x T K) -> Typing t T ->
+                Kinding (tapp S1 t) (subst x t K)
+  | K_Sigma  :  Kinding S1 (star) -> [x -> S1] Kinding T (star) ->
+                Kinding (tsig x S1 T) (star)
+  | K_Conv   :  Kinding T K1 -> KindEq K1 K2 -> Kinding T K2
+
+relation [Env] Typing t T :=
+  + T_Var    :  {x -> T} -> Typing {var x} T
+  | T_Abs    :  Kinding S1 (star) -> [x -> S1] Typing t T ->
+                Typing (abs x S1 t) (tpi x S1 T)
+  | T_App    :  Typing t1 (tpi x S1 T) -> Typing t2 S1 ->
+                Typing (app t1 t2) (subst x t2 T)
+  | T_Pair   :  Kinding (tsig x S1 T) (star) -> Typing t1 S1 ->
+                Typing t2 (subst x t1 T) ->
+                Typing (pair t1 t2 x S1 T) (tsig x S1 T)
+  | T_Proj1  :  Typing t (tsig x S1 T) -> Typing (prj1 t) S1
+  | T_Proj2  :  Typing t (tsig x S1 T) -> Typing (prj2 t) (subst x (prj1 t) T)
+  | T_Conv   :  Typing t T1 -> TyEq T1 T2 (star) -> Typing t T2
+
+relation [Env] KindEq K1 K2 :=
+  | QK_Pi    :  TyEq T1 T2 (star) -> [x -> T1] KindEq K1 K2 ->
+                KindEq (kpi x T1 K1) (kpi x T2 K2)
+  | QK_Refl  :  WfKind K -> KindEq K K
+  | QK_Sym   :  KindEq K1 K2 -> KindEq K2 K1
+  | QK_Trans :  KindEq K1 K2 -> KindEq K2 K3 -> KindEq K1 K3
+
+relation [Env] TyEq T1 T2 K :=
+  | QT_Pi    :  TyEq S1 T1 (star) -> [x -> T1] TyEq S2 T2 (star) ->
+                TyEq (tpi x S1 S2) (tpi x T1 T2) (star)
+  | QT_App   :  TyEq S1 S2 (kpi x T K) -> TermEq t1 t2 T ->
+                TyEq (tapp S1 t1) (tapp S2 t2) (subst x t1 K)
+  | QT_Refl  :  Kinding T K -> TyEq T T K
+  | QT_Symm  :  TyEq T S1 K -> TyEq S1 T K
+  | QT_Trans :  TyEq S1 U K -> TyEq U T K -> TyEq S1 T K
+
+relation [Env] TermEq t1 t2 T :=
+  | Q_Abs    :  TyEq S1 S2 (star) -> [x -> S1] TermEq t1 t2 T ->
+                TermEq (abs x S1 t1) (abs x S2 t2) (tpi x S1 T)
+  | Q_App    :  TermEq t1 s1 (tpi x S1 T) -> TermEq t2 s2 S1 ->
+                TermEq (app t1 t2) (app s1 s2) (subst x t2 T)
+  | Q_Beta   :  [x -> S1] Typing t T -> Typing s S1 ->
+                TermEq (app (abs x S1 t) s) (subst x s t) (subst x s T)
+  | Q_Eta    :  Typing t (tpi x S1 T) ->
+                TermEq (abs x S1 (app (weaken t x) {var x})) t (tpi x S1 T)
+  | Q_Proj1  :  Kinding (tsig x S1 T) (star) -> Typing t1 S1 ->
+                Typing t2 (subst x t1 T) ->
+                TermEq (prj1 (pair t1 t2 x S1 T)) t1 S1
+  | Q_Proj2  :  Kinding (tsig x S1 T) (star) -> Typing t1 S1 ->
+                Typing t2 (subst x t1 T) ->
+                TermEq (prj2 (pair t1 t2 x S1 T)) t2 (subst x t1 T)
+  | Q_SjPair :  Typing t (tsig x S1 T) ->
+                TermEq (pair (prj1 t) (prj2 t) x S1 T) t (tsig x S1 T)
+  | Q_Refl   :  Typing t T -> TermEq t t T
+  | Q_Symm   :  TermEq t s T -> TermEq s t T
+  | Q_Trans  :  TermEq s u T -> TermEq u t T -> TermEq s t T

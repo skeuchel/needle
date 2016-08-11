@@ -4,14 +4,14 @@ namespace TyVar, X, Y, Z : Ty
   - shift: "tshift" - subst: "tsubst"
 
 sort Ty, S, T, U :=
-  + tvar X
+  + tvar {X}
   | top
   | tarrow T1 T2
   | tall X T1 [X]T2
   | tprod T1 T2
 
 sort Tm, s, t, u :=
-  + var x
+  + var {x}
   | abs x T [x]t
   | app t1 t2
   | tabs X T [X]t
@@ -20,11 +20,11 @@ sort Tm, s, t, u :=
   | lett p t1 [bindPat p]t2
 
 sort Pat, p :=
-  | pvar x
-  | pprod p1 p2
+  | pvar x T
+  | pprod p1 [bindPat p1]p2
 
 fun bindPat : Pat -> [TmVar]
-  | pvar x      -> x
+  | pvar x T    -> x
   | pprod p1 p2 -> bindPat p1 , bindPat p2
 
 env Env, G, D :=

@@ -1,8 +1,21 @@
-{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# OPTIONS_GHC -Wall #-}
 
-module KnotCore.Syntax where
+module KnotCore.Syntax
+  ( module Knot.Common
+  , module KnotCore.Syntax
+  ) where
 
-import Data.List (intercalate)
+import Knot.Common hiding
+  ( Identifier
+  , FN
+  )
+
 import Data.Map (Map)
 
 --  __  __     _
@@ -10,90 +23,21 @@ import Data.Map (Map)
 -- | |\/| / -_)  _/ _` | ' \/ _` | '  \/ -_|_-<
 -- |_|  |_\___|\__\__,_|_||_\__,_|_|_|_\___/__/
 
-{-
-newtype NamespaceTypeName = NTN { fromNTN :: String }
-  deriving (Eq,Ord)
-instance Read NamespaceTypeName where
-  readPrec = fmap NTN readPrec
-instance Show NamespaceTypeName where
-  showsPrec i (NTN s) = showsPrec i s
-
-newtype SortTypeName = STN { fromSTN :: String }
-  deriving (Eq,Ord)
-instance Read SortTypeName where
-  readPrec = fmap STN readPrec
-instance Show SortTypeName where
-  showsPrec i (STN s) = showsPrec i s
-
-newtype EnvTypeName = ETN { fromETN :: String }
-  deriving (Eq,Ord)
-instance Read EnvTypeName where
-  readPrec = fmap ETN readPrec
-instance Show EnvTypeName where
-  showsPrec i (ETN s) = showsPrec i s
--}
-
-data CtorName
-  = CNS { fromCN :: String, cnSort :: SortTypeName  }
-  | CNE { fromCN :: String, cnEnv  :: EnvTypeName  }
-  | CNO { fromCN :: String }
-  deriving (Eq,Ord)
-instance Show CtorName where showsPrec i = showsPrec i . fromCN
-
-newtype NameRoot = NR { fromNR :: String }
-  deriving (Eq,Ord)
-instance Show NameRoot where showsPrec i = showsPrec i . fromNR
-
-type Suffix = String
-
-newtype NamespaceTypeName = NTN { fromNtn :: String }
-  deriving (Eq,Ord,Show)
-
-newtype SortGroupTypeName = SGTN { fromSgtn :: String }
-  deriving (Eq,Ord,Show)
-
-newtype SortTypeName = STN { fromStn :: String }
-  deriving (Eq,Ord,Show)
-
-newtype EnvTypeName = ETN { fromEtn :: String }
-  deriving (Eq,Ord,Show)
-
-newtype RelationTypeName = RTN { fromRtn :: String }
-  deriving (Eq,Ord,Show)
-
-data FunGroupName = FGN { fromFgn :: String }
-  deriving (Eq,Ord,Show)
-
-data FunName
-  = FN {
-      fnName                    ::  String,
-      fnSort                    ::  SortTypeName,
-      fnNamespaces              ::  [NamespaceTypeName]
+data LookupVar
+  = LookupVar
+    { lookupVarRoot                ::  NameRoot
+    , lookupVarSuffix              ::  Suffix
+    , lookupVarEnv                 ::  SymbolicEnv
+    , lookupVarReference           ::  FreeVariable
+    , lookupVarIndices             ::  [SymbolicField 'WOMV]
     }
   deriving (Eq,Ord,Show)
 
-data SubtreeVar
-  = SubtreeVar {
-      stvRoot               ::  NameRoot,
-      stvSuffix             ::  Suffix,
-      stvTypeName           ::  SortTypeName
-    }
-  deriving (Eq,Ord,Show)
-
-data MetavarVar
-  = MetavarVar {
-      mvvRoot                   ::  NameRoot,
-      mvvSuffix                 ::  Suffix,
-      mvvTypeName               ::  NamespaceTypeName
-    }
-  deriving (Eq,Ord,Show)
-
-data EnvVar
-  = EnvVar {
-      envVarRoot                   ::  NameRoot,
-      envVarSuffix                 ::  Suffix,
-      envVarTypeName               ::  EnvTypeName
-    }
+data Hypothesis =
+  Hypothesis
+  { hypNameRoot  :: NameRoot
+  , hypSuffix    :: Suffix
+  }
   deriving (Eq,Ord,Show)
 
 --  ___              _  __ _         _   _
@@ -103,13 +47,15 @@ data EnvVar
 --     |_|
 
 data TermSpec
-  = TermSpec {
-      tsNamespaceDecls        :: [NamespaceDecl],
-      tsFunctionEnv           :: FunctionEnv,
-      tsSortGroupDecls        :: [SortGroupDecl],
-      tsFunGroupDecls         :: [FunGroupDecl],
-      tsEnvDecls              :: [EnvDecl],
-      tsRelDecls              :: [RelationDecl]
+  = TermSpec
+    { tsNamespaceDecls        :: [NamespaceDecl]
+    , tsFunctionEnv           :: FunctionEnv
+    , tsSortGroupDecls        :: [SortGroupDecl]
+    , tsFunGroupDecls         :: [FunGroupDecl]
+    , tsEnvDecls              :: [EnvDecl]
+    , tsRelGroupDecls         :: [RelationGroupDecl]
+    , tsSetGroupDecls         :: [SetGroupDecl]
+    , tsSubstitutableClauses  :: [SubstitutableClauseInfo]
     }
   deriving (Eq,Ord,Show)
 
@@ -120,13 +66,13 @@ data TermSpec
 --                        |_|
 
 data NamespaceDecl
-  = NamespaceDecl {
-      nsdTypeName             ::  NamespaceTypeName,
-      nsdNameRoots            ::  [NameRoot],
-      nsdSort                 ::  SortTypeName,
-      nsdCtor                 ::  CtorName,
-      nsdShiftRoot            ::  String,
-      nsdSubstRoot            ::  String
+  = NamespaceDecl
+    { nsdTypeName             ::  NamespaceTypeName
+    , nsdNameRoots            ::  [NameRoot]
+    , nsdSort                 ::  SortTypeName
+    , nsdCtor                 ::  CtorName
+    , nsdShiftRoot            ::  String
+    , nsdSubstRoot            ::  String
     }
   deriving (Eq,Ord,Show)
 
@@ -139,40 +85,93 @@ type FunctionEnv     = Map SortTypeName SortFunctionEnv
 -- |___/\___/_|  \__/__/
 
 data SortGroupDecl
-  = SortGroupDecl {
-      sgTypeName              ::  SortGroupTypeName,
-      sgSorts                 ::  [SortDecl],
-      sgNamespaces            ::  [NamespaceTypeName],
-      sgHasBindSpec           ::  Bool
+  = SortGroupDecl
+    { sgTypeName                ::  SortGroupTypeName
+    , sgSorts                   ::  [SortDecl]
+    , sgNamespaces              ::  [NamespaceTypeName]
+    , sgHasBindSpec             ::  Bool
     }
   deriving (Eq,Ord,Show)
 
 data SortDecl
-  = SortDecl {
-      sdTypeName            ::  SortTypeName,
-      sdNameRoots           ::  [NameRoot],
-      sdCtors               ::  [CtorDecl]
+  = SortDecl
+    { sdTypeName                ::  SortTypeName
+    , sdNameRoots               ::  [NameRoot]
+    , sdCtors                   ::  [CtorDecl]
     }
   deriving (Eq,Ord,Show)
 
 data CtorDecl
-  = CtorVar {
-      cdName                ::  CtorName,
-      cdMetavar             ::  MetavarVar
+  = CtorVar
+    { ctorDeclName              ::  CtorName
+    , ctorDeclFreeVariable      ::  FreeVariable
+    , ctorDeclFreeVariableWf    ::  Hypothesis
     }
-  | CtorTerm {
-      cdName                ::  CtorName,
-      cdFields              ::  [FieldDecl]
+  | CtorReg
+    { ctorDeclName              ::  CtorName
+    , ctorDeclFields            ::  [FieldDecl 'WMV]
     }
   deriving (Eq,Ord,Show)
 
-data FieldDecl
-  = FieldSubtree {
-      fieldSubtreeVar  :: SubtreeVar,
-      fieldBindSpec    :: BindSpec
+data FieldDecl (w :: WithMV)
+  = FieldDeclSort
+    { fieldDeclBindSpec         ::  BindSpec
+    , fieldDeclSortVariable     ::  SortVariable
+    , fieldDeclSortVariableWf   ::  Hypothesis
     }
-  | FieldBinding {
-      fieldMetavarVar :: MetavarVar
+  | FieldDeclEnv
+    { fieldDeclBindSpec         ::  BindSpec
+    , fieldDeclEnvVariable      ::  EnvVariable
+    , fieldDeclEnvVariableWf    ::  Hypothesis
+    }
+  | FieldDeclSet
+    { fieldDeclSetVariable      ::  SetVariable
+    }
+  | (w ~ 'WMV) =>
+    FieldDeclBinding
+    { fieldDeclBindSpec         ::  BindSpec
+    , fieldDeclBindingVariable  ::  BindingVariable
+    }
+  | (w ~ 'WMV) =>
+    FieldDeclReference
+    { fieldDeclFreeVariable     ::  FreeVariable
+    , fieldDeclFreeVariableWf   ::  Hypothesis
+    }
+
+deriving instance Eq (FieldDecl w)
+deriving instance Ord (FieldDecl w)
+deriving instance Show (FieldDecl w)
+
+--  ___      _
+-- / __| ___| |_ ___
+-- \__ \/ -_)  _(_-<
+-- |___/\___|\__/__/
+
+data SetGroupDecl
+  = SetGroupDecl
+    { zgdSets                   ::  [SetDecl]
+    }
+  deriving (Eq,Ord,Show)
+
+data SetDecl
+  = SetDecl
+    { zdTypeName                ::  SetTypeName
+    , zdNameRoots               ::  [NameRoot]
+    , zdCtors                   ::  [SetCtorDecl]
+    }
+  deriving (Eq,Ord,Show)
+
+data SetCtorDecl
+  = SetCtor
+    { setCtorName               ::  CtorName
+    , setCtorFields             ::  [SetFieldDecl]
+    }
+  deriving (Eq,Ord,Show)
+
+data SetFieldDecl
+  = SetFieldDecl
+    { setFieldDeclLoc           ::  Loc
+    , setFieldDeclSetVariable   ::  SetVariable
     }
   deriving (Eq,Ord,Show)
 
@@ -183,20 +182,15 @@ data FieldDecl
 --                    |_|
 
 -- Heterogeneous list of items
-type BindSpec = [VleItem]
+type BindSpec = SnocList BindSpecItem
 
--- Homogeneous list of items
-type Vle = [VleItem]
-
-data VleItem
-  = VleBinding {
-      vleNamespace            ::  [NamespaceTypeName],
-      vleMetavar              ::  MetavarVar
+data BindSpecItem
+  = BsiBinding
+    { bsiBindingVariable        ::  BindingVariable
     }
-  | VleCall {
-      vleNamespace            ::  [NamespaceTypeName],
-      vleFunName              ::  FunName,
-      vleSubTree              ::  SubtreeVar
+  | BsiCall
+    { bsiFunName                ::  FunName
+    , bsiSortVariable           ::  SortVariable
     }
   deriving (Eq,Ord,Show)
 
@@ -206,40 +200,45 @@ data VleItem
 -- |_| \_,_|_||_\__|\__|_\___/_||_/__/
 
 data FunGroupDecl
-  = FunGroupDecl {
-      fgdName              ::  FunGroupName,
-      fgdSortGroup         ::  SortGroupTypeName,
-      fgdFuns              ::  [(SortTypeName,[FunDecl])]
+  = FunGroupDecl
+    { fgdName                   ::  FunGroupName
+    , fgdSortGroup              ::  SortGroupTypeName
+    , fgdFuns                   ::  [(SortTypeName,[FunDecl])]
     }
   deriving (Eq,Ord,Show)
 
 data FunDecl
-  = FunDecl {
-      fdName      :: FunName,
-      fdSource    :: SortTypeName,
-      fdTarget    :: [NamespaceTypeName],
-      fdMatchItem :: SubtreeVar,
-      fdCases     :: [FunCase]
+  = FunDecl
+    { fdName                    ::  FunName
+    , fdSource                  ::  SortTypeName
+    , fdTarget                  ::  [NamespaceTypeName]
+    , fdCases                   ::  [FunCase]
     }
   deriving (Eq,Ord,Show)
 
 data FunCase
-  = FunCase {
-      fcCtor   :: CtorName,
-      fcFields :: [FieldMetaBinding],
-      fcRhs    :: Vle
+  = FunCase
+    { fcCtor                    ::  CtorName
+    , fcFields                  ::  [FunField]
+    , fcRhs                     ::  BindSpec
     }
   deriving (Eq,Ord,Show)
 
-data FieldMetaBinding
-  = FieldMetaBindingSubtree {
-      fmbSubtreeVar :: SubtreeVar
+data FunField
+  = FunFieldSort
+    { ffBindSpec                ::  BindSpec
+    , ffSortVariable            ::  SortVariable
     }
-  | FieldMetaBindingMetavar {
-      fmbMetavarVar :: MetavarVar
+  | FunFieldBinding
+    { ffBindSpec                ::  BindSpec
+    , ffBindingVariable         ::  BindingVariable
     }
-  | FieldMetaBindingOutput {
-      fmbEnvVar     :: EnvVar
+  | FunFieldEnv
+    { ffBindSpec                ::  BindSpec
+    , ffEnvVariable             ::  EnvVariable
+    }
+  | FunFieldReference
+    { ffFreeVariable            ::  FreeVariable
     }
   deriving (Eq,Ord,Show)
 
@@ -249,21 +248,29 @@ data FieldMetaBinding
 -- |___|_||_\_/|_|_| \___/_||_|_|_|_\___|_||_\__/__/
 
 data EnvDecl
-  = EnvDecl {
-      edTypeName             :: EnvTypeName,
-      edNameRoots            :: [NameRoot],
-      edCtors                :: [EnvCtor]
+  = EnvDecl
+    { edTypeName                ::  EnvTypeName
+    , edNameRoots               ::  [NameRoot]
+    , edCtors                   ::  [EnvCtor]
     }
   deriving (Eq,Ord,Show)
 
 data EnvCtor
-  = EnvCtorNil {
-      ecName             :: CtorName
+  = EnvCtorNil
+    { envCtorName               ::  CtorName
     }
-  | EnvCtorCons {
-      ecName             :: CtorName,
-      ecMetavar          :: MetavarVar,
-      ecFields           :: [SubtreeVar]
+  | EnvCtorCons
+    { envCtorName               ::  CtorName
+    , envCtorBindingVariable    ::  BindingVariable
+    , envCtorFields             ::  [FieldDecl 'WOMV]
+    , envCtorSubst              ::  Maybe EnvCtorSubst
+    }
+  deriving (Eq,Ord,Show)
+
+data EnvCtorSubst
+  = EnvCtorSubst
+    { envCtorSubstRelation      ::  RelationTypeName
+    , envCtorSubstVarRule       ::  Maybe CtorName
     }
   deriving (Eq,Ord,Show)
 
@@ -272,49 +279,110 @@ data EnvCtor
 -- |   / -_) / _` |  _| / _ \ ' \(_-<
 -- |_|_\___|_\__,_|\__|_\___/_||_/__/
 
+data RelationGroupDecl
+  = RelationGroupDecl
+    { rgEnv                     ::  Maybe EnvTypeName
+    , rgRelations               ::  [RelationDecl]
+    }
+  deriving (Eq,Ord,Show)
+
 data RelationDecl
-  = RelationDecl {
-      relEnv      :: Maybe EnvVar,
-      relTypeName :: RelationTypeName,
-      relIndices  :: [SortTypeName],
-      relRules    :: [Rule]
+  = RelationDecl
+    { relEnv                    ::  Maybe EnvVariable
+    , relTypeName               ::  RelationTypeName
+    , relIndices                ::  [FieldDecl 'WOMV]
+    , relNameRoots              ::  [NameRoot]
+    , relOutputs                ::  [(FunName,EnvTypeName)]
+    , relRules                  ::  [Rule]
+    }
+  deriving (Eq,Ord,Show)
+
+data RuleMetavarBinder
+  = RuleMetavarSort
+    { rmbBindspec               ::  BindSpec
+    , rmbSortVariable           ::  SortVariable
+    , rmbSortVariableWf         ::  Hypothesis
+    , rmbSortVariablePos        ::  Maybe SortVariablePos
+    }
+  | RuleMetavarEnv
+    { rmbBindspec               ::  BindSpec
+    , rmbEnvVariable            ::  EnvVariable
+    , rmbEnvVariableWf          ::  Hypothesis
+    }
+  | RuleMetavarBinding
+    { rmbBindspec               ::  BindSpec
+    , rmbBindingVariable        ::  BindingVariable
+    }
+  | RuleMetavarFree
+    { rmbFreeVariable           ::  FreeVariable
+    , rmbFreeVariableWf         ::  Hypothesis
+    }
+  -- These are meta-bindings for the outputs of the premises. It's not used for
+  -- the conclusion.
+  | RuleMetavarOutput
+    { rmbRuleBindspec           ::  RuleBindSpec
+    , rmbEnvVariable            ::  EnvVariable
+    }
+  | RuleMetavarSet
+    { rmbSetVariable            ::  SetVariable
     }
   deriving (Eq,Ord,Show)
 
 data Rule
-  = Rule {
-      ruleName          :: CtorName,
-      ruleFieldsBinders :: [FieldMetaBinding],
-      rulePremises      :: [Formula],
-      ruleConclusion    :: Judgement,
-      ruleBindings      :: [RuleBinding]
+  = RuleVar
+    { ruleName                  ::  CtorName
+    , ruleMetavarBinders        ::  [RuleMetavarBinder]
+    , ruleVarEnvTypeName        ::  EnvTypeName
+    , ruleVarFreeVariable       ::  FreeVariable
+    , ruleVarData               ::  [SymbolicField 'WOMV]
+    , ruleConclusion            ::  Judgement
     }
-  deriving (Eq,Ord,Show)
-
-data RuleBinding
-  = RuleBinding {
-      rbMetavar      :: MetavarVar,
-      rbTerms        :: [SymbolicTerm]
+  | RuleReg
+    { ruleName                  ::  CtorName
+    , ruleMetavarBinders        ::  [RuleMetavarBinder]
+    , rulePremises              ::  [Formula]
+    , ruleConclusion            ::  Judgement
+    , ruleOutputs               ::  [(FunName, RuleBindSpec)]
     }
   deriving (Eq,Ord,Show)
 
 data Formula
-  = FormBinding {
-      fmlBinding     :: RuleBinding
+  = FormLookup
+    { fmlLookupVar              ::  LookupVar
+    , fmlLookupEnv              ::  EnvVariable
+    , fmlLookupFreeVariable     ::  FreeVariable
+    , fmlLookupData             ::  [SymbolicField 'WOMV]
     }
-  | FormJudgement {
-      fmlJmtBindings    :: [RuleBinding],
-      fmlJmtTypeName    :: RelationTypeName,
-      fmlJmtEnvTypeName :: Maybe EnvVar,
-      fmlJmtTerms       :: [SymbolicTerm]
+  | FormJudgement
+    { fmlJmtVariable            ::  JudgementVariable
+    , fmlJmtBindSpec            ::  RuleBindSpec
+    , fmlJmtJudgement           ::  Judgement
+    -- This is not used for the conclusion, because it would need to be a
+    -- symbolic environtment. Instead the output RuleBindSpecs in the Rule
+    -- declaration itself are used. Best would be to inline the conclusion
+    -- judgement into the rule declarations.
+    , fmlJmtOutputs             ::  [(FunName, EnvVariable)]
+    }
+  deriving (Eq,Ord,Show)
+
+type RuleBindSpec = SnocList RuleBindSpecItem
+data RuleBindSpecItem
+  = RuleBsiBinding
+    { rbsiBindingVariable       ::  BindingVariable
+    , rbsiTerms                 ::  [SymbolicField 'WOMV]
+    }
+  | RuleBsiCall
+    { rbsiFunName               ::  FunName
+    , rbsiJudgement             ::  JudgementVariable
     }
   deriving (Eq,Ord,Show)
 
 data Judgement
-  = Judgement {
-      jmtTypeName    :: RelationTypeName,
-      jmtEnvTypeName :: Maybe EnvVar,
-      jmtTerms       :: [SymbolicTerm]
+  = Judgement
+    { jmtTypeName               ::  RelationTypeName
+    , jmtEnv                    ::  Maybe SymbolicEnv
+    , jmtFields                 ::  [SymbolicField 'WOMV]
+    , jmtOutputs                ::  [(FunName, SymbolicEnv)]
     }
   deriving (Eq,Ord,Show)
 
@@ -325,28 +393,124 @@ data Judgement
 --      |__/
 
 data SymbolicTerm
-  = SymBinding {
-      stMetavarBind  :: MetavarVar
+  = SymSubtree
+    { stScope                   ::  BindSpec -- Current scope
+    , stSortVar                 ::  SortVariable
     }
-  | SymSubtree {
-      stSubtree      :: SubtreeVar
+  | SymCtorVarFree
+    { stScope                   ::  BindSpec -- Current scope
+    , stCtor                    ::  CtorName
+    , stFreeVariable            ::  FreeVariable
     }
-  | SymEnv {
-      stEnvVar       :: EnvVar
+  | SymCtorVarBound
+    { stScope                   ::  BindSpec -- Current scope
+    , stCtor                    ::  CtorName
+    , stBindingVariable         ::  BindingVariable
+    , stBindingBindSpec         ::  BindSpec -- Scope where the BV was introduced
+    , stBindingBindSpecDiff     ::  BindSpec -- Difference to the current scope
     }
-  | SymCtorVar {
-      stCtor         :: CtorName,
-      stMetavarRef   :: MetavarVar
+  | SymCtorReg
+    { stScope                   ::  BindSpec -- Current (outer) scope
+    , stCtorName                ::  CtorName
+    , stFields                  ::  [SymbolicField 'WMV]
     }
-  | SymCtorTerm {
-      stCtor         :: CtorName,
-      stFields       :: [SymbolicTerm]
+  | SymWeaken
+    { stScope                   ::  BindSpec -- Current (outer) scope
+    , stWeakenInnerScope        ::  BindSpec -- Current (outer) scope
+    , stWeakenTerm              ::  SymbolicTerm
+    , stWeakenBindSpecDiff      ::  BindSpec
     }
-  | SymSubst {
-      stVar          :: MetavarVar,
-      stSubstitute   :: SymbolicTerm,
-      stSubstitutee  :: SymbolicTerm
+  | SymSubst
+    { stScope                   ::  BindSpec -- Current scope
+    , stSubstBindingVariable    ::  BindingVariable
+    , stSubstitute              ::  SymbolicTerm
+    , stSubstitutee             ::  SymbolicTerm
     }
+  deriving (Eq,Ord,Show)
+
+data SymbolicCoTerm
+  = SymCoHole
+    { sctTypeName               ::  SortTypeName
+    }
+  | SymCoCtorReg
+    { sctScope                  ::  BindSpec
+    , sctBindspec               ::  BindSpec
+    , sctCtor                   ::  CtorName
+    , sctPreFields              ::  [SymbolicField 'WMV]
+    , sctRec                    ::  SymbolicCoTerm
+    , sctPostFields             ::  [SymbolicField 'WMV]
+    }
+  deriving (Eq,Ord,Show)
+
+plug :: SymbolicTerm -> SymbolicCoTerm -> SymbolicTerm
+plug t (SymCoHole{}) = t
+plug t (SymCoCtorReg scp bs cn pre sct post) =
+  SymCtorReg scp cn (pre ++ [SymFieldSort scp bs (plug t sct)] ++ post)
+
+data SortVariablePos
+  = SortVariablePos
+    { svpJudgementVariable      ::  JudgementVariable
+    , svpJudgementBindSpec      ::  RuleBindSpec
+    , svpJudgement              ::  Judgement
+    , svpPreTerms               ::  [SymbolicField 'WOMV]
+    , svpRec                    ::  SymbolicCoTerm
+    , svpPostTerms              ::  [SymbolicField 'WOMV]
+    }
+  deriving (Eq,Ord,Show)
+
+data SymbolicField (w :: WithMV)
+  = SymFieldSort
+    { symFieldScope             ::  BindSpec     -- Scope of this node
+    , symFieldBindSpec          ::  BindSpec     -- Binding specification
+                                                 -- of this field
+    , symFieldSymbolicTerm      ::  SymbolicTerm
+    }
+  | SymFieldEnv
+    { symFieldScope             ::  BindSpec     -- Scope of this node
+    , symFieldBindSpec          ::  BindSpec     -- Binding specification
+                                                 -- of this field
+    , symFieldSymbolicEnv       ::  SymbolicEnv
+    }
+  | (w ~ 'WMV) =>
+    SymFieldBinding
+    { symFieldScope             ::  BindSpec     -- Scope of this node
+    , symFieldBindingVariable   ::  BindingVariable
+    }
+  | (w ~ 'WMV) =>
+    SymFieldReferenceFree
+    { symFieldScope             ::  BindSpec
+    , symFieldFreeVariable      ::  FreeVariable
+    }
+  | (w ~ 'WMV) =>
+    SymFieldReferenceBound
+    { symFieldScope             ::  BindSpec
+    , symFieldBindingVariable   ::  BindingVariable
+    }
+
+deriving instance Eq (SymbolicField w)
+deriving instance Ord (SymbolicField w)
+deriving instance Show (SymbolicField w)
+
+data SymbolicEnv
+  = SymEnvVar
+    { seEnvVar                  ::  EnvVariable
+    }
+  | SymEnvNil
+    { seEnvTypeName             ::  EnvTypeName
+    }
+  | SymEnvCons
+    { seNamespace               ::  NamespaceTypeName
+    , seTail                    ::  SymbolicEnv
+    , seIndices                 ::  [SymbolicField 'WOMV]
+    }
+  | SymEnvAppend
+    { seAppendLeft              ::  SymbolicEnv
+    , seAppendRight             ::  SymbolicEnv
+    }
+  -- | SymEnvCall
+  --   { seFunName                 ::  FunName
+  --   , seJudgementVariable       ::  JudgementVariable
+  --   }
   deriving (Eq,Ord,Show)
 
 --  _____
@@ -355,12 +519,6 @@ data SymbolicTerm
 --   |_| \_, | .__/\___| |_||_\__,_|_|_|_\___/__/
 --       |__/|_|
 
-class TypeNameOf a b | a -> b where
-  typeNameOf :: a -> b
-instance TypeNameOf MetavarVar NamespaceTypeName where
-  typeNameOf (MetavarVar _ _ ntn) = ntn
-instance TypeNameOf SubtreeVar SortTypeName where
-  typeNameOf (SubtreeVar _ _ stn) = stn
 instance TypeNameOf SortDecl SortTypeName where
   typeNameOf (SortDecl stn _ _) = stn
 instance TypeNameOf NamespaceDecl NamespaceTypeName where
@@ -369,9 +527,3 @@ instance TypeNameOf SortGroupDecl SortGroupTypeName where
   typeNameOf = sgTypeName
 instance TypeNameOf EnvDecl EnvTypeName where
   typeNameOf = edTypeName
-
-groupName :: [SortTypeName] -> SortGroupTypeName
-groupName stns = SGTN (intercalate "_" $ map fromStn stns)
-
-funGroupName :: [FunName] -> FunGroupName
-funGroupName fns = FGN (intercalate "_" $ map fnName fns)

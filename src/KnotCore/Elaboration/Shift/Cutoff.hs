@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Shift.Cutoff where
 
@@ -10,12 +11,12 @@ import KnotCore.Elaboration.Core
 
 eCutoff :: Elab m => [NamespaceDecl] -> m Sentences
 eCutoff nds =
-  concat <$> sequence
+  concat <$> sequenceA
    [ eFamilyCutoff
-   , mapM (eFunctionWeakenCutoff . nsdTypeName) nds
+   , traverse (eFunctionWeakenCutoff . nsdTypeName) nds
    , pure [SentenceBlankline]
-   , mapM (eLemmaWeakenCutoffAppend . nsdTypeName) nds
-   --, mapM (eInstanceWeakenCutoff . nsdTypeName) nds
+   , traverse (eLemmaWeakenCutoffAppend . nsdTypeName) nds
+   --, traverse (eInstanceWeakenCutoff . nsdTypeName) nds
    ]
 
 eFamilyCutoff :: Elab m => m Sentences
@@ -25,18 +26,18 @@ eFamilyCutoff = localNames $ do
   a         <- freshVariable "a" =<< toRef namespace
   cutoffa   <- TermApp
                <$> (idFamilyCutoff >>= toRef)
-               <*> sequence [toRef a]
+               <*> sequenceA [toRef a]
 
   zero      <- idFamilyCutoffZero
   succ      <- idFamilyCutoffSucc
 
-  sequence
-    [ SentenceInductive . Inductive <$> sequence
+  sequenceA
+    [ SentenceInductive . Inductive <$> sequenceA
       [ InductiveBody
         <$> idFamilyCutoff
-        <*> sequence [ toBinder a ]
+        <*> sequenceA [ toBinder a ]
         <*> pure (TermSort Type)
-        <*> sequence
+        <*> sequenceA
             [ InductiveCtor
               <$> pure zero
               <*> pure []
@@ -51,11 +52,11 @@ eFamilyCutoff = localNames $ do
       SentenceArguments
       <$> pure ModGlobal
       <*> toQualId zero
-      <*> sequence [BracedName <$> toName a],
+      <*> sequenceA [BracedName <$> toName a],
       SentenceArguments
       <$> pure ModGlobal
       <*> toQualId succ
-      <*> sequence [BracedName <$> toName a,
+      <*> sequenceA [BracedName <$> toName a,
                     pure $ NormalName NameUnderscore
                    ]
     ]
@@ -77,20 +78,20 @@ eFunctionWeakenCutoff ntn = localNames $ do
   k         <- freshHVarlistVar
   single    <- hasSingleNamespace
 
-  rec       <-
+  recursiveCall <-
     TermApp
     <$> toRef weaken
-    <*> sequence [toRef cv, toRef k]
+    <*> sequenceA [toRef cv, toRef k]
 
   nmEq <- Equation
           <$> (PatCtor <$> toQualId nm <*> pure [])
           <*> (TermApp
                <$> toRef succ
-               <*> pure [rec]
+               <*> pure [recursiveCall]
               )
   nmWl <- Equation
           <$> pure PatUnderscore
-          <*> pure rec
+          <*> pure recursiveCall
 
   nmMatch   <-
     TermMatch
@@ -98,10 +99,10 @@ eFunctionWeakenCutoff ntn = localNames $ do
     <*> pure Nothing
     <*> pure (if single then [nmEq] else [nmEq,nmWl])
 
-  SentenceFixpoint . Fixpoint <$> sequence
+  SentenceFixpoint . Fixpoint <$> sequenceA
     [ FixpointBody
       <$> toId weaken
-      <*> sequence [toBinder cv, toBinder k]
+      <*> sequenceA [toBinder cv, toBinder k]
       <*> (Just . Struct <$> toId k)
       <*> typeCutoff (typeNameOf cv)
       <*> (TermMatch
@@ -110,14 +111,14 @@ eFunctionWeakenCutoff ntn = localNames $ do
                 <*> pure Nothing
                 <*> pure Nothing)
            <*> pure Nothing
-           <*> sequence
+           <*> sequenceA
                [ Equation
                  <$> (PatCtor <$> toQualId nil <*> pure [])
                  <*> toRef cv,
                  Equation
                  <$> (PatCtor
                       <$> toQualId cons
-                      <*> sequence [toId a, toId k])
+                      <*> sequenceA [toId a, toId k])
                  <*> pure nmMatch
                ]
           )
@@ -136,27 +137,27 @@ eLemmaWeakenCutoffAppend ntn = localNames $ do
   left <-
     TermApp
     <$> toRef weaken
-    <*> sequence
+    <*> sequenceA
         [ TermApp
           <$> toRef weaken
-          <*> sequence [toRef idx, toRef k1],
+          <*> sequenceA [toRef idx, toRef k1],
           toRef k2
         ]
   right <-
     TermApp
     <$> toRef weaken
-    <*> sequence
+    <*> sequenceA
         [ toRef idx,
           TermApp
           <$> toRef append
-          <*> sequence [toRef k1, toRef k2]
+          <*> sequenceA [toRef k1, toRef k2]
         ]
   assertion <-
     TermForall
-    <$> sequence [toBinder idx, toBinder k1, toBinder k2]
+    <$> sequenceA [toBinder idx, toBinder k1, toBinder k2]
     <*> (TermEq <$> pure left <*> pure right)
 
-  proof <- sequence
+  proof <- sequenceA
     [ pure $ PrTactic "needleGenericWeakenAppend" []
     ]
 
@@ -191,7 +192,7 @@ eInstanceWeakenCutoff ntn = localNames $
       ClassInstance insWeakenCutoff
       <$> pure []
       <*> idClassWeaken
-      <*> sequence [typeCutoff ntn]
+      <*> sequenceA [typeCutoff ntn]
       <*> pure [methodWeaken, methodAppend]
 
     return $ SentenceClassInst classInst

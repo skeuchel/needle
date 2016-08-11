@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.WeakenAppend where
 
@@ -9,11 +10,11 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 lemmas :: Elab m => [SortGroupDecl] -> m [Coq.Sentence]
-lemmas sgs = concat <$> mapM eSortGroupDecl sgs
+lemmas sgs = concat <$> traverse eSortGroupDecl sgs
 
 eSortGroupDecl :: Elab m => SortGroupDecl -> m [Coq.Sentence]
 eSortGroupDecl sg =
-  sequence
+  sequenceA
     [ eSortDecl (typeNameOf sd)
     | sd  <- sgSorts sg
     ]
@@ -23,13 +24,13 @@ eSortDecl stn = localNames $ do
 
   lemma      <- idLemmaWeakenAppend stn
 
-  t          <- freshSubtreeVar stn
+  t          <- freshSortVariable stn
   h1         <- freshHVarlistVar
   h2         <- freshHVarlistVar
 
   statement  <-
     Coq.TermForall
-    <$> sequence [toBinder t, toBinder h1, toBinder h2]
+    <$> sequenceA [toBinder t, toBinder h1, toBinder h2]
     <*> (Coq.TermEq
          <$> toTerm (SWeaken (SWeaken (SVar t) (HVVar h1)) (HVVar h2))
          <*> toTerm (SWeaken (SVar t) (HVAppend (HVVar h1) (HVVar h2)))

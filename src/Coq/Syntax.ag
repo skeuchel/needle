@@ -60,12 +60,16 @@ data Sentence
       classInst :: ClassInstance
   | SentenceVerbatim
       verbatim  :: String
+  | SentenceContext
+      binders :: Binders
 deriving Sentence : Eq,Ord,Show
 
 data Hint
   | HintResolve
       hints :: Terms
   | HintRewrite
+      hints :: Terms
+  | HintRewriteRightToLeft
       hints :: Terms
   | HintConstructors
       ids   :: Identifiers
@@ -248,6 +252,14 @@ data Pattern
   | PatCtorEx
       patCtor   :: QualId
       patFields :: Patterns
+  | PatAtCtor
+      patCtor   :: QualId
+      patFields :: Identifiers
+  | PatAtCtorEx
+      patCtor   :: QualId
+      patFields :: Patterns
+  | PatQualId
+      patQualId :: QualId
   | PatUnderscore
 deriving Pattern : Eq,Ord,Show
 

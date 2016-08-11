@@ -24,7 +24,7 @@ eWeakenTrace = localNames $
     classInst <-
       ClassInstance weakenTrace
       <$> idClassWeaken
-      <*> sequence [toRef trace]
+      <*> sequenceA [toRef trace]
       <*> pure [methodWeaken]
 
     return [SentenceClassInst classInst]

@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module KnotCore.LookupRelation where
@@ -5,31 +6,31 @@ module KnotCore.LookupRelation where
 import KnotCore.Syntax
 
 data LookupRelation
-  = LookupRelation {
-      lkEnvTypeName        ::  EnvTypeName,
+  = LookupRelation
+    { lkEnvTypeName        ::  EnvTypeName,
       lkCtorName           ::  CtorName,
       lkNamespaceTypeName  ::  NamespaceTypeName,
-      lkIndices            ::  [SortTypeName],
+      lkIndices            ::  [FieldDecl 'WOMV],
       lkHere               ::  LookupHere,
       lkTheres             ::  [LookupThere]
     }
   deriving (Eq,Ord,Show)
 
 data LookupHere
-  = LookupHere {
-      lhCtorName           ::  CtorName,
-      lhVariable           ::  MetavarVar,
-      lhFields             ::  [SubtreeVar]
+  = LookupHere
+    { lhCtorName           ::  CtorName,
+      lhVariable           ::  BindingVariable,
+      lhFields             ::  [FieldDecl 'WOMV]
     }
   deriving (Eq,Ord,Show)
 
 data LookupThere
-  = LookupThere {
-      ltHereCtorName       ::  CtorName,
-      ltHereVariable       ::  MetavarVar,
-      ltHereIndices        ::  [SubtreeVar],
+  = LookupThere
+    { ltHereCtorName       ::  CtorName,
+      ltHereVariable       ::  FreeVariable,
+      ltHereIndices        ::  [FieldDecl 'WOMV],
       ltThereCtorName      ::  CtorName,
-      ltThereCtorVariable  ::  MetavarVar,
-      ltThereIndices       ::  [SubtreeVar]
+      ltThereCtorVariable  ::  BindingVariable,
+      ltThereIndices       ::  [FieldDecl 'WOMV]
     }
   deriving (Eq,Ord,Show)

@@ -1,19 +1,21 @@
 module KnotCore.Elaboration.SubHvl where
 
-import Control.Applicative
-import Control.Monad
-import Data.List (sort)
 import Coq.Syntax
 import Coq.StdLib
 
 import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
+import Control.Applicative
+import Control.Monad
+import Data.List (sort)
+
 eSubHvl :: Elab m => [NamespaceTypeName] -> m [Sentence]
-eSubHvl ntns = do
-  funs <- eFunctionSubHvl ntns
-  app  <- eSubHvlAppend ntns
-  return $ [funs , app]
+eSubHvl ntns =
+  sequenceA
+  [ eFunctionSubHvl ntns
+  , eSubHvlAppend ntns
+  ]
 
 eFunctionSubHvl :: Elab m => [NamespaceTypeName] -> m Sentence
 eFunctionSubHvl ntns = localNames $ do
@@ -28,17 +30,17 @@ eFunctionSubHvl ntns = localNames $ do
   single'    <- hasSingleNamespace
   allNtns   <- getNamespaces
   let single = single' || sort allNtns == ntns
-  nmEqs <- forM ntns $ \ntn -> do
+  nmEqs <- for ntns $ \ntn -> do
              nm        <- idCtorNamespace ntn
              Equation
                <$> (PatCtor <$> toQualId nm <*> pure [])
                <*> (TermApp
                    <$> toRef subhvl
-                   <*> sequence [toRef k]
+                   <*> sequenceA [toRef k]
                    )
   nmWl <- Equation
           <$> pure PatUnderscore
-          <*> pure (Coq.StdLib.false)
+          <*> pure Coq.StdLib.false
 
   nmMatch <-
     TermMatch
@@ -46,26 +48,26 @@ eFunctionSubHvl ntns = localNames $ do
     <*> pure Nothing
     <*> pure (if single then nmEqs else nmEqs ++ [nmWl])
 
-  SentenceFixpoint . Fixpoint <$> sequence
+  SentenceFixpoint . Fixpoint <$> sequenceA
     [ FixpointBody
       <$> toId subhvl
-      <*> sequence [toBinder k]
+      <*> sequenceA [toBinder k]
       <*> (Just . Struct <$> toId k)
-      <*> (pure $ TermSort Prop)
+      <*> pure (TermSort Prop)
       <*> (TermMatch
            <$> (MatchItem
                 <$> toRef k
                 <*> pure Nothing
                 <*> pure Nothing)
            <*> pure Nothing
-           <*> sequence
+           <*> sequenceA
                [ Equation
                  <$> (PatCtor <$> toQualId nil <*> pure [])
                  <*> pure Coq.StdLib.true
                , Equation
                  <$> (PatCtor
                       <$> toQualId cons
-                      <*> sequence [toId a, toId k])
+                      <*> sequenceA [toId a, toId k])
                  <*> pure nmMatch
                ]
           )
@@ -80,16 +82,16 @@ eSubHvlAppend ntns = do
 
   assertion <-
     TermForall
-    <$> sequence [toBinder k1, toBinder k2]
+    <$> sequenceA [toBinder k1, toBinder k2]
     <*> (foldr1 TermFunction <$>
-         sequence
+         sequenceA
          [ toTerm (SubHvl ntns (HVVar k1))
          , toTerm (SubHvl ntns (HVVar k2))
          , toTerm (SubHvl ntns (HVAppend (HVVar k1) (HVVar k2)))
          ]
         )
 
-  proof <- sequence
+  proof <- sequenceA
     [ pure $ PrTactic "needleGenericSubHvlAppend" []
     ]
 

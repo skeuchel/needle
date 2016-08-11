@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.LookupFunctional where
 
@@ -12,26 +13,26 @@ import KnotCore.LookupRelation
 import KnotCore.Elaboration.Core
 
 lemmas :: Elab m => [LookupRelation] -> m [Sentence]
-lemmas lks = catMaybes <$> mapM lemmaLookupFunctional lks
+lemmas lks = catMaybes <$> traverse lemmaLookupFunctional lks
 
 lemmaLookupFunctional :: Elab m => LookupRelation -> m (Maybe Sentence)
 lemmaLookupFunctional (LookupRelation _ _ _ [] _ _)       = return Nothing
-lemmaLookupFunctional (LookupRelation etn cn ntn stns _ _) = localNames $ do
-  en        <- freshEnvVar etn
-  x         <- freshIndexVar ntn
-  tvs       <- mapM freshSubtreeVar stns
-  tvs'      <- mapM freshSubtreeVar stns
-  let ts  = map SVar tvs
-      ts' = map SVar tvs'
+lemmaLookupFunctional (LookupRelation etn cn ntn fds _ _) = localNames $ do
+  en   <- freshEnvVariable etn
+  x    <- freshIndexVar ntn
+  fds1 <- freshen fds
+  fds2 <- freshen fds
+  fs1  <- eFieldDeclFields fds1
+  fs2  <- eFieldDeclFields fds2
 
   statement <-
-    TermForall <$> sequence [toImplicitBinder en, toImplicitBinder x] <*> (
-      TermForall <$> mapM toImplicitBinder tvs <*> (
-        TermFunction <$> toTerm (Lookup (EVar en) (IVar x) ts) <*> (
-          TermForall <$> mapM toImplicitBinder tvs' <*> (
+    TermForall <$> sequenceA [toImplicitBinder en, toImplicitBinder x] <*> (
+      TermForall <$> sequenceA (eFieldDeclBinders fds1) <*> (
+        TermFunction <$> toTerm (Lookup (EVar en) (IVar x) fs1) <*> (
+          TermForall <$> sequenceA (eFieldDeclBinders fds2) <*> (
             TermFunction
-            <$> toTerm (Lookup (EVar en) (IVar x) ts')
-            <*> toTerm (PAnd (zipWith PEqTerm ts ts'))
+            <$> toTerm (Lookup (EVar en) (IVar x) fs2)
+            <*> toTerm (PAnd (zipWith PEqField fs1 fs2))
           )
         )
       )

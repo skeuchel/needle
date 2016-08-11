@@ -8,7 +8,7 @@ sort Lab, l :=
   | LS l
 
 sort Ty, S, T, U :=
-  + tvar X
+  + tvar {X}
   | top
   | tarr T1 T2
   | tall X T1 [X]T2
@@ -20,14 +20,14 @@ sort Pat, p :=
 
 sort PRec, ps :=
   | pnil
-  | pcons l p ps
+  | pcons l p [bindPat p]ps
 
 sort TRec, SS, TS, US :=
   | tnil
   | tcons l T TS
 
 sort Tm, s, t, u :=
-  + var x
+  + var {x}
   | abs x T [x]t
   | app t1 t2
   | tabs X T [X]t

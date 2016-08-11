@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.SubstEnvLookupHet where
 
@@ -12,14 +14,14 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 lemmass :: Elab m => [EnvDecl] -> m [Sentence]
-lemmass = fmap concat . mapM lemmas
+lemmass = fmap concat . traverse lemmas
 
 lemmas :: Elab m => EnvDecl -> m [Sentence]
 lemmas (EnvDecl etn _ ecs) =
-  sequence
+  sequenceA
   [ lemma etn subNtn subFields lkNtn lkFields
-  | EnvCtorCons _ subMv subFields <- ecs
-  , EnvCtorCons _ lkMv lkFields <- ecs
+  | EnvCtorCons _ subMv subFields _mbRtn <- ecs
+  , EnvCtorCons _ lkMv lkFields _mbRtn <- ecs
   , let subNtn = typeNameOf subMv
         lkNtn  = typeNameOf lkMv
   , subNtn /= lkNtn
@@ -27,50 +29,53 @@ lemmas (EnvDecl etn _ ecs) =
 
 lemma :: Elab m =>
   EnvTypeName ->
-  NamespaceTypeName -> [SubtreeVar] ->
-  NamespaceTypeName -> [SubtreeVar] ->
+  NamespaceTypeName -> [FieldDecl 'WOMV] ->
+  NamespaceTypeName -> [FieldDecl 'WOMV] ->
   m Sentence
 lemma etn subNtn subFields lkNtn lkFields = localNames $ do
 
   subStn    <- getSortOfNamespace subNtn
-  en        <- freshEnvVar etn
-  en1       <- freshEnvVar etn
-  en2       <- freshEnvVar etn
-  subTs     <- mapM freshen subFields
-  s         <- freshSubtreeVar subStn
+  en        <- freshEnvVariable etn
+  en1       <- freshEnvVariable etn
+  en2       <- freshEnvVariable etn
+  subFds    <- freshen subFields
+  subFs     <- eFieldDeclFields subFds
+  s         <- freshSortVariable subStn
   wfs       <- freshVariable "wf" =<<
-               toTerm (WfTerm (HVDomainEnv (EVar en)) (SVar s))
+               toTerm (WfSort (HVDomainEnv (EVar en)) (SVar s))
   x         <- freshTraceVar subNtn
   y         <- freshIndexVar lkNtn
-  lkTs      <- mapM freshen lkFields
+  lkFds     <- freshen lkFields
+  lkFs      <- eFieldDeclFields lkFds
   lkDeps    <- S.fromList . concat <$>
-               mapM (getSortNamespaceDependencies . typeNameOf) lkFields
-  binders   <- sequence $ concat
+               traverse getSortNamespaceDependencies
+                 [ typeNameOf sv | FieldDeclSort _ sv _ <- lkFields ]
+  binders   <- sequenceA $ concat
                [ [toImplicitBinder en]
-               , map toImplicitBinder subTs
+               , eFieldDeclBinders subFds
                , [toImplicitBinder s]
                , [toBinder wfs | S.member subNtn lkDeps]
                ]
   substEnv  <- freshVariable "sub" =<<
-               toTerm (SubstEnv (EVar en) (map SVar subTs) (SVar s) (TVar x)
+               toTerm (SubstEnv (EVar en) subFs (SVar s) (TVar x)
                         (EVar en1) (EVar en2))
 
   statement <-
     TermForall
-    <$> sequence
+    <$> sequenceA
         ( toImplicitBinder x
         : toImplicitBinder en1
         : toImplicitBinder en2
         : toBinder substEnv
         : toImplicitBinder y
-        : map toImplicitBinder lkTs
+        : eFieldDeclBinders lkFds
         )
     <*> (TermFunction
-         <$> toTerm (Lookup (EVar en1) (IVar y) (map SVar lkTs))
+         <$> toTerm (Lookup (EVar en1) (IVar y) lkFs)
          <*> toTerm
              (Lookup (EVar en2)
               (IVar y)
-              [SSubst' (TVar x) (SVar s) (SVar t) | t <- lkTs]
+              (map (substField (TVar x) (SVar s)) lkFs)
              )
         )
 

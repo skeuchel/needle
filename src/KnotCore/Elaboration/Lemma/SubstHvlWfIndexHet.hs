@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.SubstHvlWfIndexHet where
 
@@ -12,7 +13,7 @@ import KnotCore.Elaboration.Core
 lemmas :: Elab m => m [Sentence]
 lemmas = do
   ntns <- getNamespaces
-  sequence [ lemma ntna ntnb | ntna <- ntns, ntnb <- ntns, ntna /= ntnb ]
+  sequenceA [ lemma ntna ntnb | ntna <- ntns, ntnb <- ntns, ntna /= ntnb ]
 
 lemma :: Elab m => NamespaceTypeName -> NamespaceTypeName -> m Sentence
 lemma ntna ntnb = localNames $ do
@@ -23,26 +24,26 @@ lemma ntna ntnb = localNames $ do
   h2  <- freshHVarlistVar
   y   <- freshIndexVar ntnb
 
-  binders <- sequence [ toImplicitBinder h ]
+  binders <- sequenceA [ toImplicitBinder h ]
 
   statement <-
-    (TermForall
-     <$> sequence
-         [ toImplicitBinder x
-         , toImplicitBinder h1
-         , toImplicitBinder h2
-         ]
-     <*> (TermFunction
-          <$> toTerm (SubstHvl (HVVar h) (TVar x) (HVVar h1) (HVVar h2))
-          <*> (TermForall
-               <$> sequence [toImplicitBinder y]
-               <*> (TermFunction
-                    <$> toTerm (WfIndex (HVVar h1) (IVar y))
-                    <*> toTerm (WfIndex (HVVar h2) (IVar y))
-                   )
-              )
-         )
-    )
+    TermForall
+    <$> sequenceA
+        [ toImplicitBinder x
+        , toImplicitBinder h1
+        , toImplicitBinder h2
+        ]
+    <*> (TermFunction
+         <$> toTerm (SubstHvl (HVVar h) (TVar x) (HVVar h1) (HVVar h2))
+         <*> (TermForall
+              <$> sequenceA [toImplicitBinder y]
+              <*> (TermFunction
+                   <$> toTerm (WfIndex (HVVar h1) (IVar y))
+                   <*> toTerm (WfIndex (HVVar h2) (IVar y))
+                  )
+             )
+        )
+
 
   lemma <- idLemmaSubstHvlWfIndex ntna ntnb
 

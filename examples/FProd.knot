@@ -4,13 +4,13 @@ namespace TyVar, X, Y, Z : Ty
   - shift: "tshift" - subst: "tsubst"
 
 sort Ty, S, T, U :=
-  + TVar X
+  + TVar {X}
   | TArr T1 T2
   | TAll X [X]T
   | TProd T1 T2
 
 sort Tm, s, t, u :=
-  + Var x
+  + Var {x}
   | Abs x T [x]t
   | App t1 t2
   | TAbs X [X]t
@@ -20,13 +20,39 @@ sort Tm, s, t, u :=
 
 sort Pat, p :=
   | PVar x T
-  | PProd p1 p2
+  | PProd p1 [bind p1]p2
 
 fun bind : Pat -> [TmVar]
   | PVar x T    -> x
   | PProd p1 p2 -> bind p1 , bind p2
 
-env Ctx, G, D :=
+env Env, G, D :=
   + empty
-  | evar : x -> T
+  | evar : x -> T ; Typing
   | etvar : X ->
+
+relation [Env] PTyping p T, wtp ; bind -> Env :=
+  | P_Var       :  PTyping (PVar x T) T;
+                     bind = x -> T
+  | P_Prod      :  (wtp1: PTyping p1 T1) ->
+                   (wtp2: [bind wtp1] PTyping p2 (weaken T2 (bind p1))) ->
+                   PTyping (PProd p1 p2) (TProd T1 T2);
+                     bind = bind wtp1, bind wtp2
+
+relation [Env] Typing t T :=
+  + T_Var       :  {x -> T} ->
+                   Typing {Var x} T
+  | T_Abs       :  [x -> T1] Typing t (weaken T2 x) ->
+                   Typing (Abs x T1 t) (TArr T1 T2)
+  | T_App       :  Typing t1 (TArr T11 T12) ->
+                   Typing t2 T11 ->
+                   Typing (App t1 t2) T12
+  | T_Tabs      :  [X -> ] Typing t T ->
+                   Typing (TAbs X t) (TAll X T)
+  | T_Tapp      :  Typing t1 (TAll X T12) ->
+                   Typing (TApp t1 T2) (subst X T2 T12)
+  | T_Prod      :  Typing t1 T1 -> Typing t2 T2 ->
+                   Typing (Prod t1 t2) (TProd T1 T2)
+  | T_Let       :  Typing t1 T1 -> (wtp: PTyping p T1) ->
+                   [bind wtp] Typing t2 (weaken T2 (bind p)) ->
+                   Typing (Case t1 p t2) T2

@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.SubstEnvSubstHvl where
 
@@ -10,36 +12,37 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 lemmass :: Elab m => [EnvDecl] -> m [Sentence]
-lemmass = fmap concat . mapM lemmas
+lemmass = fmap concat . traverse lemmas
 
 lemmas :: Elab m => EnvDecl -> m [Sentence]
 lemmas (EnvDecl etn _ ecs) =
-  sequence
+  sequenceA
   [ freshen fields >>= lemma etn (typeNameOf mv)
-  | EnvCtorCons _ mv fields <- ecs
+  | EnvCtorCons _ mv fields _mbRtn <- ecs
   ]
 
-lemma :: Elab m => EnvTypeName -> NamespaceTypeName -> [SubtreeVar] -> m Sentence
-lemma etn ntn ts = localNames $ do
+lemma :: Elab m => EnvTypeName -> NamespaceTypeName -> [FieldDecl 'WOMV] -> m Sentence
+lemma etn ntn fds = localNames $ do
 
   (stn,_) <- getNamespaceCtor ntn
 
-  en  <- freshEnvVar etn
-  t   <- freshSubtreeVar stn
+  en  <- freshEnvVariable etn
+  t   <- freshSortVariable stn
   x   <- freshTraceVar ntn
-  en1 <- freshEnvVar etn
-  en2 <- freshEnvVar etn
+  en1 <- freshEnvVariable etn
+  en2 <- freshEnvVariable etn
 
   binders <-
-    sequence
+    sequenceA
     ( toImplicitBinder en
     : toImplicitBinder t
-    : map toImplicitBinder ts
+    : eFieldDeclBinders fds
     )
+  fs <- eFieldDeclFields fds
 
   statement <-
     TermForall
-      <$> sequence
+      <$> sequenceA
           [ toImplicitBinder x
           , toImplicitBinder en1
           , toImplicitBinder en2
@@ -48,7 +51,7 @@ lemma etn ntn ts = localNames $ do
            <$> toTerm
                (SubstEnv
                  (EVar en)
-                 (map SVar ts)
+                 fs
                  (SVar t)
                  (TVar x)
                  (EVar en1)

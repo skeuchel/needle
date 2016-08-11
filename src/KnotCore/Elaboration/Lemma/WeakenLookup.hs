@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.WeakenLookup where
 
@@ -10,41 +12,42 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 lemmass :: Elab m => [EnvDecl] -> m [Sentence]
-lemmass = fmap concat . mapM lemmas
+lemmass = fmap concat . traverse lemmas
 
 lemmas :: Elab m => EnvDecl -> m [Sentence]
 lemmas (EnvDecl etn _ ecs) =
-  sequence
-  [ lemma etn cn (typeNameOf mv) fields
-  | EnvCtorCons cn mv fields <- ecs
+  sequenceA
+  [ lemma etn cn (typeNameOf mv) fds
+  | EnvCtorCons cn mv fds _mbRtn <- ecs
   ]
 
 lemma :: Elab m =>
   EnvTypeName ->
   CtorName ->
   NamespaceTypeName ->
-  [SubtreeVar] -> m Sentence
-lemma etn cn ntn fields = localNames $ do
+  [FieldDecl 'WOMV] -> m Sentence
+lemma etn cn ntn fds = localNames $ do
 
-  gamma     <- freshEnvVar etn
-  delta     <- freshEnvVar etn
+  gamma     <- freshEnvVariable etn
+  delta     <- freshEnvVariable etn
   x         <- freshIndexVar ntn
-  ts        <- mapM freshen fields
+  fds'      <- freshen fds
+  fs        <- eFieldDeclFields fds'
 
   statement <-
     TermForall
-    <$> sequence
+    <$> sequenceA
         ( toImplicitBinder gamma
         : toBinder delta
         : toImplicitBinder x
-        : map toImplicitBinder ts
+        : eFieldDeclBinders fds'
         )
     <*> (TermFunction
-         <$> toTerm (Lookup (EVar gamma) (IVar x) (map SVar ts))
+         <$> toTerm (Lookup (EVar gamma) (IVar x) fs)
          <*> toTerm
              (Lookup (EAppend (EVar gamma) (EVar delta))
               (IWeaken (IVar x) (HVDomainEnv (EVar delta)))
-              [SWeaken (SVar t) (HVDomainEnv (EVar delta)) | t <- ts]
+              (map (flip weakenField (HVDomainEnv (EVar delta))) fs)
              )
         )
 

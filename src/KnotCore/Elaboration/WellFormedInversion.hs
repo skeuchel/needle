@@ -13,13 +13,13 @@ import KnotCore.Elaboration.Core
 import KnotCore.Elaboration.Eq
 
 eSortGroupDecls :: Elab m => [SortGroupDecl] -> m [Sentence]
-eSortGroupDecls sgs = sequence [ eSortDecl sd | sg <- sgs, sd <- sgSorts sg ]
+eSortGroupDecls sgs = sequenceA [ eSortDecl sd | sg <- sgs, sd <- sgSorts sg ]
 
 eSortDecl :: Elab m => SortDecl -> m Sentence
 eSortDecl (SortDecl stn _ ctors) = localNames $ do
 
   qid   <- idRelationWellFormed stn >>= toQualId
-  rules <- mapM (eCtorDecl qid) ctors
+  rules <- traverse (eCtorDecl qid) ctors
 
   return $ SentenceHint ModNone
             (HintExtern 2 (Just $ PatCtor qid [ID "_", ID "_"])
@@ -27,13 +27,13 @@ eSortDecl (SortDecl stn _ ctors) = localNames $ do
             [ID "infra", ID "wf"]
 
 eCtorDecl :: Elab m => QualId -> CtorDecl -> m ContextRule
-eCtorDecl wf (CtorVar cn _) = localNames $ do
+eCtorDecl wf (CtorVar cn _ _) = localNames $ do
 
   h     <- freshVariable "H" Coq.StdLib.true >>= toId
 
   hyp <- ContextHyp h
          <$> (PatCtorEx wf
-              <$> sequence
+              <$> sequenceA
                   [ pure PatUnderscore
                   , PatCtor
                     <$> toQualId cn
@@ -43,16 +43,16 @@ eCtorDecl wf (CtorVar cn _) = localNames $ do
 
   return $ ContextRule [hyp] PatUnderscore
              (PrSeq [PrInversion h, PrSubst, PrClear [h]])
-eCtorDecl wf (CtorTerm cn fields) = localNames $ do
+eCtorDecl wf (CtorReg cn fields) = localNames $ do
   h     <- freshVariable "H" Coq.StdLib.true >>= toId
 
   hyp <- ContextHyp h
          <$> (PatCtorEx wf
-              <$> sequence
+              <$> sequenceA
                   [ pure PatUnderscore
                   , PatCtor
                     <$> toQualId cn
-                    <*> pure [ ID "_" | FieldSubtree _ _ <- fields ]
+                    <*> pure [ ID "_" | FieldDeclSort{} <- fields ]
                   ]
              )
 

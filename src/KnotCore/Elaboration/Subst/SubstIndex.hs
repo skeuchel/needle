@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Subst.SubstIndex where
 
@@ -25,58 +26,58 @@ eSubstIndex nd = localNames $
 
     substIndex <- idFunctionSubstIndex ntn
     x          <- freshTraceVar ntn
-    s          <- freshSubtreeVar stn
+    s          <- freshSortVariable stn
     y          <- freshIndexVar ntn
 
     eq_x0 <-
       Equation
-      <$> (PatCtor <$> toQualId x0 <*> sequence [])
+      <$> (PatCtor <$> toQualId x0 <*> sequenceA [])
       <*> (TermMatch
            <$> (MatchItem <$> toRef y <*> pure Nothing <*> pure Nothing)
            <*> pure Nothing
-           <*> sequence
+           <*> sequenceA
                [ Equation
-                 <$> (PatCtor <$> toQualId i0 <*> sequence [])
+                 <$> (PatCtor <$> toQualId i0 <*> sequenceA [])
                  <*> toRef s,
                  Equation
-                 <$> (PatCtor <$> toQualId is <*> sequence [toId y])
-                 <*> (TermApp <$> toRef cn <*> sequence [toRef y])
+                 <$> (PatCtor <$> toQualId is <*> sequenceA [toId y])
+                 <*> (TermApp <$> toRef cn <*> sequenceA [toRef y])
                ]
           )
-    rec       <-
+    recursiveCall <-
       TermApp
       <$> toRef substIndex
-      <*> sequence [toRef x, toRef s, toRef y]
+      <*> sequenceA [toRef x, toRef s, toRef y]
 
-    eq_xs <- forM ntns $ \ntn' ->
+    eq_xs <- for ntns $ \ntn' ->
       Equation
-      <$> (PatCtor <$> toQualId xs <*> sequence [toId ntn', toId x])
+      <$> (PatCtor <$> toQualId xs <*> sequenceA [toId ntn', toId x])
       <*> (case () of
              _ | ntn' == ntn ->
                    TermMatch
                    <$> (MatchItem <$> toRef y <*> pure Nothing <*> pure Nothing)
                    <*> pure Nothing
-                   <*> sequence
+                   <*> sequenceA
                        [ Equation
-                         <$> (PatCtor <$> toQualId i0 <*> sequence [])
-                         <*> (TermApp <$> toRef cn <*> sequence [toRef i0]),
+                         <$> (PatCtor <$> toQualId i0 <*> sequenceA [])
+                         <*> (TermApp <$> toRef cn <*> sequenceA [toRef i0]),
                          Equation
-                         <$> (PatCtor <$> toQualId is <*> sequence [toId y])
+                         <$> (PatCtor <$> toQualId is <*> sequenceA [toId y])
                          <*> (TermApp
                               <$> (idFunctionShift ntn' stn >>= toRef)
-                              <*> sequence [ toRef c0, pure rec ]
+                              <*> sequenceA [ toRef c0, pure recursiveCall ]
                              )
                        ]
                | ntn' `elem` deps ->
                    TermApp
                    <$> (idFunctionShift ntn' stn >>= toRef)
-                   <*> sequence [ toRef c0, pure rec ]
-               | otherwise -> pure rec)
+                   <*> sequenceA [ toRef c0, pure recursiveCall ]
+               | otherwise -> pure recursiveCall)
 
     body <-
       FixpointBody
       <$> toId substIndex
-      <*> sequence [toBinder x, toBinder s, toBinder y]
+      <*> sequenceA [toBinder x, toBinder s, toBinder y]
       <*> (Just . Struct <$> toId x)
       <*> toRef stn
       <*> (TermMatch

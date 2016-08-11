@@ -68,6 +68,7 @@ data FixpointBody = FixpointBody (Identifier) (Binders) (MbAnnotation) (Term) (T
 -- Hint --------------------------------------------------------
 data Hint = HintResolve (Terms)
           | HintRewrite (Terms)
+          | HintRewriteRightToLeft (Terms)
           | HintConstructors (Identifiers)
           | HintExtern (Int) (MbPattern) (ProofStep)
           deriving ( Eq,Ord,Show)
@@ -123,6 +124,9 @@ type Names = [Name]
 -- Pattern -----------------------------------------------------
 data Pattern = PatCtor (QualId) (Identifiers)
              | PatCtorEx (QualId) (Patterns)
+             | PatAtCtor (QualId) (Identifiers)
+             | PatAtCtorEx (QualId) (Patterns)
+             | PatQualId (QualId)
              | PatUnderscore
              deriving ( Eq,Ord,Show)
 -- Patterns ----------------------------------------------------
@@ -201,6 +205,7 @@ data Sentence = SentenceDefinition (Definition)
               | SentenceClassDecl (ClassDeclaration)
               | SentenceClassInst (ClassInstance)
               | SentenceVerbatim (String)
+              | SentenceContext (Binders)
               deriving ( Eq,Ord,Show)
 -- Sentences ---------------------------------------------------
 type Sentences = [Sentence]

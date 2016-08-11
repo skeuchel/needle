@@ -11,16 +11,16 @@ import KnotCore.Elaboration.Core
 
 eIndex :: Elab m => [NamespaceDecl] -> m Sentences
 eIndex nds =
-  concat <$> sequence
+  concat <$> sequenceA
     [ eTypeIndex
-    , sequence
+    , sequenceA
       [ pure SentenceBlankline
       , eEqIndexDec
       , pure SentenceBlankline
       ]
-    , mapM (eFunctionWeakenIndex . nsdTypeName) nds
-    , mapM (eLemmaWeakenIndexAppend . nsdTypeName) nds
-    -- , mapM (eInstanceWeakenIndex . nsdTypeName) nds
+    , traverse (eFunctionWeakenIndex . nsdTypeName) nds
+    , traverse (eLemmaWeakenIndexAppend . nsdTypeName) nds
+    -- , traverse (eInstanceWeakenIndex . nsdTypeName) nds
     ]
 
 eTypeIndex :: Elab m => m Sentences
@@ -29,14 +29,14 @@ eTypeIndex = localNames $ do
   a         <- freshVariable "a" =<< toRef namespace
   indexa    <- TermApp
                <$> (idFamilyIndex >>= toRef)
-               <*> sequence [toRef a]
-  sequence
-    [ SentenceInductive . Inductive <$> sequence
+               <*> sequenceA [toRef a]
+  sequenceA
+    [ SentenceInductive . Inductive <$> sequenceA
       [ InductiveBody
         <$> idFamilyIndex
-        <*> sequence [ toBinder a ]
+        <*> sequenceA [ toBinder a ]
         <*> pure (TermSort Type)
-        <*> sequence
+        <*> sequenceA
             [ InductiveCtor
               <$> idFamilyIndexZero
               <*> pure []
@@ -51,11 +51,11 @@ eTypeIndex = localNames $ do
       SentenceArguments
       <$> pure ModGlobal
       <*> (idFamilyIndexZero >>= toQualId)
-      <*> sequence [BracketedName <$> toName a],
+      <*> sequenceA [BracketedName <$> toName a],
       SentenceArguments
       <$> pure ModGlobal
       <*> (idFamilyIndexSucc >>= toQualId)
-      <*> sequence [BracketedName <$> toName a,
+      <*> sequenceA [BracketedName <$> toName a,
                     pure $ NormalName NameUnderscore
                    ]
     ]
@@ -70,11 +70,11 @@ eEqIndexDec = localNames $ do
   a         <- freshVariable "a" =<< toRef namespace
   indexa    <- TermApp
                <$> (idFamilyIndex >>= toRef)
-               <*> sequence [toRef a]
+               <*> sequenceA [toRef a]
 
   i         <- freshVariable "i" indexa
   j         <- freshVariable "j" indexa
-  binders   <- sequence [toImplicitBinder a, toBinder i, toBinder j]
+  binders   <- sequenceA [toImplicitBinder a, toBinder i, toBinder j]
   eq_ij     <- eq <$> toRef i <*> toRef j
 
   let assertion = sumbool eq_ij (Coq.StdLib.not eq_ij)
@@ -103,30 +103,30 @@ eFunctionWeakenIndex ntn = localNames $ do
   k         <- freshHVarlistVar
   single    <- hasSingleNamespace
 
-  rec       <-
+  recursiveCall <-
     TermApp
     <$> toRef weaken
-    <*> sequence [toRef idx, toRef k]
+    <*> sequenceA [toRef idx, toRef k]
 
   nmEq <- Equation
           <$> (PatCtor <$> toQualId nm <*> pure [])
           <*> (TermApp
                <$> toRef succ
-               <*> pure [rec]
+               <*> pure [recursiveCall]
               )
   nmWl <- Equation
           <$> pure PatUnderscore
-          <*> pure rec
+          <*> pure recursiveCall
   nmMatch <-
     TermMatch
     <$> (MatchItem <$> toRef a <*> pure Nothing <*> pure Nothing)
     <*> pure Nothing
     <*> pure (if single then [nmEq] else [nmEq,nmWl])
 
-  SentenceFixpoint . Fixpoint <$> sequence
+  SentenceFixpoint . Fixpoint <$> sequenceA
     [ FixpointBody
       <$> toId weaken
-      <*> sequence [toBinder idx, toBinder k]
+      <*> sequenceA [toBinder idx, toBinder k]
       <*> (Just . Struct <$> toId k)
       <*> typeIndex (typeNameOf idx)
       <*> (TermMatch
@@ -135,14 +135,14 @@ eFunctionWeakenIndex ntn = localNames $ do
                 <*> pure Nothing
                 <*> pure Nothing)
            <*> pure Nothing
-           <*> sequence
+           <*> sequenceA
                [ Equation
                  <$> (PatCtor <$> toQualId nil <*> pure [])
                  <*> toRef idx,
                  Equation
                  <$> (PatCtor
                       <$> toQualId cons
-                      <*> sequence [toId a, toId k])
+                      <*> sequenceA [toId a, toId k])
                  <*> pure nmMatch
                ]
           )
@@ -161,27 +161,27 @@ eLemmaWeakenIndexAppend ntn = localNames $ do
   left <-
     TermApp
     <$> toRef weaken
-    <*> sequence
+    <*> sequenceA
         [ TermApp
           <$> toRef weaken
-          <*> sequence [toRef idx, toRef k1],
+          <*> sequenceA [toRef idx, toRef k1],
           toRef k2
         ]
   right <-
     TermApp
     <$> toRef weaken
-    <*> sequence
+    <*> sequenceA
         [ toRef idx,
           TermApp
           <$> toRef append
-          <*> sequence [toRef k1, toRef k2]
+          <*> sequenceA [toRef k1, toRef k2]
         ]
   assertion <-
     TermForall
-    <$> sequence [toBinder idx, toBinder k1, toBinder k2]
+    <$> sequenceA [toBinder idx, toBinder k1, toBinder k2]
     <*> (TermEq <$> pure left <*> pure right)
 
-  proof <- sequence
+  proof <- sequenceA
     [ pure $ PrTactic "needleGenericWeakenAppend" []
     ]
 
@@ -216,7 +216,7 @@ eInstanceWeakenIndex ntn = localNames $ do
     ClassInstance insWeakenIndex
     <$> pure []
     <*> idClassWeaken
-    <*> sequence [typeIndex ntn]
+    <*> sequenceA [typeIndex ntn]
     <*> pure [methodWeaken, methodAppend]
 
   return $ SentenceClassInst classInst

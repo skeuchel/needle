@@ -24,6 +24,23 @@ all = TermAnd
 prop :: Terms -> Term
 prop = foldr TermFunction (TermSort Prop)
 
+conj :: Term -> Term -> Term
+conj s t = TermApp (TermQualId (Ident $ ID "conj")) [s,t]
+
+proj1 :: Term -> Term
+proj1 t = TermApp (termIdent "proj1") [t]
+
+proj2 :: Term -> Term
+proj2 t = TermApp (termIdent "proj2") [t]
+
+proj :: Int -> Bool -> Term -> Term
+proj 0 True  t = t
+proj 0 False t = proj1 t
+proj n b     t = proj (n-1) b (proj2 t)
+
+conjs :: Terms -> Term
+conjs = foldr1 conj
+
 relation :: Terms -> Term -> Term
 relation ts t = foldr TermFunction t ts
 

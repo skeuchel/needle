@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.ShiftWellFormedIndex where
 
@@ -11,7 +12,7 @@ import KnotCore.Elaboration.Core
 lemmas :: Elab m => m [Sentence]
 lemmas = do
   ntns <- getNamespaces
-  sequence [ lemma ntn1 ntn2 | ntn1 <- ntns, ntn2 <- ntns ]
+  sequenceA [ lemma ntn1 ntn2 | ntn1 <- ntns, ntn2 <- ntns ]
 
 lemma :: Elab m => NamespaceTypeName -> NamespaceTypeName -> m Sentence
 lemma ntna ntnb = localNames $ do
@@ -26,7 +27,7 @@ lemma ntna ntnb = localNames $ do
 
   statement  <-
     TermForall
-    <$> sequence [toBinder c, toBinder h1, toBinder h2, toBinder ins, toBinder i]
+    <$> sequenceA [toBinder c, toBinder h1, toBinder h2, toBinder ins, toBinder i]
     <*> (TermFunction
          <$> toTerm (WfIndex (HVVar h1) (IVar i))
          <*> toTerm (WfIndex (HVVar h2) (IShift' (CVar c) (IVar i)))

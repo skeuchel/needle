@@ -1,15 +1,21 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module KnotCore.Elaboration where
 
-import Control.Applicative
-import Control.Monad
-import Data.List (nub, intersect)
 import qualified Coq.StdLib as Coq
 import qualified Coq.Syntax as Coq
 
-import KnotCore.Syntax
-import KnotCore.Environment
-import KnotCore.Elaboration.Core
+import           KnotCore.Syntax
+import           KnotCore.Environment
+import           KnotCore.Elaboration.Core
+import           KnotCore.Elaboration.Hints
 
 -- Sort related
 import qualified KnotCore.Elaboration.Namespace as Namespace
@@ -24,33 +30,7 @@ import qualified KnotCore.Elaboration.Trace as Trace
 import qualified KnotCore.Elaboration.Lemma.StabilityShift as StabilityShift
 import qualified KnotCore.Elaboration.Lemma.StabilityWeaken as StabilityWeaken
 import qualified KnotCore.Elaboration.Lemma.StabilitySubst as StabilitySubst
-import qualified KnotCore.Elaboration.Lemma.ShiftIndexCommInd as ShiftIndexCommInd
-import qualified KnotCore.Elaboration.Lemma.ShiftCommInd as ShiftCommInd
-import qualified KnotCore.Elaboration.Lemma.ShiftCommInd2 as ShiftCommInd2
-import qualified KnotCore.Elaboration.Lemma.ShiftComm as ShiftComm
-import qualified KnotCore.Elaboration.Lemma.WeakenShift as WeakenShift
-import qualified KnotCore.Elaboration.Lemma.WeakenSubst as WeakenSubst
-import qualified KnotCore.Elaboration.Lemma.WeakenAppend as WeakenAppend
-import qualified KnotCore.Elaboration.Lemma.SubstIndexShiftIndexReflectionInd as SubstIndexShiftIndexReflectionInd
-import qualified KnotCore.Elaboration.Lemma.SubstShiftReflectionInd as SubstShiftReflectionInd
-import qualified KnotCore.Elaboration.Lemma.SubstShiftReflectionInd2 as SubstShiftReflectionInd2
-import qualified KnotCore.Elaboration.Lemma.SubstShiftReflection as SubstShiftReflection
-import qualified KnotCore.Elaboration.Lemma.ShiftSubstIndexCommInd as ShiftSubstIndexCommInd
-import qualified KnotCore.Elaboration.Lemma.ShiftSubstCommInd as ShiftSubstCommInd
-import qualified KnotCore.Elaboration.Lemma.ShiftSubstCommInd2 as ShiftSubstCommInd2
-import qualified KnotCore.Elaboration.Lemma.ShiftSubstComm as ShiftSubstComm
-import qualified KnotCore.Elaboration.Lemma.SubstShiftIndexCommInd as SubstShiftIndexCommInd
-import qualified KnotCore.Elaboration.Lemma.SubstShiftCommInd as SubstShiftCommInd
-import qualified KnotCore.Elaboration.Lemma.SubstShiftCommInd2 as SubstShiftCommInd2
-import qualified KnotCore.Elaboration.Lemma.SubstSubordInd as SubstSubordInd
-import qualified KnotCore.Elaboration.Lemma.SubstSubordInd2 as SubstSubordInd2
-import qualified KnotCore.Elaboration.Lemma.SubstShiftComm as SubstShiftComm
-import qualified KnotCore.Elaboration.Lemma.SubstSubord as SubstSubord
-import qualified KnotCore.Elaboration.Lemma.SubstSubstIndexCommInd as SubstSubstIndexCommInd
-import qualified KnotCore.Elaboration.Lemma.SubstSubstIndexCommLeftInd as SubstSubstIndexCommLeftInd
-import qualified KnotCore.Elaboration.Lemma.SubstSubstCommInd as SubstSubstCommInd
-import qualified KnotCore.Elaboration.Lemma.SubstSubstCommInd2 as SubstSubstCommInd2
-import qualified KnotCore.Elaboration.Lemma.SubstSubstComm as SubstSubstComm
+import qualified KnotCore.Elaboration.Interaction as Interaction
 
 -- Well-formedness related
 import qualified KnotCore.Elaboration.HVarlistInsertion as HVarlistInsertion
@@ -60,16 +40,21 @@ import qualified KnotCore.Elaboration.WellFormedTerm as WellFormedTerm
 import qualified KnotCore.Elaboration.WellFormedTermInduction as WellFormedTermInduction
 import qualified KnotCore.Elaboration.Lemma.ShiftWellFormedIndex as ShiftWellFormedIndex
 import qualified KnotCore.Elaboration.Lemma.ShiftWellFormed as ShiftWellFormed
+import qualified KnotCore.Elaboration.Lemma.WeakenWfTerm as WeakenWfTerm
 import qualified KnotCore.Elaboration.Lemma.SubstHvlWfIndexHom as SubstHvlWfIndexHom
 import qualified KnotCore.Elaboration.Lemma.SubstHvlWfIndexHet as SubstHvlWfIndexHet
 import qualified KnotCore.Elaboration.Lemma.SubstHvlWfTerm as SubstHvlWfTerm
-import qualified KnotCore.Elaboration.WellFormedInversion as WellFormedInversion
+import qualified KnotCore.Elaboration.WellFormedInversion as HintsWellFormedInversion
 import qualified KnotCore.Elaboration.Lemma.WellFormedStrengthen as WellFormedStrengthen
+import qualified KnotCore.Elaboration.WellFormedTermCast as WellFormedTermCast
+import qualified KnotCore.Elaboration.Lemma.WellFormedInversion as LemmaWellFormedInversion
+import qualified KnotCore.Elaboration.SubHvl as SubHvl
 
 -- Context related
 import qualified KnotCore.Elaboration.TermEnv as TermEnv
 import qualified KnotCore.Elaboration.ShiftEnv as ShiftEnv
 import qualified KnotCore.Elaboration.SubstEnv as SubstEnv
+import qualified KnotCore.Elaboration.WeakenEnv as WeakenEnv
 import qualified KnotCore.Elaboration.LookupRelation as Lookup
 import qualified KnotCore.Elaboration.InsertEnvRelation as InsertEnvRelation
 import qualified KnotCore.Elaboration.SubstEnvRelation as SubstEnvRelation
@@ -79,6 +64,7 @@ import qualified KnotCore.Elaboration.Lemma.DomainEnvShiftEnv as DomainEnvShiftE
 import qualified KnotCore.Elaboration.Lemma.DomainEnvSubstEnv as DomainEnvSubstEnv
 import qualified KnotCore.Elaboration.Lemma.ShiftEnvAppendEnv as ShiftEnvAppendEnv
 import qualified KnotCore.Elaboration.Lemma.SubstEnvAppendEnv as SubstEnvAppendEnv
+import qualified KnotCore.Elaboration.Lemma.WeakenAppend as WeakenAppend
 import qualified KnotCore.Elaboration.Lemma.InsertLookup as InsertLookup
 import qualified KnotCore.Elaboration.Lemma.InsertEnvInsertHvl as InsertEnvInsertHvl
 import qualified KnotCore.Elaboration.Lemma.SubstEnvSubstHvl as SubstEnvSubstHvl
@@ -89,30 +75,60 @@ import qualified KnotCore.Elaboration.Lemma.WeakenLookup as WeakenLookup
 import qualified KnotCore.Elaboration.Lemma.WeakenLookupHere as WeakenLookupHere
 import qualified KnotCore.Elaboration.Lemma.SubstEnvLookupHet as SubstEnvLookupHet
 
+import qualified KnotCore.Elaboration.Relation as Relation
+import qualified KnotCore.Elaboration.Lemma.DomainOutput as DomainOutput
+import qualified KnotCore.Elaboration.RelationCast as RelationCast
+import qualified KnotCore.Elaboration.Shift.Relation as ShiftRelation
+import qualified KnotCore.Elaboration.Lemma.WeakenRelation as WeakenRelation
+import qualified KnotCore.Elaboration.Lemma.RelationWellFormed as RelationWellFormed
+import qualified KnotCore.Elaboration.HintsRelationWellFormed as HintsRelationWellFormed
+import qualified KnotCore.Elaboration.ObligationVar as ObligationVar
+import qualified KnotCore.Elaboration.Lemma.SubstEnvLookup as SubstEnvLookup
+import qualified KnotCore.Elaboration.ObligationReg as ObligationReg
+import qualified KnotCore.Elaboration.Lemma.SubstEnvRelation as SubstEnvRelation
+
 -- Size related
 import qualified KnotCore.Elaboration.Size as Size
 import qualified KnotCore.Elaboration.Lemma.ShiftSize as ShiftSize
 import qualified KnotCore.Elaboration.Lemma.WeakenSize as WeakenSize
 
-import qualified KnotCore.Elaboration.SubHvl as SubHvl
---import qualified KnotCore.Elaboration.Relation as Relation
+import           Control.Monad
+import           Control.Monad.Error.Class
+import           Control.Monad.Trans.Reader (ReaderT(..), ask)
+import           Data.List (nub, intersect)
 
-elaborateSpec :: TermSpec -> Coq.Root
-elaborateSpec ts =
-  case runElM (eTermSpec ts) (metaEnvironments ts) of
-    Left err -> error $ "Elaboration failed: " ++ err
-    Right r  -> r
+elaborateSpec :: (MonadError String m, EnvM m, FreshM m) => TermSpec -> m Coq.Root
+elaborateSpec ts = runElabT (eTermSpec ts) (metaEnvironments ts)
 
-eTermSpec :: TermSpec -> ElM Coq.Root
-eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
+newtype ElabT m a =
+  ElabT { fromElabT :: ReaderT MetaEnvironments m a }
+  deriving (Functor,Applicative)
+
+instance MonadError String m => Monad (ElabT m) where
+  return a      = ElabT (return a)
+  ElabT m >>= f = ElabT (m >>= (fromElabT . f))
+  fail s        = ElabT (throwError s)
+
+deriving instance (MonadError String m, EnvM m) => EnvM (ElabT m)
+deriving instance (MonadError String m, FreshM m) => FreshM (ElabT m)
+deriving instance (MonadError String m) => MonadError String (ElabT m)
+
+
+instance (EnvM m, FreshM m, MonadError String m) => Elab (ElabT m) where
+  getMetaEnvironments   = ElabT ask
+  liftMaybe _ (Just a)  = return a
+  liftMaybe str Nothing = fail ("liftMaybe: " ++ str)
+
+runElabT :: MonadError String m => ElabT m a -> MetaEnvironments -> m a
+runElabT = runReaderT . fromElabT
+
+--------------------------------------------------------------------------------
+
+eTermSpec :: Elab m => TermSpec -> m Coq.Root
+eTermSpec ts@(TermSpec nds _ sgds fgds eds rgds _zgds _subst) = do
 
   let section = Coq.SentenceSection
       blank   = Coq.SentenceBlankline
-      fds     = [ fd
-                | fgd <- fgds
-                , (_, fds) <- fgdFuns fgd
-                , fd <- fds
-                ]
 
   -- Namespace elaboration
   namespace         <- Namespace.eNamespace nds
@@ -133,63 +149,44 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
   stabilityShift              <- StabilityShift.lemmas fgds
   stabilityWeaken             <- StabilityWeaken.lemmas sgds
   stabilitySubst              <- StabilitySubst.lemmas fgds
-  shiftIndexCommInd           <- ShiftIndexCommInd.lemmas nds
-  shiftCommInd                <- ShiftCommInd.lemmas sgds
-  shiftCommInd2               <- ShiftCommInd2.lemmas sgds
-  shiftComm                   <- ShiftComm.lemmas sgds
-  substIndexShiftIndexInd     <- SubstIndexShiftIndexReflectionInd.lemmas nds
-  substShiftReflectionInd     <- SubstShiftReflectionInd.lemmas sgds
-  substShiftReflectionInd2    <- SubstShiftReflectionInd2.lemmas sgds
-  substShiftReflection        <- SubstShiftReflection.lemmas sgds
-  shiftSubstIndexCommInd      <- ShiftSubstIndexCommInd.lemmas nds
-  shiftSubstCommInd           <- ShiftSubstCommInd.lemmas sgds
-  shiftSubstCommInd2          <- ShiftSubstCommInd2.lemmas sgds
-  shiftSubstComm              <- ShiftSubstComm.lemmas sgds
-  substShiftIndexCommInd      <- SubstShiftIndexCommInd.lemmas nds
-  substShiftCommInd           <- SubstShiftCommInd.lemmas sgds
-  substShiftCommInd2          <- SubstShiftCommInd2.lemmas sgds
-  substSubordInd              <- SubstSubordInd.lemmas sgds
-  substSubordInd2             <- SubstSubordInd2.lemmas sgds
-  substShiftComm              <- SubstShiftComm.lemmas sgds
-  substSubord                 <- SubstSubord.lemmas sgds
-  substSubstIndexCommRightInd <- SubstSubstIndexCommInd.lemmas nds
-  substSubstIndexCommLeftInd  <- SubstSubstIndexCommLeftInd.lemmas nds
-  substSubstCommInd           <- SubstSubstCommInd.lemmas sgds
-  substSubstCommInd2          <- SubstSubstCommInd2.lemmas sgds
-  substSubstComm              <- SubstSubstComm.lemmas sgds
-  weakenShift                 <- WeakenShift.lemmas sgds
-  weakenSubst                 <- WeakenSubst.lemmas sgds
-  weakenAppend                <- WeakenAppend.lemmas sgds
   shiftSize                   <- ShiftSize.lemmas sgds
   weakenSize                  <- WeakenSize.lemmas
+
+  -- Interaction lemmas
+  interaction                 <- Interaction.lemmas nds sgds
   wfindex                     <- WellFormedIndex.eWellFormedIndex
   wfterm                      <- WellFormedTerm.eSortGroupDecls sgds
+  wfinversion                 <- LemmaWellFormedInversion.lemmas sgds
   wfterminduction             <- WellFormedTermInduction.eSortGroupDecls sgds
   hvarlistinsertion           <- HVarlistInsertion.eHVarlistInsertions
   substHvlRelations           <- SubstHvlRelation.eSubstHvlRelations
   shiftwfindex                <- ShiftWellFormedIndex.lemmas
   shiftwfterm                 <- ShiftWellFormed.lemmas sgds
+  weakenwfterm                <- WeakenWfTerm.lemmas sgds
   strengthenwfterm            <- WellFormedStrengthen.lemmas
   substwfindexhom             <- SubstHvlWfIndexHom.lemmas
   substwfindexhet             <- SubstHvlWfIndexHet.lemmas
   substwfterm                 <- SubstHvlWfTerm.lemmas sgds
+  wellFormedTermCast          <- WellFormedTermCast.lemmas sgds
 
-  ctx       <- concat <$> sequence
-               [ mapM TermEnv.eEnvDecl eds
-               , mapM TermEnv.eEnvAppend eds
-               , mapM TermEnv.eEnvLength eds
+  ctx       <- concat <$> sequenceA
+               [ traverse TermEnv.eEnvDecl eds
+               , traverse TermEnv.eEnvAppend eds
+               , traverse TermEnv.eEnvLength eds
                ]
 
+  shiftEnvs          <- ShiftEnv.eShiftEnvs eds
+  substEnvs          <- SubstEnv.eSubstEnvs eds
+  weakenEnvs         <- traverse (WeakenEnv.eFunctionWeakenEnv.typeNameOf) eds
   appendEnvAssoc     <- AppendEnvAssoc.lemmas eds
   domainEnvAppendEnv <- DomainEnvAppendEnv.lemmas eds
   domainEnvShiftEnv  <- DomainEnvShiftEnv.lemmas eds
   domainEnvSubstEnv  <- DomainEnvSubstEnv.lemmas eds
   shiftEnvAppendEnv  <- ShiftEnvAppendEnv.lemmas eds
   substEnvAppendEnv  <- SubstEnvAppendEnv.lemmas eds
-  shiftEnvs          <- ShiftEnv.eShiftEnvs eds
-  substEnvs          <- SubstEnv.eSubstEnvs eds
+  weakenAppend       <- WeakenAppend.lemmas sgds
 
-  lookups            <- concat <$> mapM Lookup.eLookupRelations eds
+  lookups            <- concat <$> traverse Lookup.eLookupRelations eds
   weakenLookup       <- WeakenLookup.lemmass eds
   weakenLookupHere   <- WeakenLookupHere.lemmass eds
 
@@ -201,19 +198,16 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
   substEnvSubstHvl          <- SubstEnvSubstHvl.lemmass eds
   substEnvLookupHet         <- SubstEnvLookupHet.lemmass eds
   -- lookupFunctional          <- LookupFunctional.lemmas lookups
-  lookupWellformedIndex     <- concat <$> mapM LookupWellformedIndex.eLookupWellformedIndex eds
+  lookupWellformedIndex     <- concat <$> traverse LookupWellformedIndex.eLookupWellformedIndex eds
   -- lookupInversionHere       <- LookupInversionHere.lemmas lookups
-  {-
-  relations          <- mapM Relation.eRelationDecl rds
-  -}
 
   shiftFunIds   <- setFunctionShift
   fequalShiftHints <-
-    sequence
+    sequenceA
     [ do
         fn <- Coq.TermApp
                 <$> toRef shift
-                <*> sequence [idFamilyCutoffZero >>= toRef]
+                <*> sequenceA [idFamilyCutoffZero >>= toRef]
 
         return $
           Coq.SentenceHint Coq.ModGlobal
@@ -226,48 +220,16 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
     ]
   allFuns <- getFunctions
   let ntnsets = nub [ ntns | (_,_,ntns) <- allFuns ]
-  subhvls <- concat <$> mapM SubHvl.eSubHvl ntnsets
-
-  let mkRewriteHints :: [String] -> [Coq.Identifier] -> ElM [Coq.Sentence]
-      mkRewriteHints _   []  = return []
-      mkRewriteHints dbs ids = do
-        tms <- mapM toRef ids
-        return
-          [ Coq.SentenceHint Coq.ModNone (Coq.HintRewrite tms) [Coq.ID db]
-          | db <- dbs
-          ]
-      mkResolveHints :: [String] -> [Coq.Identifier] -> ElM [Coq.Sentence]
-      mkResolveHints _   []  = return []
-      mkResolveHints dbs ids = do
-        tms <- mapM toRef ids
-        return
-          [ Coq.SentenceHint Coq.ModNone (Coq.HintResolve tms) [Coq.ID db]
-          | db <- dbs
-          ]
-      mkConstructorsHints :: [String] -> [Coq.Identifier] -> ElM [Coq.Sentence]
-      mkConstructorsHints _   []  = return []
-      mkConstructorsHints dbs ids =
-        return
-          [ Coq.SentenceHint Coq.ModNone (Coq.HintConstructors ids) [Coq.ID db]
-          | db <- dbs
-          ]
+  subhvls <- concat <$> traverse SubHvl.eSubHvl ntnsets
 
   -- Hvl, Cutoff, Trace
-  weakenCutoffAppendHints   <- setLemmaWeakenCutoffAppend           >>= mkRewriteHints      ["interaction", "weakencutoff_append" ]
-  weakenTraceAppendHints    <- setLemmaWeakenTraceAppend            >>= mkRewriteHints      ["interaction", "weakentrace_append" ]
+  weakenCutoffAppendHints   <- setLemmaWeakenCutoffAppend           >>= mkRewriteHints      ["weakencutoff_append" ]
+  weakenTraceAppendHints    <- setLemmaWeakenTraceAppend            >>= mkRewriteHints      ["weakentrace_append" ]
 
   -- Sort terms
   stabilityShiftHints       <- setLemmaStabilityShift               >>= mkRewriteHints      ["interaction", "stability_shift" ]
   stabilityWeakenHints      <- setLemmaStabilityWeaken              >>= mkRewriteHints      ["interaction", "stability_weaken" ]
   stabilitySubstHints       <- setLemmaStabilitySubst               >>= mkRewriteHints      ["interaction", "stability_subst" ]
-  substShiftReflectionHints <- setLemmaSubstShiftReflection         >>= mkRewriteHints      ["interaction", "reflection"]
-  shiftCommHints            <- setLemmaShiftComm                    >>= mkRewriteHints      ["interaction", "shift_shift0" ]
-  substShiftCommHints       <- setLemmaSubstShiftComm               >>= mkRewriteHints      ["interaction", "subst_shift0" ]
-  substSubordHints          <- setLemmaSubstSubord                  >>= mkRewriteHints      ["interaction", "subst_shift0" ]
-  shiftSubstCommHints       <- setLemmaShiftSubstComm               >>= mkRewriteHints      ["interaction", "shift_subst0" ]
-  substSubstCommHints       <- setLemmaSubstSubstComm               >>= mkRewriteHints      ["interaction", "subst_subst0" ]
-  weakenShiftHints          <- setLemmaWeakenShift                  >>= mkRewriteHints      ["weaken_shift" ]
-  weakenSubstHints          <- setLemmaWeakenSubst                  >>= mkRewriteHints      ["weaken_subst" ]
   shiftSizeHints            <- setLemmaShiftSize                    >>= mkRewriteHints      ["interaction", "shift_size" ]
   weakenSizeHints           <- setLemmaWeakenSize                   >>= mkRewriteHints      ["interaction", "weaken_size" ]
 
@@ -280,7 +242,7 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
   substHvlHints             <- setTypeSubstHvl                      >>= mkConstructorsHints ["infra", "subst", "subst_wf", "wf"]
   substwfindexHints         <- setLemmaSubstHvlWfIndex              >>= mkResolveHints      ["infra", "subst", "subst_wf", "wf"]
   substwftermHints          <- setLemmaSubstWellFormedSort          >>= mkResolveHints      ["infra", "subst", "subst_wf", "wf"]
-  subhvlAppendHints         <- (mapM idLemmaSubHvlAppend ntnsets)   >>= mkResolveHints      ["infra", "wf"]
+  subhvlAppendHints         <- traverse idLemmaSubHvlAppend ntnsets >>= mkResolveHints      ["infra", "wf"]
 
   -- Environment terms
   domainEnvAppendEnvHints   <- setLemmaDomainEnvAppendEnv           >>= mkRewriteHints      ["interaction", "env_domain_append" ]
@@ -302,23 +264,35 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
   weakenSubstEnvHints       <- setLemmaWeakenSubstEnv               >>= mkResolveHints      ["infra", "subst"]
   substEnvSubstHvlHints     <- setLemmaSubstEnvSubstHvl             >>= mkResolveHints      ["infra", "subst", "subst_wf", "wf", "substenv_substhvl"]
   substEnvLookupHints       <- setLemmaSubstEnvLookup               >>= mkResolveHints      ["infra", "lookup", "subst"]
+  shiftRelationHints        <- setLemmaShiftRelation                >>= mkResolveHints      ["infra", "shift"]
+
+  -- Hints to be used by the user
+  appendEnvAssocHints <-
+     setLemmaAppendEnvAssoc
+     >>= mkRewriteHints ["interaction"]
+  weakenAppendHints <- concat <$> sequence
+    [ setLemmaWeakenCutoffAppend
+    , setLemmaWeakenTraceAppend
+    , setLemmaWeakenAppend
+    , sequence [idLemmaHVarlistAppendAssoc]
+    ] >>= mkRewriteRightToLeftHints ["interaction"]
 
   wellformedRelations <- setRelationWellFormed
   wellformedDomainAppendHints <-
-    forM wellformedRelations $ \wf -> localNames $ do
+    for wellformedRelations $ \wf -> localNames $ do
       qid <- toQualId wf
 
       return $ Coq.SentenceHint Coq.ModNone
         (Coq.HintExtern 10 (Just $ Coq.PatCtor qid [Coq.ID "_", Coq.ID "_"])
            (Coq.PrTactic "autorewrite with env_domain_append in *" []))
            [Coq.ID "infra", Coq.ID "wf"]
-  wellformedInversionHints <- WellFormedInversion.eSortGroupDecls sgds
+  hintsWellformedInversion <- HintsWellFormedInversion.eSortGroupDecls sgds
 
   allStns <- getSorts
   strengthenHintss <-
-    forM allStns $ \stn -> do
+    for allStns $ \stn -> do
       deps <- getSortNamespaceDependencies stn
-      sequence
+      sequenceA
         [ do
             qid <- idRelationWellFormed stn >>= toQualId
             lem <- idLemmaWellFormedStrengthen stn ntns >>= toRef
@@ -326,7 +300,7 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
 
             hyp <- Coq.ContextHyp h
                    <$> (Coq.PatCtorEx qid
-                        <$> sequence
+                        <$> sequenceA
                             [ Coq.PatCtor
                               <$> (idAppendHVarlist >>= toQualId)
                               <*> pure [ Coq.ID "_", Coq.ID "_" ]
@@ -340,18 +314,34 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
                 (Coq.PrMatchGoal [Coq.ContextRule [hyp] Coq.PatUnderscore (Coq.PrApplyIn lem h)]))
               [Coq.ID "infra", Coq.ID "wf"]
         | ntns <- ntnsets
-        , null (intersect deps ntns)
+        , null (deps `intersect` ntns)
         ]
   let wellformedStrengthenHints = concat strengthenHintss
 
+  relationGroups          <- traverse Relation.eRelationGroupDecl rgds
+  domainOutput            <- DomainOutput.lemmas rgds
+  relationCasts           <- RelationCast.lemmas rgds
+  weakenRelations         <- WeakenRelation.lemmas rgds
+  shiftRelationGroups     <- ShiftRelation.lemmas rgds
+  relationWellFormed      <- RelationWellFormed.lemmas rgds
+  hintsRelationWellFormed <- HintsRelationWellFormed.hints rgds
+  obligationsVar          <- ObligationVar.obligations eds
+  substEnvLookup          <- SubstEnvLookup.lemmass eds
+  obligationReg           <- ObligationReg.obligations (concatMap rgRelations rgds) eds
+  substEnvRelation        <- SubstEnvRelation.lemmass eds rgds
+
   return . Coq.Root . concat $
-    [ [ section (Coq.ID "Namespace") namespace,    blank
-      , section (Coq.ID "HVarlist")  hvarlist,     blank
-      , section (Coq.ID "Index")     index,        blank
-      , section (Coq.ID "Terms")     terms,        blank
-      , section (Coq.ID "Functions") funs,         blank
-      , section (Coq.ID "Shift")     shift,        blank
-      , section (Coq.ID "Weaken")    weaken,       blank
+    [ [ blank
+      , Coq.SentenceVerbatim "Local Set Asymmetric Patterns."
+      , blank
+      ]
+    , [ section (Coq.ID "Namespace") namespace, blank
+      , section (Coq.ID "HVarlist")  hvarlist,  blank
+      , section (Coq.ID "Index")     index,     blank
+      , section (Coq.ID "Terms")     terms,     blank
+      , section (Coq.ID "Functions") funs,      blank
+      , section (Coq.ID "Shift")     shift,     blank
+      , section (Coq.ID "Weaken")    weaken,    blank
       ]
     , [ section (Coq.ID "Subst") $ trace ++ subst, blank ]
     , fequalShiftHints
@@ -364,58 +354,21 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
     , stabilityWeakenHints
     , stabilitySubst
     , stabilitySubstHints
-    -- Interaction
-    , [ section (Coq.ID "SubstShiftReflection") $ concat
-        [ substIndexShiftIndexInd
-        , substShiftReflectionInd2
-        , substShiftReflection
-        ]
-      , section (Coq.ID "ShiftInteraction")
-        [ section (Coq.ID "ShiftIndexCommInd") shiftIndexCommInd
-        , section (Coq.ID "ShiftCommInd") shiftCommInd2
-        , section (Coq.ID "ShiftComm") shiftComm
-        ]
-      ]
-    , shiftCommHints
-    , [ section (Coq.ID "WeakenShift") weakenShift
-      , section (Coq.ID "ShiftSubstInteraction")
-        [ section (Coq.ID "ShiftSubstIndexCommInd") shiftSubstIndexCommInd
-        , section (Coq.ID "ShiftSubstCommInd") shiftSubstCommInd2
-        , section (Coq.ID "ShiftSubstComm") shiftSubstComm
-        , section (Coq.ID "SubstShiftIndexCommInd") substShiftIndexCommInd
-        , section (Coq.ID "SubstShiftCommInd") substShiftCommInd2
-        , section (Coq.ID "SubstShiftComm") substShiftComm
-        , section (Coq.ID "SubstSubordInd") substSubordInd2
-        , section (Coq.ID "SubstSubord") substSubord
-        ]
-      ]
-    , substShiftReflectionHints
-    , substShiftCommHints
-    , substSubordHints
-    , shiftSubstCommHints
-    , [ section (Coq.ID "SubstSubstInteraction")
-        [ section (Coq.ID "SubstSubstIndexCommInd") $
-            substSubstIndexCommRightInd ++ substSubstIndexCommLeftInd
-        , section (Coq.ID "SubstSubstCommInd") substSubstCommInd2
-        , section (Coq.ID "SubstSubstComm") substSubstComm
-        , section (Coq.ID "WeakenSubst") weakenSubst
-        , section (Coq.ID "WeakenAppend") weakenAppend
-        ]
-      ]
-    , substSubstCommHints
-    , weakenShiftHints
-    , weakenSubstHints
+    , interaction
     , [ section (Coq.ID "WellFormed") $ concat
         [ [wfindex]
         , wfterm
+        , wfinversion
         , wfterminduction
         ]
       , section (Coq.ID "ShiftWellFormed") $ concat
         [ hvarlistinsertion
         , shiftwfindex
         , shiftwfterm
+        , weakenwfterm
         ]
       ]
+    , wellFormedTermCast
     , shiftwfindexHints
     , shiftwftermHints
     , insertHvlHints
@@ -439,6 +392,7 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
         , appendEnvAssoc
         , domainEnvAppendEnv
         , shiftEnvs
+        , weakenEnvs
         , substEnvs
         , domainEnvShiftEnv
         , domainEnvSubstEnv
@@ -448,6 +402,7 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
     , [ section (Coq.ID "ContextStuff") $ concat
         [ [section (Coq.ID "ShiftEnvAppendEnv") shiftEnvAppendEnv]
         , [section (Coq.ID "SubstEnvAppendEnv") substEnvAppendEnv]
+        , weakenAppend
         , [section (Coq.ID "Lookups") $ concat
            [ lookups
            , weakenLookup
@@ -469,7 +424,7 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
     , weakenLookupHere
     , wellFormedTermHints
     , wellformedDomainAppendHints
-    , wellformedInversionHints
+    , hintsWellformedInversion
     , lookupWellformedDataHints
     , lookupwfindexHints
     , insertEnvCtorHints
@@ -487,5 +442,18 @@ eTermSpec ts@(TermSpec nds _ sgds fgds eds _) = do
     , shiftSizeHints
     , weakenSize
     , weakenSizeHints
-      -- relations,
+    , relationGroups
+    , domainOutput
+    , relationCasts
+    , shiftRelationGroups
+    , shiftRelationHints
+    , weakenRelations
+    , relationWellFormed
+    , hintsRelationWellFormed
+    , obligationsVar
+    , substEnvLookup
+    , obligationReg
+    , substEnvRelation
+    , appendEnvAssocHints
+    , weakenAppendHints
     ]

@@ -12,20 +12,20 @@ import KnotCore.Elaboration.Core
 
 eShiftEnvs :: Elab m => [EnvDecl] -> m Sentences
 eShiftEnvs eds =
-  sequence
+  sequenceA
    [ eShiftEnv (typeNameOf mv) ed
    | ed <- eds
-   , EnvCtorCons _ mv _ <- edCtors ed
+   , EnvCtorCons _ mv _ _ <- edCtors ed
    ]
 
 eShiftEnv :: Elab m => NamespaceTypeName -> EnvDecl -> m Sentence
 eShiftEnv ntn (EnvDecl etn _ ctors) = localNames $ do
   c  <- freshCutoffVar ntn
-  en <- freshEnvVar etn
+  en <- freshEnvVariable etn
   body <-
     FixpointBody
     <$> idFunctionShiftEnv ntn etn
-    <*> sequence [toBinder c, toBinder en]
+    <*> sequenceA [toBinder c, toBinder en]
     <*> pure Nothing
     <*> toRef etn
     <*> (TermMatch
@@ -34,23 +34,28 @@ eShiftEnv ntn (EnvDecl etn _ ctors) = localNames $ do
               <*> pure Nothing
               <*> pure Nothing)
          <*> pure Nothing
-         <*> mapM (eEnvCtor c) ctors
+         <*> traverse (eEnvCtor c) ctors
         )
   return . SentenceFixpoint $ Fixpoint [body]
   where
     eEnvCtor :: Elab m => CutoffVar -> EnvCtor -> m Equation
-    eEnvCtor _ (EnvCtorNil cn) = localNames $ do
+    eEnvCtor _ (EnvCtorNil cn) = localNames $
       Equation
         <$> (PatCtor
                <$> (Ident <$> toId cn)
                <*> pure [])
         <*> toRef cn
-    eEnvCtor c (EnvCtorCons cn _ fields) = localNames $ do
-      en <- freshEnvVar etn
+    eEnvCtor c (EnvCtorCons cn bv fds _mbRtn) = localNames $ do
+      en <- freshEnvVariable etn
+      fs <- fieldDeclsToFields fds
       Equation
         <$> (PatCtor
                <$> (Ident <$> toId cn)
-               <*> sequence (toId en : map toId fields))
-        <*> toTerm (ECtor cn
-                      (EShift (CVar c) (EVar en))
-                      (map (SShift' (CWeaken (CVar c) (HVDomainEnv (EVar en))) . SVar) fields))
+               <*> sequenceA (toId en : eFieldDeclIdentifiers fds)
+            )
+        <*> toTerm
+            (ECons
+               (EShift (CVar c) (EVar en))
+               (typeNameOf bv)
+               (map (shiftField (CWeaken (CVar c) (HVDomainEnv (EVar en)))) fs)
+            )

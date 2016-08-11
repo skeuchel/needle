@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.ShiftWellFormed where
 
@@ -15,7 +16,7 @@ import KnotCore.Elaboration.Eq
 lemmas :: Elab m => [SortGroupDecl] -> m [Sentence]
 lemmas sdgs = do
   ntns <- getNamespaces
-  concat <$> sequence
+  concat <$> sequenceA
     [ sortGroupDecl ntn sdg
     | sdg <- sdgs, ntn <- ntns
     ]
@@ -27,8 +28,8 @@ sortGroupDecl ntn (SortGroupDecl sgtn sds _ hasBs) = localNames $ do
   h1         <- freshHVarlistVar
   induction  <- idInductionWellFormedSortGroup sgtn
 
-  assertions <- forM sds (localNames . sortAssertion h1 ntn . typeNameOf)
-  proofs     <- concat <$> mapM (sortProof (map typeNameOf sds) hasBs h1 ntn) sds
+  assertions <- for sds (localNames . sortAssertion h1 ntn . typeNameOf)
+  proofs     <- concat <$> traverse (sortProof (map typeNameOf sds) hasBs h1 ntn) sds
 
   bindh1     <- toBinder h1
   refh1      <- toRef h1
@@ -71,7 +72,7 @@ sortGroupDecl ntn (SortGroupDecl sgtn sds _ hasBs) = localNames $ do
   individual <-
     case sds of
       [_] -> return []
-      _   -> forM sds $ \sd -> do
+      _   -> for sds $ \sd -> do
                lemma            <- idLemmaShiftWellFormedSort ntn (typeNameOf sd)
                groupLemmaRef    <- toRef groupLemma
                (binders,assert) <- sortAssertion h1 ntn (typeNameOf sd)
@@ -90,31 +91,31 @@ sortGroupDecl ntn (SortGroupDecl sgtn sds _ hasBs) = localNames $ do
 sortAssertion :: Elab m => HVarlistVar -> NamespaceTypeName -> SortTypeName -> m ([Binder],Term)
 sortAssertion h1 ntn stn = do
 
-  t    <- freshSubtreeVar stn
+  t    <- freshSortVariable stn
   wft  <- freshVariable "wf" =<<
-          toTerm (WfTerm (HVVar h1) (SVar t))
+          toTerm (WfSort (HVVar h1) (SVar t))
   c    <- freshCutoffVar ntn
   h2   <- freshHVarlistVar
 
   binders <-
-    sequence
+    sequenceA
     [ toBinder t
     , toBinder wft
     ]
   assert <-
     TermForall
-    <$> sequence
+    <$> sequenceA
         [ toBinder c
         , toBinder h2
         ]
     <*> (TermFunction
          <$> toTerm (HVarlistInsertion (CVar c) (HVVar h1) (HVVar h2))
-         <*> toTerm (WfTerm (HVVar h2) (SShift' (CVar c) (SVar t)))
+         <*> toTerm (WfSort (HVVar h2) (SShift' (CVar c) (SVar t)))
         )
   return (binders,assert)
 
 sortProof :: Elab m => [SortTypeName] -> Bool -> HVarlistVar -> NamespaceTypeName -> SortDecl -> m [Term]
-sortProof stns hasBs h1 ntn = mapM (ctorProof stns hasBs h1 ntn) . sdCtors
+sortProof stns hasBs h1 ntn = traverse (ctorProof stns hasBs h1 ntn) . sdCtors
 
 ctorProof :: Elab m => [SortTypeName] -> Bool -> HVarlistVar -> NamespaceTypeName -> CtorDecl -> m Term
 ctorProof stns hasBs h1 ntn cd = localNames $ do
@@ -125,13 +126,14 @@ ctorProof stns hasBs h1 ntn cd = localNames $ do
           toTerm (HVarlistInsertion (CVar c) (HVVar h1) (HVVar h2))
 
   case cd of
-    CtorVar cn mv -> do
+    CtorVar cn mv _ -> do
+      -- TOneverDO: use cached names
       i    <- freshIndexVar (typeNameOf mv)
       wfi  <- freshVariable "wfi" =<<
               toTerm (WfIndex (HVVar h1) (IVar i))
 
       TermAbs
-        <$> sequence
+        <$> sequenceA
             ( [ toBinder h1 | hasBs ] ++
               [ toBinder i
               , toBinder wfi
@@ -142,11 +144,12 @@ ctorProof stns hasBs h1 ntn cd = localNames $ do
             )
         <*> (TermApp
              <$> (idRelationWellFormedCtor cn >>= toRef)
-             <*> sequence
+             <*> sequenceA
                  [ toRef h2
+                 , pure TermUnderscore
                  , TermApp
                    <$> (idLemmaShiftWellFormedIndex ntn (typeNameOf mv) >>= toRef)
-                   <*> sequence
+                   <*> sequenceA
                        [ toRef c
                        , toRef h1
                        , toRef h2
@@ -157,38 +160,41 @@ ctorProof stns hasBs h1 ntn cd = localNames $ do
                  ]
             )
 
-    CtorTerm cn fds -> do
+    CtorReg cn fds -> do
 
       (binderss,proofs) <-
         unzip . catMaybes
-        <$> (forM fds $ \fd ->
+        <$> for fds (\fd ->
                case fd of
-                 FieldBinding _     -> return Nothing
-                 FieldSubtree sv bs
+                 FieldDeclReference _fv _wfFv ->
+                   error "KnotCore.Elaboration.Lemma.ShiftWellFormed.ctorProof.FieldDeclReference: NOT IMPLEMENTED"
+                 FieldDeclBinding _bs _bv -> return Nothing
+                 FieldDeclSort bs sv _svWf
                    | typeNameOf sv `elem` stns -> do
-                       let ebs = simplifyHvl $ evalBindSpec bs
+                       let ebs = simplifyHvl $ evalBindSpec HV0 bs
 
+                       -- TOneverDO: use cached name
                        wf      <- freshVariable "wf" =<<
-                                  toTerm (WfTerm (simplifyHvlAppend (HVVar h1) ebs) (SVar sv))
+                                  toTerm (WfSort (simplifyHvlAppend (HVVar h1) ebs) (SVar sv))
                        ih      <- freshInductionHypothesis sv
-                       binders <- sequence [ toBinder sv, toBinder wf, toBinder ih ]
+                       binders <- sequenceA [ toBinder sv, toBinder wf, toBinder ih ]
                        proof   <- TermApp
                                   <$> toRef ih
-                                  <*> sequence
+                                  <*> sequenceA
                                       [ toTerm (simplifyCutoffWeaken (CVar c) ebs)
                                       , toTerm (simplifyHvlAppend (HVVar h2) ebs)
                                       , TermApp
                                         <$> (idLemmaWeakenRelationHVarlistInsert ntn >>= toRef)
-                                        <*> sequence
+                                        <*> sequenceA
                                             [ toTerm ebs
                                             , toRef ins
                                             ]
                                       ]
-                       shiftbs <- eqhvlEvalBindspecShift ntn bs
+                       shiftbs <- EqhCongAppend (EqhRefl HV0) <$> eqhvlEvalBindspecShift ntn bs
                        proof' <- case eqhSimplify (EqhCongAppend (EqhRefl (HVVar h2)) (EqhSym shiftbs)) of
                                    EqhRefl _ -> pure proof
                                    eq        -> TermApp (termIdent "eq_ind2")
-                                                <$> sequence
+                                                <$> sequenceA
                                                     [ idRelationWellFormed (typeNameOf sv) >>= toRef
                                                     , toTerm eq
                                                     , toTerm (EqtRefl (typeNameOf sv))
@@ -197,22 +203,22 @@ ctorProof stns hasBs h1 ntn cd = localNames $ do
                        return $ Just (binders, proof')
 
                    | otherwise -> do
-                       let ebs = simplifyHvl $ evalBindSpec bs
+                       let ebs = simplifyHvl $ evalBindSpec HV0 bs
 
                        wf      <- freshVariable "wf" =<<
-                                  toTerm (WfTerm (simplifyHvlAppend (HVVar h1) ebs) (SVar sv))
-                       binders <- sequence [ toBinder sv, toBinder wf ]
+                                  toTerm (WfSort (simplifyHvlAppend (HVVar h1) ebs) (SVar sv))
+                       binders <- sequenceA [ toBinder sv, toBinder wf ]
                        proof   <- TermApp
                                   <$> (idLemmaShiftWellFormedSort ntn (typeNameOf sv) >>= toRef)
-                                  <*> sequence
-                                      [ toRef h1
+                                  <*> sequenceA
+                                      [ toTerm (simplifyHvlAppend (HVVar h1) ebs)
                                       , toRef sv
                                       , toRef wf
                                       , toTerm (simplifyCutoffWeaken (CVar c) ebs)
                                       , toTerm (simplifyHvlAppend (HVVar h2) ebs)
                                       , TermApp
                                         <$> (idLemmaWeakenRelationHVarlistInsert ntn >>= toRef)
-                                        <*> sequence
+                                        <*> sequenceA
                                             [ toTerm ebs
                                             , toRef ins
                                             ]

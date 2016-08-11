@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Shift.ShiftIndex where
 
@@ -32,7 +33,7 @@ eShiftIndex nd = localNames $
     body <- TermMatch
             <$> pure (MatchItem cRef Nothing Nothing)
             <*> pure Nothing
-            <*> sequence
+            <*> sequenceA
                 [ Equation
                   <$> (PatCtor <$> toQualId c0 <*> pure [])
                   <*> (TermApp <$> toRef is <*> pure [xRef]),
@@ -41,7 +42,7 @@ eShiftIndex nd = localNames $
                   <*> (TermMatch
                        <$> pure (MatchItem xRef Nothing Nothing)
                        <*> pure Nothing
-                       <*> sequence
+                       <*> sequenceA
                            [ Equation
                              <$> (PatCtor
                                   <$> toQualId i0
@@ -53,7 +54,7 @@ eShiftIndex nd = localNames $
                                   <*> pure [xId])
                              <*> (TermApp
                                   <$> toRef is
-                                  <*> sequence [TermApp
+                                  <*> sequenceA [TermApp
                                                 <$> toRef shiftIndex
                                                 <*> pure [cRef, xRef]])
                            ])

@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.WellFormedTerm where
 
@@ -13,12 +14,12 @@ import KnotCore.Elaboration.Core
 import KnotCore.Elaboration.Eq
 
 eSortGroupDecls :: Elab m => [SortGroupDecl] -> m [Sentence]
-eSortGroupDecls = mapM eSortGroupDecl
+eSortGroupDecls = traverse eSortGroupDecl
 
 eSortGroupDecl ::  Elab m => SortGroupDecl -> m Sentence
 eSortGroupDecl sg =
   fmap SentenceInductive $
-    Inductive <$> mapM eSortDecl (sgSorts sg)
+    Inductive <$> traverse eSortDecl (sgSorts sg)
 
 eSortDecl :: Elab m => SortDecl -> m InductiveBody
 eSortDecl (SortDecl stn _ ctors) = localNames $ do
@@ -26,38 +27,47 @@ eSortDecl (SortDecl stn _ ctors) = localNames $ do
 
   InductiveBody
     <$> idRelationWellFormed stn
-    <*> sequence [toBinder h]
+    <*> sequenceA [toBinder h]
     <*> (TermFunction
          <$> toRef stn
          <*> pure (TermSort Prop)
         )
-    <*> (freshen ctors >>= mapM (eCtorDecl h))
+    <*> (freshen ctors >>= traverse (eCtorDecl h))
 
 eCtorDecl :: Elab m => HVarlistVar -> CtorDecl -> m InductiveCtor
-eCtorDecl h (CtorVar cn mv) = localNames $ do
+eCtorDecl h (CtorVar cn mv _) = localNames $ do
+  stn <- lookupCtorType cn
+  -- TOneverDO: used cached name
   i   <- toIndex mv
   wfi <- freshVariable "wfi" =<< toTerm (WfIndex (HVVar h) (IVar i))
 
   InductiveCtor
     <$> idRelationWellFormedCtor cn
-    <*> sequence [toImplicitBinder i, toBinder wfi]
-    <*> (Just <$> toTerm (WfTerm (HVVar h) (SCtorVar cn (IVar i))))
+    <*> sequenceA [toBinder i, toBinder wfi]
+    <*> (Just <$> toTerm (WfSort (HVVar h) (SCtorVar stn cn (IVar i))))
 
-eCtorDecl h (CtorTerm cn fields) = localNames $ do
-  let fds = mapMaybe (eFieldDecl (HVVar h)) fields
-      svs = map fst fds
-
-  binders <- forM fds $ \(sv,wfsv) ->
-               sequence
-               [ toImplicitBinder sv
-               , toTerm wfsv >>= freshVariable "wf" >>= toBinder
-               ]
+eCtorDecl h (CtorReg cn fields) = localNames $ do
+  stn <- lookupCtorType cn
+  (binderss,fs) <- unzip . catMaybes <$> traverse (eFieldDecl (HVVar h)) fields
 
   InductiveCtor
     <$> idRelationWellFormedCtor cn
-    <*> pure (concat binders)
-    <*> (Just <$> toTerm (WfTerm (HVVar h) (SCtorTerm cn (map SVar svs))))
+    <*> pure (concat binderss)
+    <*> (Just <$> toTerm (WfSort (HVVar h) (SCtorReg stn cn fs)))
 
-eFieldDecl :: HVarlist -> FieldDecl -> Maybe (SubtreeVar,WellFormedTerm)
-eFieldDecl h (FieldSubtree t bs) = Just (t, WfTerm (simplifyHvl $ HVAppend h (evalBindSpec bs)) (SVar t))
-eFieldDecl _ (FieldBinding _)    = Nothing
+eFieldDecl :: Elab m => HVarlist -> FieldDecl w -> m (Maybe (Binders,Field w))
+eFieldDecl h (FieldDeclSort bs sv _svWf) = do
+  -- TOneverDO: reuse svWf
+  let wfsv = WfSort (HVAppend h (evalBindSpec HV0 bs)) (SVar sv)
+  svWf <- toTerm wfsv >>= freshVariable "wf"
+  Just
+    <$> ((,)
+           <$> sequenceA
+                [ toImplicitBinder sv
+                , toBinder svWf
+                ]
+           <*> pure (FieldSort (SVar sv))
+        )
+eFieldDecl _ (FieldDeclBinding _bs _bv)  = pure Nothing
+eFieldDecl _ (FieldDeclReference{})      =
+  error "KnotCore.Elaboration.WellFormedTerm.eFieldDecl: not implemented"

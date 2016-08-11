@@ -10,16 +10,16 @@ import KnotCore.Elaboration.Core
 
 eTrace :: Elab m => [NamespaceDecl] -> m [Sentence]
 eTrace _ =
-  concat <$> sequence
+  concat <$> sequenceA
   [ eFamilyTrace,
-    sequence
+    sequenceA
     [ eFunctionWeakenTrace
     , eLemmaWeakenTraceAppend
     -- , eInstanceWeakenTrace
     ]
     {-
-    mapM (eFunctionWeakenTrace . nsdTypeName) nds
-    mapM (eInstanceWeakenTrace . nsdTypeName) nds
+    traverse (eFunctionWeakenTrace . nsdTypeName) nds
+    traverse (eInstanceWeakenTrace . nsdTypeName) nds
     -}
   ]
 
@@ -31,27 +31,27 @@ eFamilyTrace = localNames $ do
   b         <- freshVariable "b" =<< toRef namespace
   tracea    <- TermApp
                <$> (idFamilyTrace >>= toRef)
-               <*> sequence [toRef a]
+               <*> sequenceA [toRef a]
 
   x0        <- idFamilyTraceNil
   xs        <- idFamilyTraceCons
 
   x         <- freshVariable "T" tracea
 
-  sequence
-    [ SentenceInductive . Inductive <$> sequence
+  sequenceA
+    [ SentenceInductive . Inductive <$> sequenceA
         [ InductiveBody
           <$> idFamilyTrace
-          <*> sequence [ toBinder a ]
+          <*> sequenceA [ toBinder a ]
           <*> pure (TermSort Type)
-          <*> sequence
+          <*> sequenceA
               [ InductiveCtor
                 <$> toId x0
                 <*> pure []
                 <*> pure Nothing,
                 InductiveCtor
                 <$> toId xs
-                <*> sequence [toBinder b, toBinder x]
+                <*> sequenceA [toBinder b, toBinder x]
                 <*> pure Nothing
               ]
         ],
@@ -59,11 +59,11 @@ eFamilyTrace = localNames $ do
       SentenceArguments
       <$> pure ModGlobal
       <*> toQualId x0
-      <*> sequence [BracketedName <$> toName a],
+      <*> sequenceA [BracketedName <$> toName a],
       SentenceArguments
       <$> pure ModGlobal
       <*> toQualId xs
-      <*> sequence [BracketedName <$> toName a,
+      <*> sequenceA [BracketedName <$> toName a,
                     NormalName <$> toName b,
                     pure $ NormalName NameUnderscore
                    ]
@@ -77,7 +77,7 @@ eFunctionWeakenTrace = localNames $ do
   b         <- freshVariable "b" =<< toRef namespace
   tracea    <- TermApp
                <$> (idFamilyTrace >>= toRef)
-               <*> sequence [toRef a]
+               <*> sequenceA [toRef a]
 
   weaken    <- idFunctionWeakenTrace
   h0        <- idCtorHVarlistNil
@@ -87,10 +87,10 @@ eFunctionWeakenTrace = localNames $ do
   x         <- freshVariable "x" tracea
   k         <- freshHVarlistVar
 
-  SentenceFixpoint . Fixpoint <$> sequence
+  SentenceFixpoint . Fixpoint <$> sequenceA
     [ FixpointBody
       <$> toId weaken
-      <*> sequence [toImplicitBinder a, toBinder x, toBinder k]
+      <*> sequenceA [toImplicitBinder a, toBinder x, toBinder k]
       <*> (Just . Struct <$> toId k)
       <*> pure tracea
       <*> (TermMatch
@@ -99,21 +99,21 @@ eFunctionWeakenTrace = localNames $ do
                 <*> pure Nothing
                 <*> pure Nothing)
            <*> pure Nothing
-           <*> sequence
+           <*> sequenceA
                [ Equation
                  <$> (PatCtor <$> toQualId h0 <*> pure [])
                  <*> toRef x,
                  Equation
                  <$> (PatCtor
                       <$> toQualId hs
-                      <*> sequence [toId b, toId k])
+                      <*> sequenceA [toId b, toId k])
                  <*> (TermApp
                       <$> toRef xs
-                      <*> sequence
+                      <*> sequenceA
                           [ toRef b,
                             TermApp
                             <$> toRef weaken
-                            <*> sequence [toRef x, toRef k]
+                            <*> sequenceA [toRef x, toRef k]
                           ]
                      )
                ]
@@ -127,7 +127,7 @@ eLemmaWeakenTraceAppend = localNames $ do
   a            <- freshVariable "a" =<< toRef namespace
   tracea       <- TermApp
                   <$> (idFamilyTrace >>= toRef)
-                  <*> sequence [toRef a]
+                  <*> sequenceA [toRef a]
 
   weakenAppend <- idLemmaWeakenTraceAppend
   weaken       <- idFunctionWeakenTrace
@@ -139,28 +139,28 @@ eLemmaWeakenTraceAppend = localNames $ do
   left <-
     TermApp
     <$> toRef weaken
-    <*> sequence
+    <*> sequenceA
         [ TermApp
           <$> toRef weaken
-          <*> sequence [toRef x, toRef k1],
+          <*> sequenceA [toRef x, toRef k1],
           toRef k2
         ]
   right <-
     TermApp
     <$> toRef weaken
-    <*> sequence
+    <*> sequenceA
         [ toRef x,
           TermApp
           <$> toRef append
-          <*> sequence [toRef k1, toRef k2]
+          <*> sequenceA [toRef k1, toRef k2]
         ]
 
   assertion <-
     TermForall
-    <$> sequence [toBinder x, toBinder k1, toBinder k2]
+    <$> sequenceA [toBinder x, toBinder k1, toBinder k2]
     <*> (TermEq <$> pure left <*> pure right)
 
-  proof <- sequence
+  proof <- sequenceA
     [ pure $ PrTactic "needleGenericWeakenAppend" []
     ]
 
@@ -181,7 +181,7 @@ eInstanceWeakenTrace = localNames $ do
   a            <- freshVariable "a" =<< toRef namespace
   tracea       <- TermApp
                   <$> (idFamilyTrace >>= toRef)
-                  <*> sequence [toRef a]
+                  <*> sequenceA [toRef a]
 
   weaken       <- idMethodWeaken
   weakenAppend <- idMethodWeakenAppend
@@ -192,7 +192,7 @@ eInstanceWeakenTrace = localNames $ do
     <*> pure []
     <*> (TermApp
          <$> toRef funWeakenTrace
-         <*> sequence [toRef a]
+         <*> sequenceA [toRef a]
         )
 
   methodAppend <-
@@ -201,12 +201,12 @@ eInstanceWeakenTrace = localNames $ do
     <*> pure []
     <*> (TermApp
          <$> toRef lemWeakenAppend
-         <*> sequence [toRef a]
+         <*> sequenceA [toRef a]
         )
 
   classInst <-
     ClassInstance insWeakenTrace
-    <$> sequence [toBinder a]
+    <$> sequenceA [toBinder a]
     <*> idClassWeaken
     <*> pure [tracea]
     <*> pure [methodWeaken, methodAppend]

@@ -10,5 +10,5 @@ import KnotCore.Elaboration.Monad
 import KnotCore.Elaboration.Weaken.WeakenTerm
 
 eWeaken :: Elab m => TermSpec -> m Sentences
-eWeaken ts = mapM (eFunctionWeakenTerm . sdTypeName) sds
+eWeaken ts = traverse (eFunctionWeakenTerm . sdTypeName) sds
   where sds = tsSortGroupDecls ts >>= sgSorts

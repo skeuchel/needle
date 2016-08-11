@@ -13,9 +13,9 @@ import KnotCore.Elaboration.Core
 eHVarlistInsertions :: Elab m => m [Sentence]
 eHVarlistInsertions = do
   ntns <- getNamespaces
-  concat <$> sequence
-    [ mapM eHVarlistInsertion ntns
-    , mapM eWeakenHVarlistInsertion ntns
+  concat <$> sequenceA
+    [ traverse eHVarlistInsertion ntns
+    , traverse eWeakenHVarlistInsertion ntns
     ]
 
 eHVarlistInsertion :: Elab m => NamespaceTypeName -> m Sentence
@@ -27,14 +27,14 @@ eHVarlistInsertion ntn = localNames $ do
 
   here <- InductiveCtor
           <$> idRelationHVarlistInsertHere ntn
-          <*> sequence [toBinder h1]
+          <*> sequenceA [toBinder h1]
           <*> (Just <$> toTerm (HVarlistInsertion (C0 ntn) (HVVar h1) (HVS ntn (HVVar h1))))
 
   ntns   <- getNamespaces
-  theres <- forM ntns $ \tntn ->
+  theres <- for ntns $ \tntn ->
               InductiveCtor
               <$> idRelationHVarlistInsertThere ntn tntn
-              <*> sequence [toBinder c, toBinder h1, toBinder h2]
+              <*> sequenceA [toBinder c, toBinder h1, toBinder h2]
               <*> (Just
                    <$> (TermFunction
                         <$> toTerm (HVarlistInsertion (CVar c) (HVVar h1) (HVVar h2))
@@ -51,7 +51,7 @@ eHVarlistInsertion ntn = localNames $ do
           <$> idRelationHVarlistInsert ntn
           <*> pure []
           <*> (TermForall
-               <$> sequence [ toBinder c, toBinder h1, toBinder h2 ]
+               <$> sequenceA [ toBinder c, toBinder h1, toBinder h2 ]
                <*> pure (TermSort Prop)
               )
           <*> pure (here:theres)
@@ -68,7 +68,7 @@ eWeakenHVarlistInsertion ntn = localNames $ do
   h2    <- freshHVarlistVar
 
   statement <- TermForall
-               <$> sequence
+               <$> sequenceA
                    [ toBinder h
                    , toImplicitBinder c
                    , toImplicitBinder h1

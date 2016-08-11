@@ -1,0 +1,43 @@
+
+namespace tm, x, y, z : Tm
+  - shift: "shift" - subst: "subst"
+namespace ty, X, Y, Z : Ty
+  - shift: "tshift" - subst: "tsubst"
+
+sort Ty, S, T, U :=
+  + tvar {X}
+  | tarr T1 T2
+  | tall X [X]T
+  | texist X [X]T
+
+sort Tm, s, t, u :=
+  + var {x}
+  | abs x T [x]t
+  | app t1 t2
+  | tabs X [X]t
+  | tapp t T
+  | pack T1 t T2
+  | unpack t1 X x [X,x]t2
+
+env Env, G, D :=
+  + empty
+  | evar : x -> T; Typing
+  | etvar : X ->
+
+relation [Env] Typing t T :=
+  + T_Var       :  {x -> T} ->
+                   Typing {var x} T
+  | T_Abs       :  [x -> T1] Typing t (weaken T2 x) ->
+                   Typing (abs x T1 t) (tarr T1 T2)
+  | T_App       :  Typing t1 (tarr T11 T12) ->
+                   Typing t2 T11 ->
+                   Typing (app t1 t2) T12
+  | T_Tabs      :  [X -> ] Typing t T ->
+                   Typing (tabs X t) (tall X T)
+  | T_Tapp      :  Typing t1 (tall X T12) ->
+                   Typing (tapp t1 T2) (subst X T2 T12)
+  | T_Pack      :  Typing t2 (subst X U T2) ->
+                   Typing (pack U t2 (texist X T2)) (texist X T2)
+  | T_Unpack    :  Typing t1 (texist X T12) ->
+                   [X -> , x -> T12] Typing t2 (weaken T2 (X, x)) ->
+                   Typing (unpack t1 X x t2) T2

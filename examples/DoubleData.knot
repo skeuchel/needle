@@ -1,9 +1,8 @@
-
 namespace ty, X, Y, Z : Ty
   - shift: "shift" - subst: "subst"
 
 sort Ty, S, T, U :=
-  + tvar X
+  + tvar {X}
   | tarrow T1 T2
   | tall X [X]T
 

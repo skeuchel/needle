@@ -4,13 +4,13 @@ namespace TyVar, X, Y, Z : Ty
   - shift: "tshift" - subst: "tsubst"
 
 sort Ty, S, T, U :=
-  + tvar X
+  + tvar {X}
   | top
   | tarrow T1 T2
   | tall X T1 [X]T2
 
 sort Tm, s, t, u :=
-  + var x
+  + var {x}
   | abs x T [x]t
   | app t1 t2
   | tabs X T [X]t
@@ -18,5 +18,26 @@ sort Tm, s, t, u :=
 
 env Env, G, D :=
   + empty
-  | evar   : x -> T
-  | ebound : X -> T
+  | evar   : x -> T ; Typing
+  | ebound : X -> T ; Sub
+
+relation [Env] Sub T1 T2 :=
+  | SA_Top :        Sub S1 (top)
+  | SA_Refl_TVar :  Sub {tvar X} {tvar X}
+  | SA_Trans_TVar : {X -> U} -> Sub U T -> Sub {tvar X} T
+  | SA_Arrow :      Sub T1 S1 -> Sub S2 T2 ->
+                    Sub (tarrow S1 S2) (tarrow T1 T2)
+  | SA_All :        Sub T1 S1 -> [X -> T1] Sub S2 T2 ->
+                    Sub (tall X S1 S2) (tall X T1 T2)
+
+relation [Env] Typing t T :=
+  + T_Var :         {x -> T} -> Typing {var x} T
+  | T_Abs :         [x -> T1] Typing t (weaken T2 x) ->
+                    Typing (abs x T1 t) (tarrow T1 T2)
+  | T_App :         Typing t1 (tarrow T11 T12) -> Typing t2 T11 ->
+                    Typing (app t1 t2) T12
+  | T_Tabs :        [X -> T1] Typing t T2 ->
+                    Typing (tabs X T1 t) (tall X T1 T2)
+  | T_Tapp :        Typing t1 (tall X T11 T12) -> Sub T2 T11 ->
+                    Typing (tapp t1 T2) (subst X T2 T12)
+  | T_Sub :         Typing t T1 -> Sub T1 T2 -> Typing t T2

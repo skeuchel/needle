@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.LookupWellformedData where
 
@@ -13,29 +14,30 @@ import KnotCore.LookupRelation
 import KnotCore.Elaboration.Core
 
 lemmas :: Elab m => [LookupRelation] -> m [Sentence]
-lemmas lks = catMaybes <$> mapM lemmaLookupWellformedData lks
+lemmas lks = catMaybes <$> traverse lemmaLookupWellformedData lks
 
 lemmaLookupWellformedData :: Elab m => LookupRelation -> m (Maybe Sentence)
 lemmaLookupWellformedData (LookupRelation _ _ _ [] _ _)        = return Nothing
-lemmaLookupWellformedData (LookupRelation etn cn ntn stns _ _) = localNames $ do
+lemmaLookupWellformedData (LookupRelation etn cn ntn fds _ _) = localNames $ do
 
-  en  <- freshEnvVar etn
+  en  <- freshEnvVariable etn
   x   <- freshIndexVar ntn
-  tvs <- mapM freshSubtreeVar stns
+  fds' <- freshen fds
+  fs   <- eFieldDeclFields fds'
 
   statement <-
     TermForall
-    <$> sequence
+    <$> sequenceA
         ( toImplicitBinder en
         : toImplicitBinder x
-        : map toImplicitBinder tvs
+        : eFieldDeclBinders fds'
         )
     <*> (TermFunction
-         <$> toTerm (Lookup (EVar en) (IVar x) (map SVar tvs))
-         <*> (Coq.all <$> sequence
+         <$> toTerm (Lookup (EVar en) (IVar x) fs)
+         <*> (Coq.all <$> sequenceA
               [ toTerm $
-                WfTerm (HVDomainEnv (EVar en)) (SVar t)
-              | t <- tvs
+                WfSort (HVDomainEnv (EVar en)) (SVar sv)
+              | FieldDeclSort _ sv _ <- fds'
               ]
              )
         )

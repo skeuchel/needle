@@ -7,11 +7,21 @@ sort Ty, S, T, U :=
   | tarrow T1 T2
 
 sort Tm, s, t, u :=
-  + var x
+  + var {x}
   | tt
   | abs x T [x]t
   | app t1 t2
 
 env Env, G, D :=
   + empty
-  | evar : x -> T
+  | evar : x -> T ; Typing
+
+relation [Env] Typing t T :=
+  + WtVar       :  {x -> T} ->
+                   Typing {var x} T
+  | WtAbs       :  [x -> T1] Typing t (weaken T2 x) ->
+                   Typing (abs x T1 t) (tarrow T1 T2)
+  | WtApp       :  Typing t1 (tarrow T11 T12) ->
+                   Typing t2 T11 ->
+                   Typing (app t1 t2) T12
+  | WtUnit      :  Typing (tt) (tunit)

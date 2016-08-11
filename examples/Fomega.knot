@@ -1,0 +1,87 @@
+namespace tm, x, y, z : Tm
+  - shift: "shift" - subst: "subst"
+namespace ty, X, Y, Z : Ty
+  - shift: "tshift" - subst: "tsubst"
+
+sort Kind, K :=
+  | star
+  | karr K1 K2
+
+sort Ty, S, T, U, V :=
+  + tvar {X}
+  | tabs X K [X]T
+  | tapp T1 T2
+  | tarr T1 T2
+  | tall X K [X]T
+
+sort Tm, s, t, u :=
+  + var {x}
+  | abs x T [x]t
+  | app t1 t2
+  | tyabs X K [X]t
+  | tyapp t T
+
+env Env, G, D :=
+  + empty
+  | evar : x -> T ; Typing
+  | etvar : X -> K ; Kinding
+
+relation [Env] Kinding T K :=
+  + K_TVar :      {X -> K} ->
+                  Kinding {tvar X} K
+  | K_Abs :       [X -> K1] Kinding T2 (weaken K2 X) ->
+                  Kinding (tabs X K1 T2) (karr K1 K2)
+  | K_App :       Kinding T1 (karr K11 K12) -> Kinding T2 K11 ->
+                  Kinding (tapp T1 T2) K12
+  | K_Arr :       Kinding T1 (star) -> Kinding T2 (star) ->
+                  Kinding (tarr T1 T2) (star)
+  | K_All :       [X -> K1] Kinding T2 (star) ->
+                  Kinding (tall X K1 T2) (star)
+
+relation [Env] TyEq T1 T2 K :=
+  | Q_Arrow :     TyEq S1 T1 (star) -> TyEq S2 T2 (star) ->
+                  TyEq (tarr S1 S2) (tarr T1 T2) (star)
+  | Q_Abs :       [X -> K1] TyEq S2 T2 (weaken K2 X) ->
+                  TyEq (tabs X K1 S2) (tabs X K1 T2) (karr K1 K2)
+  | Q_App :       TyEq S1 T1 (karr K1 K2) -> TyEq S2 T2 K1 ->
+                  TyEq (tapp S1 S2) (tapp T1 T2) K2
+  | Q_All :       [X -> K1] TyEq S2 T2 (star) ->
+                  TyEq (tall X K1 S2) (tall X K1 T2) (star)
+  | Q_Beta :      [X -> K11] Kinding T12 (weaken K12 X) ->
+                  Kinding T2 K11 ->
+                  TyEq (tapp (tabs X K11 T12) T2) (subst X T2 T12) K12
+  | Q_Eta :       Kinding T (karr K1 K2) ->
+                  TyEq (tabs X K1 (tapp (weaken T X) {tvar X})) T (karr K1 K2)
+  | Q_Refl :      Kinding T K -> TyEq T T K
+  | Q_Symm :      TyEq T U K -> TyEq U T K
+  | Q_Trans :     TyEq T U K -> TyEq U V K -> TyEq T V K
+
+relation [Env] Typing t T :=
+  + T_Var :       {y -> T} -> Typing {var y} T
+  | T_Abs :       Kinding T1 (star) ->
+                  [x -> T1] Typing t (weaken T2 x) ->
+                  Typing (abs x T1 t) (tarr T1 T2)
+  | T_App :       Typing t1 (tarr T11 T12) -> Typing t2 T11 ->
+                  Typing (app t1 t2) T12
+  | T_TAbs :      [X -> K] Typing t T ->
+                  Typing (tyabs X K t) (tall X K T)
+  | T_TApp :      Typing t1 (tall X K11 T12) -> Kinding T2 K11 ->
+                  Typing (tyapp t1 T2) (subst X T2 T12)
+  | T_Eq :        Typing t S1 -> TyEq S1 T (star) -> Typing t T
+
+relation [Env] TRed T1 T2 K :=
+  | QR_Var :      {X -> K} -> TRed {tvar X} {tvar X} K
+  | QR_Arrow :    TRed S1 T1 (star) -> TRed S2 T2 (star) ->
+                  TRed (tarr S1 S2) (tarr T1 T2) (star)
+  | QR_Abs :      [X -> K1] TRed S2 T2 (weaken K2 X) ->
+                  TRed (tabs X K1 S2) (tabs X K1 T2) (karr K1 K2)
+  | QR_App :      TRed S1 T1 (karr K2 K1) -> TRed S2 T2 K2 ->
+                  TRed (tapp S1 S2) (tapp T1 T2) K1
+  | QR_All :      [X -> K1] TRed S2 T2 (star) ->
+                  TRed (tall X K1 S2) (tall X K1 T2) (star)
+  | QR_Beta :     [X -> K2] TRed S1 T1 (weaken K1 X) -> TRed S2 T2 K2 ->
+                  TRed (tapp (tabs X K2 S1) S2) (subst X T2 T1) K1
+
+relation [Env] TRedStar T1 T2 K :=
+  | QRS_Nil :     Kinding T K -> TRedStar T T K
+  | QRS_Cons :    TRedStar S1 T K -> TRed T U K -> TRedStar S1 U K

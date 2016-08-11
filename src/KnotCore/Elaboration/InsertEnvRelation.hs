@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module KnotCore.Elaboration.InsertEnvRelation where
@@ -12,24 +13,24 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 eInsertEnvRelationss :: Elab m => [EnvDecl] -> m [Sentence]
-eInsertEnvRelationss = fmap concat . mapM eInsertEnvRelations
+eInsertEnvRelationss = fmap concat . traverse eInsertEnvRelations
 
 eInsertEnvRelations :: Elab m => EnvDecl -> m [Sentence]
 eInsertEnvRelations (EnvDecl etn _ ecs) =
-  concat <$> sequence
+  concat <$> sequenceA
     [ localNames $ do
         hfields' <- freshen hfields
         eInsertEnvRelation etn hcn hntn hfields' ecs
-    | EnvCtorCons hcn hmv hfields <- ecs
+    | EnvCtorCons hcn hmv hfields _mbRtn <- ecs
     , let hntn = typeNameOf hmv
     ]
 
 eInsertEnvRelation ::
   forall m. Elab m =>
   EnvTypeName ->
-  CtorName -> NamespaceTypeName -> [SubtreeVar] ->
+  CtorName -> NamespaceTypeName -> [FieldDecl 'WOMV] ->
   [EnvCtor] -> m [Sentence]
-eInsertEnvRelation etn hcn hntn hfields ecs = sequence [ eDeclaration, eWeakenInsert ]
+eInsertEnvRelation etn hcn hntn hfields ecs = sequenceA [ eDeclaration, eWeakenInsert ]
   where
     eDeclaration :: m Sentence
     eDeclaration = do
@@ -37,11 +38,11 @@ eInsertEnvRelation etn hcn hntn hfields ecs = sequence [ eDeclaration, eWeakenIn
         InductiveBody
           <$> idTypeInsertEnv hcn
           <*> pure []
-          <*> (prop <$> sequence [typeCutoff hntn, toRef etn, toRef etn])
-          <*> sequence
+          <*> (prop <$> sequenceA [typeCutoff hntn, toRef etn, toRef etn])
+          <*> sequenceA
               (eInsertEnvHere:
                [ eInsertEnvThere tcn tntn tfields
-               | EnvCtorCons tcn tmv tfields <- ecs
+               | EnvCtorCons tcn tmv tfields _mbRtn <- ecs
                , let tntn = typeNameOf tmv
                ]
               )
@@ -51,38 +52,42 @@ eInsertEnvRelation etn hcn hntn hfields ecs = sequence [ eDeclaration, eWeakenIn
     eInsertEnvHere :: m InductiveCtor
     eInsertEnvHere = localNames $ do
 
-      ev     <- freshEnvVar etn
+      ev     <- freshEnvVariable etn
+      hfs <- eFieldDeclFields hfields
 
       InductiveCtor
         <$> idCtorInsertEnvHere hcn
-        <*> sequence (toImplicitBinder ev:map toImplicitBinder hfields)
+        <*> sequenceA (toImplicitBinder ev:eFieldDeclImplicitBinders hfields)
         <*> (Just
              <$> toTerm (InsertEnv
                           (C0 hntn)
                           (EVar ev)
-                          (ECtor hcn (EVar ev) (map SVar hfields))
+                          (ECons (EVar ev) hntn hfs)
                         )
             )
 
-    eInsertEnvThere :: CtorName -> NamespaceTypeName -> [SubtreeVar] -> m InductiveCtor
+    eInsertEnvThere :: CtorName -> NamespaceTypeName -> [FieldDecl 'WOMV] -> m InductiveCtor
     eInsertEnvThere tcn tntn tfields = localNames $ do
 
       c       <- freshCutoffVar hntn
-      ev1     <- freshEnvVar etn
-      ev2     <- freshEnvVar etn
+      ev1     <- freshEnvVariable etn
+      ev2     <- freshEnvVariable etn
+      tfs     <- eFieldDeclFields tfields
 
       premise <- toTerm (InsertEnv (CVar c) (EVar ev1) (EVar ev2))
       concl   <- toTerm (InsertEnv
                            (CS' tntn (CVar c))
-                           (ECtor tcn (EVar ev1) (map SVar tfields))
-                           (ECtor tcn (EVar ev2) (map (SShift' (CVar c) . SVar) tfields)))
+                           (ECons (EVar ev1) tntn tfs)
+                           (ECons (EVar ev2) tntn (map (shiftField (CVar c)) tfs)))
 
       InductiveCtor
         <$> idCtorInsertEnvThere hcn tcn
-        <*> sequence (toImplicitBinder c:
-                      toImplicitBinder ev1:
-                      toImplicitBinder ev2:
-                      map toImplicitBinder tfields)
+        <*> sequenceA
+            ( toImplicitBinder c:
+              toImplicitBinder ev1:
+              toImplicitBinder ev2:
+              eFieldDeclImplicitBinders tfields
+            )
         <*> pure (Just $ TermFunction premise concl)
 
 
@@ -90,13 +95,13 @@ eInsertEnvRelation etn hcn hntn hfields ecs = sequence [ eDeclaration, eWeakenIn
     eWeakenInsert = localNames $ do
 
       lemma <- idLemmaWeakenInsertEnv hcn
-      delta <- freshEnvVar etn
+      delta <- freshEnvVariable etn
       c     <- freshCutoffVar hntn
-      ev1   <- freshEnvVar etn
-      ev2   <- freshEnvVar etn
+      ev1   <- freshEnvVariable etn
+      ev2   <- freshEnvVariable etn
 
       statement <- TermForall
-                   <$> sequence
+                   <$> sequenceA
                        [ toBinder delta
                        , toImplicitBinder c
                        , toImplicitBinder ev1

@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 
 module KnotCore.Elaboration.LookupRelation where
 
@@ -16,109 +17,121 @@ import qualified KnotCore.Elaboration.Lemma.LookupWellformedData as LookupWellfo
 
 mkLookupRelations :: Elab m => EnvDecl -> m [LookupRelation]
 mkLookupRelations ed@(EnvDecl _ _ ecs) =
-  catMaybes <$> mapM (mkLookupRelation ed) ecs
+  catMaybes <$> traverse (mkLookupRelation ed) ecs
 
 mkLookupRelation :: Elab m => EnvDecl -> EnvCtor -> m (Maybe LookupRelation)
-mkLookupRelation (EnvDecl _ _ _)     (EnvCtorNil _) = return Nothing
-mkLookupRelation (EnvDecl etn _ ecs) (EnvCtorCons hcn hmv hfields) = do
+mkLookupRelation (EnvDecl{})         (EnvCtorNil _) = return Nothing
+mkLookupRelation (EnvDecl etn _ ecs) (EnvCtorCons hcn hmv hfds _mbHereRtn) = do
 
+  hfds' <- freshen hfds
   here   <- localNames $
               LookupHere
                 <$> pure hcn
                 <*> freshen hmv
-                <*> freshen hfields
-  theres <- sequence
+                <*> pure hfds'
+  theres <- sequenceA
               [ localNames $
                   LookupThere
                     <$> pure hcn
-                    <*> freshen hmv
-                    <*> freshen hfields
+                    <*> freshFreeVariable (typeNameOf hmv)
+                    <*> freshen hfds
                     <*> pure tcn
                     <*> freshen tmv
                     <*> freshen tfields
-              | EnvCtorCons tcn tmv tfields <- ecs
+              | EnvCtorCons tcn tmv tfields _mbThereRtn <- ecs
               ]
   return . Just $
     LookupRelation etn hcn
       (typeNameOf hmv)
-      (map typeNameOf hfields)
+      hfds'
       here theres
 
 eLookupRelations :: Elab m => EnvDecl -> m [Coq.Sentence]
 eLookupRelations ed = do
   lookups  <- mkLookupRelations ed
-  rels     <- mapM eLookupRelation lookups
+  rels     <- traverse eLookupRelation lookups
   invs     <- LookupInversionHere.lemmas lookups
   funcls   <- LookupFunctional.lemmas lookups
   wfs      <- LookupWellformedData.lemmas lookups
   return (rels ++ invs ++ funcls ++ wfs)
 
 eLookupRelation :: Elab m => LookupRelation -> m Coq.Sentence
-eLookupRelation (LookupRelation etn cn ntn stns here theres) =
+eLookupRelation (LookupRelation etn cn ntn fds here theres) =
   fmap (Coq.SentenceInductive . Coq.Inductive . (:[])) $
     Coq.InductiveBody
       <$> idTypeLookup cn
       <*> pure []
-      <*> eLookupType etn ntn stns
-      <*> sequence
+      <*> eLookupType etn ntn fds
+      <*> sequenceA
             (eLookupHere etn here :
              map (eLookupThere etn) theres)
 
 eLookupType :: Elab m =>
                EnvTypeName ->
                NamespaceTypeName ->
-               [SortTypeName] ->
+               [FieldDecl 'WOMV] ->
                m Coq.Term
-eLookupType etn ntn stns =
+eLookupType etn ntn fds =
   Coq.TermFunction
     <$> toRef etn
     <*> (Coq.TermFunction
            <$> typeIndex ntn
-           <*> (Coq.prop <$> mapM toRef stns))
+           <*> (Coq.prop <$> sequenceA (eFieldDeclTypes fds))
+        )
 
 eLookupHere :: Elab m => EnvTypeName -> LookupHere -> m Coq.InductiveCtor
-eLookupHere etn (LookupHere cn mv fields) = localNames $ do
+eLookupHere etn (LookupHere cn mv hfds) = localNames $ do
 
-  ev      <- freshEnvVar etn
+  ev      <- freshEnvVariable etn
   (stn,_) <- getNamespaceCtor (typeNameOf mv)
-
+  hfs <- eFieldDeclFields hfds
   let ntn = typeNameOf mv
-      ts  = map SVar fields
 
   res <- toTerm (Lookup
-                   (ECtor cn (EVar ev) ts)
+                   (ECons (EVar ev) ntn hfs)
                    (I0 ntn stn)
-                   (map (SShift' (C0 ntn)) ts)
+                   (map (shiftField (C0 ntn)) hfs)
                 )
-  wfs <- mapM (toTerm . WfTerm (HVDomainEnv (EVar ev))) ts
+  wfs <- sequenceA
+         [ toTerm (WfSort (HVDomainEnv (EVar ev)) (SVar sv))
+         | FieldDeclSort _ sv _ <- hfds
+         ]
 
   Coq.InductiveCtor
     <$> (idCtorLookupHere cn >>= toId)
-    <*> sequence (toImplicitBinder ev:map toImplicitBinder fields)
+    <*> sequenceA
+        ( toImplicitBinder ev :
+          eFieldDeclBinders hfds
+        )
     <*> pure (Just (foldr Coq.TermFunction res wfs))
 
 eLookupThere :: Elab m => EnvTypeName -> LookupThere -> m Coq.InductiveCtor
-eLookupThere etn (LookupThere hcn hmv hfields tcn tmv tfields) = localNames $ do
+eLookupThere etn (LookupThere hcn hmv hfds tcn tmv tfields) = localNames $ do
 
-  ev      <- freshEnvVar etn
+  ev      <- freshEnvVariable etn
   x       <- toIndex hmv
+  hfs     <- eFieldDeclFields hfds
+  tfs     <- eFieldDeclFields tfields
 
   let hntn = typeNameOf hmv
       tntn = typeNameOf tmv
-      hts  = map SVar hfields
-      tts  = map SVar tfields
 
-  premise <- toTerm (Lookup (EVar ev) (IVar x) hts)
-  concl   <- toTerm (Lookup
-                      (ECtor tcn (EVar ev) tts)
-                      (if hntn == tntn
-                       then IS (IVar x)
-                       else IVar x)
-                      (map (SShift' (C0 (typeNameOf tmv))) hts))
+  premise <- toTerm
+             (Lookup (EVar ev) (IVar x) hfs)
+  concl   <- toTerm
+             (Lookup
+                (ECons (EVar ev) tntn tfs)
+                (if hntn == tntn
+                   then IS (IVar x)
+                   else IVar x)
+                (map (shiftField (C0 (typeNameOf tmv))) hfs)
+             )
 
   Coq.InductiveCtor
     <$> (idCtorLookupThere hcn tcn >>= toId)
-    <*> sequence (toImplicitBinder ev:
-                  toImplicitBinder x:
-                  map toImplicitBinder (hfields++tfields))
+    <*> sequenceA
+        (toImplicitBinder ev:
+          toImplicitBinder x:
+          eFieldDeclBinders (hfds++tfields)
+        )
     <*> pure (Just $ Coq.TermFunction premise concl)

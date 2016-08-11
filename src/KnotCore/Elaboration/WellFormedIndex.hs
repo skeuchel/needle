@@ -19,7 +19,7 @@ eWellFormedIndex = localNames $ do
   b         <- freshVariable "b" =<< toRef namespace
   indexa    <- TermApp
                <$> (idFamilyIndex >>= toRef)
-               <*> sequence [toRef a]
+               <*> sequenceA [toRef a]
 
   k         <- freshHVarlistVar
   h0        <- idCtorHVarlistNil
@@ -33,12 +33,13 @@ eWellFormedIndex = localNames $ do
   e         <- freshVariable "e" eq_ab
   n         <- freshVariable "n" (Coq.StdLib.not eq_ab)
 
-  binders <- sequence [toImplicitBinder a, toBinder k, toBinder i]
+  binders <- sequenceA [toImplicitBinder a, toBinder k, toBinder i]
   anno    <- Just . Struct <$> toId k
 
-  rec     <- TermApp
-             <$> toRef wfindex
-             <*> sequence [toRef k, toRef i]
+  recursiveCall <-
+    TermApp
+    <$> toRef wfindex
+    <*> sequenceA [toRef k, toRef i]
 
   innerMatch <-
     TermMatch
@@ -48,13 +49,13 @@ eWellFormedIndex = localNames $ do
          <*> pure Nothing
         )
     <*> pure Nothing
-    <*> sequence
+    <*> sequenceA
         [ Equation
           <$> (PatCtor <$> toQualId i0 <*> pure [])
           <*> pure true
         , Equation
-          <$> (PatCtor <$> toQualId is <*> sequence [toId i])
-          <*> pure rec
+          <$> (PatCtor <$> toQualId is <*> sequenceA [toId i])
+          <*> pure recursiveCall
         ]
 
   namespaceMatch <-
@@ -62,19 +63,19 @@ eWellFormedIndex = localNames $ do
     <$> (MatchItem
          <$> (TermApp
               <$> (idLemmaEqNamespaceDec >>= toRef)
-              <*> sequence [ toRef a, toRef b ]
+              <*> sequenceA [ toRef a, toRef b ]
              )
          <*> pure Nothing
          <*> pure Nothing
         )
     <*> pure Nothing
-    <*> sequence
+    <*> sequenceA
         [ Equation
-          <$> (PatCtor <$> toQualId (ID "left") <*> sequence [toId e])
+          <$> (PatCtor <$> toQualId (ID "left") <*> sequenceA [toId e])
           <*> pure innerMatch
         , Equation
-          <$> (PatCtor <$> toQualId (ID "right") <*> sequence [toId n])
-          <*> pure rec
+          <$> (PatCtor <$> toQualId (ID "right") <*> sequenceA [toId n])
+          <*> pure recursiveCall
         ]
 
   body    <-
@@ -84,15 +85,16 @@ eWellFormedIndex = localNames $ do
          <*> pure Nothing
          <*> pure Nothing)
     <*> pure Nothing
-    <*> sequence
+    <*> sequenceA
         [ Equation
           <$> (PatCtor <$> toQualId h0 <*> pure [])
           <*> pure false
         , Equation
           <$> (PatCtor
                <$> toQualId hs
-               <*> sequence [toId b, toId k])
+               <*> sequenceA [toId b, toId k])
           <*> pure namespaceMatch
         ]
 
-  return . SentenceFixpoint $ Fixpoint [FixpointBody wfindex binders anno (TermSort Prop) body]
+  return . SentenceFixpoint $
+    Fixpoint [FixpointBody wfindex binders anno (TermSort Prop) body]

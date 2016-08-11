@@ -23,21 +23,21 @@ eWeakenClass = localNames $
 
     declWeaken    <-
       MethodDeclaration weaken
-      <$> sequence [toBinder a1, toBinder k1]
+      <$> sequenceA [toBinder a1, toBinder k1]
       <*> toRef setA
 
     declWeakenInj <-
       MethodDeclaration weakenInj
-      <$> sequence [toBinder k1, toBinder a1, toBinder a2]
+      <$> sequenceA [toBinder k1, toBinder a1, toBinder a2]
       <*> (TermFunction
            <$> (eq
                 <$> (TermApp
                      <$> toRef weaken
-                     <*> sequence [toRef a1,toRef k1]
+                     <*> sequenceA [toRef a1,toRef k1]
                     )
                 <*> (TermApp
                      <$> toRef weaken
-                     <*> sequence [toRef a2,toRef k1]
+                     <*> sequenceA [toRef a2,toRef k1]
                     )
                )
            <*> (eq
@@ -48,24 +48,24 @@ eWeakenClass = localNames $
 
     declWeakenAppend <-
       MethodDeclaration weakenAppend
-      <$> sequence [toBinder a1, toBinder k1, toBinder k2]
+      <$> sequenceA [toBinder a1, toBinder k1, toBinder k2]
       <*> (eq
            <$> (TermApp
                 <$> toRef weaken
-                <*> sequence
+                <*> sequenceA
                     [TermApp
                      <$> toRef weaken
-                     <*> sequence [toRef a1, toRef k1],
+                     <*> sequenceA [toRef a1, toRef k1],
                      toRef k2
                     ]
                )
            <*> (TermApp
                 <$> toRef weaken
-                <*> sequence
+                <*> sequenceA
                     [toRef a1,
                      TermApp
                      <$> toRef append
-                     <*> sequence [toRef k1, toRef k2]
+                     <*> sequenceA [toRef k1, toRef k2]
                     ]
                )
           )
@@ -73,7 +73,7 @@ eWeakenClass = localNames $
     classDecl <-
       ClassDeclaration
       <$> idClassWeaken
-      <*> sequence [toBinder setA]
+      <*> sequenceA [toBinder setA]
       <*> pure (Just Type)
       <*> pure [declWeaken, {- declWeakenInj, -} declWeakenAppend ]
 

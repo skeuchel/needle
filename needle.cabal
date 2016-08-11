@@ -10,7 +10,7 @@ name:                needle
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.0.1.0
+version:             0.1.0.0
 
 -- A short (one-line) description of the package.
 -- synopsis:
@@ -46,16 +46,20 @@ extra-source-files:  README
 cabal-version:       >=1.10
 
 executable needle
-  build-depends:
-    parsec         >=3.1 && <4,
-    ansi-wl-pprint >=0.6,
-    base           >=4.6,
-    containers     >=0.5,
-    directory      >=1.2,
-    mtl            >=2.1,
-    pretty-show    >=1.6,
-    transformers   >=0.3,
-    filepath       >=1.3
+  build-depends:     ansi-wl-pprint        >=0.6,
+                     -- base-4.7 is the version of GHC 7.8 which is the minimum
+                     -- that is needed to compile needle
+                     base                  >=4.7,
+                     containers            >=0.5,
+                     directory             >=1.2,
+                     filepath              >=1.3,
+                     microlens             >=0.4,
+                     microlens-th          >=0.4,
+                     mtl                   >=2.1,
+                     optparse-applicative  >=0.12,
+                     parsec                >=3.1 && <4,
+                     pretty-show           >=1.6,
+                     transformers          >=0.4
   main-is: Needle.hs
 
   -- Directories containing source files.
@@ -64,4 +68,7 @@ executable needle
   -- Base language which the package is written in.
   default-language:    Haskell2010
 
-  ghc-options: -W -fno-warn-unused-imports
+  if impl(ghc >= 8.0)
+    ghc-options: -Wall -fno-warn-unused-imports -fno-warn-redundant-constraints -fno-warn-name-shadowing
+  else
+    ghc-options: -Wall -fno-warn-unused-imports -fno-warn-name-shadowing -fno-warn-incomplete-patterns

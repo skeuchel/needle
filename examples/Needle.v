@@ -31,7 +31,7 @@ Ltac rewriteHyp :=
 Ltac needleGenericStabilityWeaken :=
   let k := fresh in
     intro k; induction k as [|[]]; simpl; intros;
-    autorewrite with interaction; congruence.
+    try autorewrite with stability_shift; congruence.
 
 Ltac needleGenericWeakenAppend :=
   let x := fresh in
@@ -200,7 +200,7 @@ Ltac needleGenericSubstEnvLookup :=
     try constructor; eauto with subst_wf.
 
 Ltac needleGenericLookupWellformedData :=
-  induction 1; destruct_conjs; eauto with shift_wf.
+  induction 1; destruct_conjs; repeat (apply conj); eauto with shift_wf.
 
 Ltac needleGenericSubHvlAppend :=
   let k1 := fresh in
@@ -211,26 +211,32 @@ Ltac needleGenericWellformedStrengthen :=
   let k2 := fresh in
     intro k2; induction k2 as [|[]]; intros; simpl; eauto with wf; intuition.
 
+Ltac needleGenericSubstEnvLookupHom varRule :=
+  induction 1; inversion 1; subst; simpl;
+    autorewrite with reflection subst_shift0;
+    try apply varRule; simpl; eauto with infra wf.
+
 (* Apply mutual induction and never introduce any hypotheses. *)
 Ltac apply_mutual_ind ind := first
- [ refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _ _)
- | refine (ind _ _ _ _ _ _)
- | refine (ind _ _ _ _ _)
- | refine (ind _ _ _ _)
+ [ refine (ind _ _)
  | refine (ind _ _ _)
- | refine (ind _ _) ].
+ | refine (ind _ _ _ _)
+ | refine (ind _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
+ | refine (ind _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _)
+ ].
 
 Ltac isimpl := intros; simpl in *; autorewrite with interaction in *.
 
@@ -241,15 +247,25 @@ Proof.
   subst; auto.
 Qed.
 
+Lemma eq_ind' {P Q: Prop} (pq: P = Q) : P -> Q.
+Proof.
+  subst; auto.
+Qed.
+
+Lemma f_equal' {A B: Type} {x y : A} {f g: A -> B} :
+  f = g -> x = y -> f x = g y.
+Proof.
+  intros; subst; auto.
+Qed.
+
 Require Import Coq.Arith.Le.
 
-Lemma sizeind {T : Set} (size: T -> nat) (P: T -> Prop)
-      (step: forall u, (forall t, size t < size u -> P t) -> P u) :
-  forall v, P v.
-Proof.
-  cut (forall n v, size v <= n -> P v); eauto.
-  induction n; intros; apply step; intros t t_lt_v;
-    pose proof (le_trans _ _ _ t_lt_v H) as lt_t_n.
-  - destruct (le_Sn_0 _ lt_t_n).
-  - exact (IHn _ (le_S_n _ _ lt_t_n)).
-Qed.
+Definition sizeind {T : Set} (size: T -> nat) (P: T -> Prop)
+  (step: forall u, (forall t, size t < size u -> P t) -> P u) :
+  forall v, P v := fun v => step v
+    (nat_ind
+       (fun n : nat => forall v, size v < n -> P v)
+       (fun v H => step v (fun t _ => False_ind _ (le_Sn_0 _ H)))
+       (fun n IHn v H =>
+          step v (fun t t_lt_v => IHn t (le_trans _ _ _ t_lt_v (le_S_n _ _ H))))
+       (size v)).

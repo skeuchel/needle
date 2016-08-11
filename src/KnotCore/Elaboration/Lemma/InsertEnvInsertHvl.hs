@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.InsertEnvInsertHvl where
 
@@ -10,25 +11,25 @@ import KnotCore.Syntax
 import KnotCore.Elaboration.Core
 
 lemmass :: Elab m => [EnvDecl] -> m [Sentence]
-lemmass = fmap concat . mapM lemmas
+lemmass = fmap concat . traverse lemmas
 
 lemmas :: Elab m => EnvDecl -> m [Sentence]
 lemmas (EnvDecl etn _ ecs) =
-  sequence
+  sequenceA
   [ lemma etn (typeNameOf mv)
-  | EnvCtorCons _ mv _ <- ecs
+  | EnvCtorCons _ mv _ _mbRtn <- ecs
   ]
 
 lemma :: Elab m => EnvTypeName -> NamespaceTypeName -> m Sentence
 lemma etn ntn = localNames $ do
 
   c   <- freshCutoffVar ntn
-  en1 <- freshEnvVar etn
-  en2 <- freshEnvVar etn
+  en1 <- freshEnvVariable etn
+  en2 <- freshEnvVariable etn
 
   statement <-
     TermForall
-      <$> sequence
+      <$> sequenceA
           [ toImplicitBinder c
           , toImplicitBinder en1
           , toImplicitBinder en2

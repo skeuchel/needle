@@ -1,111 +1,63 @@
-{-# LANGUAGE DeriveFunctor, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module KnotCore.Elaboration.Monad where
 
-import Control.Applicative
-import Control.Monad
-import Control.Monad.Trans
-import Control.Monad.Trans.Reader (ReaderT(..))
-import Control.Monad.Trans.State (StateT(..), evalStateT)
-import Control.Monad.Reader.Class
-import Control.Monad.State.Class
+import           Knot.Env
+import           KnotCore.Environment
+import           KnotCore.Syntax
 
-import Data.List
-import Data.Maybe
-
-import Data.Map (Map)
+import           Control.Monad
+import           Control.Monad.Error.Class
+import           Control.Monad.Trans
+import           Control.Monad.Trans.Reader (ReaderT(..))
+import           Data.Map (Map)
 import qualified Data.Map as M
-import Data.Set (Set)
-import qualified Data.Set as S
 
-import KnotCore.Environment
-import KnotCore.Syntax
+--------------------------------------------------------------------------------
 
-class (Applicative m, Monad m) => Elab m where
+class (EnvM m, FreshM m, MonadError String m) => Elab m where
   getMetaEnvironments    :: m MetaEnvironments
-  liftMaybe              :: Maybe a -> m a
-  freshSuffix            :: NameRoot -> Suffix -> m Suffix
-  localNames             :: m a -> m a
-
-newtype ElM a =
-  ElM {
-    fromElM :: ReaderT MetaEnvironments (StateT (Map String (Set Suffix)) (Either String)) a
-  }
-  deriving (Functor,Applicative,Monad)
-
-runElM :: ElM a -> MetaEnvironments -> Either String a
-runElM (ElM m) env = mm
-  where ms = runReaderT m env
-        mm = evalStateT ms initialNames
-
-chooseSuffix :: Suffix -> Set Suffix -> Suffix
-chooseSuffix suff suffs =
-  fromMaybe (error "IMPOSSIBLE") $
-    find
-      (\s -> not (s `S.member` suffs))
-      (suff : map show [0..])
-
-initialNames :: Map String (Set Suffix)
-initialNames = M.fromList [("S", S.singleton ""),
-                           ("O", S.singleton "")]
-
-instance Elab ElM where
-  getMetaEnvironments       = ElM ask
-  liftMaybe (Just a)        = return a
-  liftMaybe Nothing         = fail "liftMaybe"
-  freshSuffix (NR str) suff = ElM $
-    do
-      sm <- get
-      case M.lookup str sm of
-        Nothing -> do
-                     put (M.insert str (S.singleton suff) sm)
-                     return suff
-        Just ss -> do
-                     let suff' = chooseSuffix suff ss
-                     put (M.insert str (S.insert suff' ss) sm)
-                     return suff'
-  localNames m = do
-                   sm <- ElM get
-                   a <- m
-                   ElM (put sm)
-                   return a
+  liftMaybe              :: String -> Maybe a -> m a
 
 instance Elab m => Elab (ReaderT r m) where
   getMetaEnvironments = lift getMetaEnvironments
-  liftMaybe           = lift . liftMaybe
-  freshSuffix nr suff = lift $ freshSuffix nr suff
-  localNames m        =
-    ReaderT $ \r -> localNames (runReaderT m r)
+  liftMaybe str       = lift . liftMaybe str
+
+--------------------------------------------------------------------------------
 
 getSortNamespaceDependencies :: Elab m => SortTypeName -> m [NamespaceTypeName]
 getSortNamespaceDependencies stn =
   do
     deps <- meSortNamespaceDeps <$> getMetaEnvironments
-    liftMaybe (M.lookup stn deps)
+    liftMaybe "getSortNamespaceDependencies" (M.lookup stn deps)
 
 getSortRoots             :: Elab m => SortTypeName -> m [NameRoot]
 getSortRoots stn =
   do
     nrs <- meSortRoots <$> getMetaEnvironments
-    liftMaybe (M.lookup stn nrs)
+    liftMaybe "getSortRoots" (M.lookup stn nrs)
 
 getNamespaceRoots :: Elab m => NamespaceTypeName -> m [NameRoot]
 getNamespaceRoots btn =
   do
     nrs <- meNamespaceRoots <$> getMetaEnvironments
-    liftMaybe (M.lookup btn nrs)
+    liftMaybe "getNamespaceRoots" (M.lookup btn nrs)
 
 getEnvRoots             :: Elab m => EnvTypeName -> m [NameRoot]
 getEnvRoots stn =
   do
     nrs <- meEnvRoots <$> getMetaEnvironments
-    liftMaybe (M.lookup stn nrs)
+    liftMaybe "getEnvRoots" (M.lookup stn nrs)
 
 getNamespaceCtor :: Elab m => NamespaceTypeName -> m (SortTypeName,CtorName)
 getNamespaceCtor ntn =
   do
     ctors <- meNamespaceCtor <$> getMetaEnvironments
-    liftMaybe (M.lookup ntn ctors)
+    liftMaybe "getNamespaceCtor" (M.lookup ntn ctors)
 
 getSortOfNamespace :: Elab m => NamespaceTypeName -> m SortTypeName
 getSortOfNamespace ntn = fst <$> getNamespaceCtor ntn
@@ -114,7 +66,7 @@ getNamespaceEnvCtor :: Elab m => NamespaceTypeName -> m (EnvTypeName,CtorName)
 getNamespaceEnvCtor ntn =
   do
     envCtors <- meNamespaceEnvCtor <$> getMetaEnvironments
-    liftMaybe (M.lookup ntn envCtors)
+    liftMaybe "getNamespaceEnvCtor" (M.lookup ntn envCtors)
 
 getFunctionNames :: Elab m => SortTypeName -> m [FunName]
 getFunctionNames stn =
@@ -129,19 +81,19 @@ getFunctionType :: Elab m => FunName -> m (SortTypeName,[NamespaceTypeName])
 getFunctionType fn =
   do
     ftns <- meFunType <$> getMetaEnvironments
-    liftMaybe (M.lookup fn ftns)
+    liftMaybe "getFunctionType" (M.lookup fn ftns)
 
 getShiftRoot :: Elab m => NamespaceTypeName -> m String
 getShiftRoot ntn =
   do
     shiftRoots <- meNamespaceShiftRoot <$> getMetaEnvironments
-    liftMaybe (M.lookup ntn shiftRoots)
+    liftMaybe "getShiftRoot" (M.lookup ntn shiftRoots)
 
 getSubstRoot :: Elab m => NamespaceTypeName -> m String
 getSubstRoot ntn =
   do
     substRoots <- meNamespaceSubstRoot <$> getMetaEnvironments
-    liftMaybe (M.lookup ntn substRoots)
+    liftMaybe "getSubstRoot" (M.lookup ntn substRoots)
 
 getNamespaces :: Elab m => m [NamespaceTypeName]
 getNamespaces = map fst . M.toList . meNamespaceRoots <$> getMetaEnvironments
@@ -157,26 +109,30 @@ getFunctions = do
 getEnvironments :: Elab m => m [EnvTypeName]
 getEnvironments = map fst . M.toList . meEnvRoots <$> getMetaEnvironments
 
+getRelations :: Elab m => m [RelationTypeName]
+getRelations = map fst . M.toList . meRelationRuleNames <$> getMetaEnvironments
+
 hasSingleNamespace :: Elab m => m Bool
 hasSingleNamespace = liftM ((==1). length) getNamespaces
 
 getCtorSort :: Elab m => CtorName -> m SortTypeName
 getCtorSort cn = do
   ctorSorts <- liftM meCtorSort getMetaEnvironments
-  liftMaybe (M.lookup cn ctorSorts)
+  liftMaybe "getCtorSort" (M.lookup cn ctorSorts)
 
 getEnvCtorName :: Elab m => EnvTypeName -> NamespaceTypeName -> m CtorName
 getEnvCtorName etn ntn = do
   allCtors <- liftM meEnvCtors getMetaEnvironments
-  ctors    <- liftMaybe (M.lookup etn allCtors)
+  ctors    <- liftMaybe "getEnvCtorName" (M.lookup etn allCtors)
   case [ cn
-       | EnvCtorCons cn mv _ <- ctors
+       | EnvCtorCons cn mv _ _mbRtn <- ctors
        , typeNameOf mv == ntn
        ] of
     [cn] -> return cn
     []   -> fail "getEnvCtorName: no such constructor"
     _    -> fail "getEnvCtorName: ambiguous namespace"
 
+-- TODO: Allow multiple environment types again.
 getEnvCtors :: Elab m => m [CtorName]
 getEnvCtors = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
@@ -186,4 +142,63 @@ getEnvNamespaceDependencies :: Elab m => EnvTypeName -> m [NamespaceTypeName]
 getEnvNamespaceDependencies etn =
   do
     deps <- liftM meEnvNamespaceDeps getMetaEnvironments
-    liftMaybe (M.lookup etn deps)
+    liftMaybe "getEnvNamespaceDependencies" (M.lookup etn deps)
+
+-- TODO: Allow multiple environment types again.
+getEnvNamespaces :: Elab m => m [NamespaceTypeName]
+getEnvNamespaces = do
+  envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
+  return [ ntn | (ntn, (_ , _)) <- envCtors ]
+
+getEnvCtorNil :: Elab m => EnvTypeName -> m CtorName
+getEnvCtorNil etn = do
+  envNil <- meEnvNil <$> getMetaEnvironments
+  liftMaybe "getEnvCtorNil" (M.lookup etn envNil)
+
+getEnvCtorConss :: Elab m => EnvTypeName -> m [EnvCtor]
+getEnvCtorConss etn = do
+  envCtors <- meEnvCtors <$> getMetaEnvironments
+  ecs <- liftMaybe "getEnvCtors" (M.lookup etn envCtors)
+  return [ ec | ec@EnvCtorCons{} <- ecs ]
+
+--------------------------------------------------------------------------------
+
+class Elab m => ElabRuleM m where
+  lookupJudgementOutput :: FunName -> JudgementVariable -> m EnvVariable
+  lookupJudgement       :: JudgementVariable -> m (RuleBindSpec, Judgement)
+
+data ElabRuleEnv =
+  ElabRuleEnv
+  { envJudgementOutput :: Map (FunName, JudgementVariable) EnvVariable
+  , envJudgement       :: Map JudgementVariable (RuleBindSpec, Judgement)
+  }
+  deriving Show
+
+makeElabRuleEnv :: [Formula] -> ElabRuleEnv
+makeElabRuleEnv fmls =
+  ElabRuleEnv
+    (M.fromList
+       [ ((fn,jv),ev)
+       | FormJudgement jv _rbs _jmt outs <- fmls
+       , (fn,ev) <- outs
+       ])
+    (M.fromList
+       [ (jv,(rbs,jmt))
+       | FormJudgement jv rbs jmt _outs <- fmls
+       ])
+
+newtype ElabRuleT m a = ElabRuleT { fromElabRuleT :: ReaderT ElabRuleEnv m a }
+  deriving (Functor, Applicative, Monad, MonadError e, MonadTrans)
+
+deriving instance EnvM m => EnvM (ElabRuleT m)
+deriving instance FreshM m => FreshM (ElabRuleT m)
+deriving instance Elab m => Elab (ElabRuleT m)
+
+instance (MonadError String m, Elab m) => ElabRuleM (ElabRuleT m) where
+  lookupJudgementOutput fn jv = ElabRuleT $ lookupEnv (fn,jv) envJudgementOutput
+    "KnotCore.Elaboration.Monad.ElabRuleM(ElabRuleT).lookupJudgementOutput"
+  lookupJudgement jv = ElabRuleT $ lookupEnv jv envJudgement
+    "KnotCore.Elaboration.Monad.ElabRuleM(ElabRuleT).lookupJudgement"
+
+runElabRuleT :: ElabRuleT m a -> ElabRuleEnv -> m a
+runElabRuleT = runReaderT . fromElabRuleT

@@ -6,12 +6,12 @@ sort Kind, K :=
   | KPi x T [x]K
 
 sort Ty, S, T, U :=
-  + TVar X
+  + TVar {X}
   | TPi  x T1 [x]T2
   | TApp T t
 
 sort Tm, s, t, u :=
-  + Var x
+  + Var {x}
   | Abs x T [x]t
   | App t1 t2
 

@@ -1,18 +1,19 @@
-{-# LANGUAGE RankNTypes, MultiParamTypeClasses, FunctionalDependencies #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 
 module KnotCore.Elaboration.Identifiers where
 
-import Control.Applicative
 
-import Data.List ((\\),intercalate)
-import qualified Data.Map as M
-
-import KnotCore.Syntax
-import KnotCore.Environment
-import KnotCore.Elaboration.Monad
-import KnotCore.Elaboration.Names
+import           KnotCore.Syntax
+import           KnotCore.Environment
+import           KnotCore.Elaboration.Monad
 
 import qualified Coq.Syntax as Coq
+
+import           Data.List ((\\),intercalate)
+import qualified Data.Map as M
+import           Data.Traversable (for)
 
 --  ___    _         _   _  __ _
 -- |_ _|__| |___ _ _| |_(_)/ _(_)___ _ _ ___
@@ -28,115 +29,20 @@ class Ident a where
   toRef    :: Elab m => a -> m Coq.Term
   toRef = fmap Coq.TermQualId . toQualId
 
-class Ident a => Variable a where
-  toBinder :: Elab m => a -> m Coq.Binder
-  toImplicitBinder :: Elab m => a -> m Coq.Binder
-  toImplicitBinder a = do
-    b <- toBinder a
-    return $ case b of
-      Coq.BinderName nm         -> Coq.BinderImplicitName nm
-      Coq.BinderNameType nms tm -> Coq.BinderImplicitNameType nms tm
-      _                         -> b
-
-class Idents a where
-  toIds     :: Elab m => a -> m [Coq.Identifier]
-  toQualIds :: Elab m => a -> m [Coq.QualId]
-  toQualIds = fmap (map Coq.Ident) . toIds
-  toNames   :: Elab m => a -> m [Coq.Name]
-  toNames = fmap (map Coq.NameIdent) . toIds
-  toRefs    :: Elab m => a -> m [Coq.Term]
-  toRefs = fmap (map Coq.TermQualId) . toQualIds
-
 instance Ident SortTypeName where
-  toId (STN s) = return $ Coq.ID s
+  toId (STN _loc s) = return $ Coq.ID s
 instance Ident NamespaceTypeName where
-  toId (NTN s) = return $ Coq.ID s
+  toId (NTN _loc s) = return $ Coq.ID s
 instance Ident RelationTypeName where
-  toId (RTN s) = return $ Coq.ID s
+  toId (RTN _loc s) = return $ Coq.ID s
 instance Ident EnvTypeName where
-  toId (ETN s) = return $ Coq.ID s
+  toId (ETN _loc s) = return $ Coq.ID s
 instance Ident FunName where
-  toId (FN s _ _) = return $ Coq.ID s
+  toId = return . Coq.ID . fnId
 instance Ident CtorName where
-  toId = return . Coq.ID . fromCN
-
-instance Ident IndexVar where
-  toId (IndexVar (NR nr) suff _ _) = return $ Coq.ID (nr ++ suff)
-instance Variable IndexVar where
-  toBinder index =
-    Coq.BinderNameType
-    <$> sequence [ toName index ]
-    <*> typeIndex (typeNameOf index)
-
-instance Ident HVarlistVar where
-  toId tv = return . Coq.ID $
-              fromNR (hvarlistVarRoot tv) ++
-              hvarlistVarSuffix tv
-instance Variable HVarlistVar where
-  toBinder trace =
-    Coq.BinderNameType
-    <$> sequence [ toName trace ]
-    <*> (idTypeHVarlist >>= toRef)
-
-instance Ident CutoffVar where
-  toId cv = return . Coq.ID $
-              fromNR (cutoffVarRoot cv) ++
-              cutoffVarSuffix cv
-instance Variable CutoffVar where
-  toBinder cutoff =
-    Coq.BinderNameType
-    <$> sequence [ toName cutoff ]
-    <*> typeCutoff (typeNameOf cutoff)
-
-instance Ident TermVar where
-  toId (TermVar (NR nr) suff _) =
-    return $ Coq.ID (nr ++ suff)
-
-instance Ident SubtreeVar where
-  toId (SubtreeVar (NR nr) suff _) =
-    return $ Coq.ID (nr ++ suff)
-instance Variable SubtreeVar where
-  toBinder subtree =
-    Coq.BinderNameType
-    <$> sequence [ toName subtree ]
-    <*> toRef (typeNameOf subtree)
-
-instance Ident TraceVar where
-  toId tv = return . Coq.ID $
-              fromNR (traceVarRoot tv) ++
-              traceVarSuffix tv
-instance Variable TraceVar where
-  toBinder trace =
-    Coq.BinderNameType
-    <$> sequence [ toName trace ]
-    <*> typeTrace (typeNameOf trace)
-
-instance Ident EnvVar where
-  toId envVar =
-    return . Coq.ID $
-      fromNR (envVarRoot envVar) ++
-      envVarSuffix envVar
-instance Variable EnvVar where
-  toBinder envVar =
-    Coq.BinderNameType
-    <$> sequence [ toName envVar ]
-    <*> toRef (typeNameOf envVar)
-
-instance Ident Hypothesis where
-  toId (Hypothesis (NR nr) suff) = return $ Coq.ID (nr ++ suff)
-instance Variable Hypothesis where
-  toBinder ih = Coq.BinderName <$> toName ih
-
--- Coq identifiers
+  toId = return . Coq.ID . cnId
 instance Ident Coq.Identifier where
   toId = return
-instance Ident Coq.Variable where
-  toId (Coq.Variable id _) = toId id
-instance Variable Coq.Variable where
-  toBinder (Coq.Variable id tm) =
-    Coq.BinderNameType
-    <$> sequence [toName id]
-    <*> pure tm
 
 {-------------------------------------------------------------------------------
    _  _
@@ -153,7 +59,7 @@ idTypeNamespace :: Elab m => m Coq.Identifier
 idTypeNamespace = return $ Coq.ID "Namespace"
 
 idCtorNamespace :: Elab m => NamespaceTypeName -> m Coq.Identifier
-idCtorNamespace (NTN ntn) = return $ Coq.ID ntn
+idCtorNamespace (NTN _loc ntn) = return $ Coq.ID ntn
 
 idLemmaEqNamespaceDec :: Elab m => m Coq.Identifier
 idLemmaEqNamespaceDec = return $ Coq.ID "eq_namespace_dec"
@@ -188,36 +94,36 @@ idLemmaHVarlistAppendAssoc = return $ Coq.ID "appendHvl_assoc"
 
 
 idRelationHVarlistInsert :: Elab m => NamespaceTypeName -> m Coq.Identifier
-idRelationHVarlistInsert (NTN ntn) =
+idRelationHVarlistInsert (NTN _loc ntn) =
   return (Coq.ID $ "shifthvl_" ++ ntn)
 
 idRelationHVarlistInsertHere :: Elab m => NamespaceTypeName -> m Coq.Identifier
-idRelationHVarlistInsertHere (NTN ntn) =
+idRelationHVarlistInsertHere (NTN _loc ntn) =
   return (Coq.ID $ "shifthvl_" ++ ntn ++ "_here")
 
 idRelationHVarlistInsertThere :: Elab m => NamespaceTypeName -> NamespaceTypeName -> m Coq.Identifier
-idRelationHVarlistInsertThere (NTN ntn) (NTN ntn') =
+idRelationHVarlistInsertThere (NTN _loc ntn) (NTN _loc' ntn') =
   return (Coq.ID $ "shifthvl_" ++ ntn ++ "_there_" ++ ntn')
 
 idLemmaWeakenRelationHVarlistInsert :: Elab m => NamespaceTypeName -> m Coq.Identifier
-idLemmaWeakenRelationHVarlistInsert (NTN ntn) =
+idLemmaWeakenRelationHVarlistInsert (NTN _loc ntn) =
   return (Coq.ID $ "weaken_shifthvl_" ++ ntn)
 
 
 idTypeSubstHvl :: Elab m => NamespaceTypeName -> m Coq.Identifier
-idTypeSubstHvl (NTN ntn) =
+idTypeSubstHvl (NTN _loc ntn) =
   return (Coq.ID $ "substhvl_" ++ ntn)
 
 idCtorSubstHvlHere :: Elab m => NamespaceTypeName -> m Coq.Identifier
-idCtorSubstHvlHere (NTN ntn) =
+idCtorSubstHvlHere (NTN _loc ntn) =
   return (Coq.ID $ "substhvl_" ++ ntn ++ "_here")
 
 idCtorSubstHvlThere :: Elab m => NamespaceTypeName -> NamespaceTypeName -> m Coq.Identifier
-idCtorSubstHvlThere (NTN ntn) (NTN ntn') =
+idCtorSubstHvlThere (NTN _loc ntn) (NTN _loc' ntn') =
   return (Coq.ID $ "substhvl_" ++ ntn ++ "_there_" ++ ntn')
 
 idLemmaWeakenSubstHvl :: Elab m => NamespaceTypeName -> m Coq.Identifier
-idLemmaWeakenSubstHvl (NTN ntn) =
+idLemmaWeakenSubstHvl (NTN _loc ntn) =
   return (Coq.ID $ "weaken_substhvl_" ++ ntn)
 
 idLemmaSubstHvlWfIndex :: Elab m => NamespaceTypeName -> NamespaceTypeName -> m Coq.Identifier
@@ -225,12 +131,12 @@ idLemmaSubstHvlWfIndex ntn1 ntn2 = do
   Coq.ID substhvl <- idTypeSubstHvl ntn1
   Coq.ID wfindex  <- idFunctionWellFormedIndex
 
-  return (Coq.ID $ substhvl ++ "_" ++ wfindex ++ "_" ++ fromNtn ntn2)
+  return (Coq.ID $ substhvl ++ "_" ++ wfindex ++ "_" ++ ntnId ntn2)
 
 setLemmaSubstHvlWfIndex :: Elab m => m [Coq.Identifier]
 setLemmaSubstHvlWfIndex = do
   ntns <- getNamespaces
-  sequence [ idLemmaSubstHvlWfIndex ntn1 ntn2 | ntn1 <- ntns, ntn2 <- ntns ]
+  sequenceA [ idLemmaSubstHvlWfIndex ntn1 ntn2 | ntn1 <- ntns, ntn2 <- ntns ]
 
 {-------------------------------------------------------------------------------
   __      __        _
@@ -283,22 +189,22 @@ typeIndex :: Elab m => NamespaceTypeName -> m Coq.Term
 typeIndex ntn =
   Coq.TermApp
     <$> (idFamilyIndex >>= toRef)
-    <*> sequence [idCtorNamespace ntn >>= toRef]
+    <*> sequenceA [idCtorNamespace ntn >>= toRef]
 
 idLemmaEqIndexDec :: Elab m => m Coq.Identifier
 idLemmaEqIndexDec = return $ Coq.ID "eq_index_dec"
 
 idFunctionWeakenIndex :: Elab m => NamespaceTypeName -> m Coq.Identifier
 idFunctionWeakenIndex ntn =
-  return . Coq.ID $ "weakenIndex" ++ fromNtn ntn
+  return . Coq.ID $ "weakenIndex" ++ ntnId ntn
 
 idLemmaWeakenIndexAppend :: Elab m => NamespaceTypeName -> m Coq.Identifier
 idLemmaWeakenIndexAppend ntn =
-  return $ Coq.ID $ "weakenIndex" ++ fromNtn ntn ++ "_append"
+  return $ Coq.ID $ "weakenIndex" ++ ntnId ntn ++ "_append"
 
 idInstanceWeakenIndex :: Elab m => NamespaceTypeName -> m Coq.Identifier
 idInstanceWeakenIndex ntn =
-  return . Coq.ID $ "WeakenIndex" ++ fromNtn ntn
+  return . Coq.ID $ "WeakenIndex" ++ ntnId ntn
 
 idFunctionWellFormedIndex :: Elab m => m Coq.Identifier
 idFunctionWellFormedIndex =
@@ -344,23 +250,23 @@ typeCutoff :: Elab m => NamespaceTypeName -> m Coq.Term
 typeCutoff ntn =
   Coq.TermApp
     <$> (idFamilyCutoff >>= toRef)
-    <*> sequence [idCtorNamespace ntn >>= toRef]
+    <*> sequenceA [idCtorNamespace ntn >>= toRef]
 
 idFunctionWeakenCutoff :: Elab m => NamespaceTypeName -> m Coq.Identifier
 idFunctionWeakenCutoff ntn =
-  return . Coq.ID $ "weakenCutoff" ++ fromNtn ntn
+  return . Coq.ID $ "weakenCutoff" ++ ntnId ntn
 
 idLemmaWeakenCutoffAppend :: Elab m => NamespaceTypeName -> m Coq.Identifier
 idLemmaWeakenCutoffAppend ntn =
-  return $ Coq.ID $ "weakenCutoff" ++ fromNtn ntn ++ "_append"
+  return $ Coq.ID $ "weakenCutoff" ++ ntnId ntn ++ "_append"
 
 idInstanceWeakenCutoff :: Elab m => NamespaceTypeName -> m Coq.Identifier
 idInstanceWeakenCutoff ntn =
-  return . Coq.ID $ "WeakenCutoff" ++ fromNtn ntn
+  return . Coq.ID $ "WeakenCutoff" ++ ntnId ntn
 
 setLemmaWeakenCutoffAppend :: Elab m => m [Coq.Identifier]
 setLemmaWeakenCutoffAppend =
-  getNamespaces >>= mapM idLemmaWeakenCutoffAppend
+  getNamespaces >>= traverse idLemmaWeakenCutoffAppend
 
 {-------------------------------------------------------------------------------
    _____
@@ -383,7 +289,7 @@ typeTrace :: Elab m => NamespaceTypeName -> m Coq.Term
 typeTrace ntn =
   Coq.TermApp
     <$> (idFamilyTrace >>= toRef)
-    <*> sequence [idCtorNamespace ntn >>= toRef]
+    <*> sequenceA [idCtorNamespace ntn >>= toRef]
 
 idFunctionWeakenTrace :: Elab m => m Coq.Identifier
 idFunctionWeakenTrace =
@@ -399,7 +305,7 @@ idInstanceWeakenTrace =
 
 setLemmaWeakenTraceAppend :: Elab m => m [Coq.Identifier]
 setLemmaWeakenTraceAppend =
-  sequence [idLemmaWeakenTraceAppend]
+  sequenceA [idLemmaWeakenTraceAppend]
 
 {-------------------------------------------------------------------------------
    ___ _    _  __ _
@@ -416,7 +322,7 @@ idFunctionShiftIndex ntn =
     return (Coq.ID $ sr ++ "Index")
 
 idFunctionShift :: Elab m => NamespaceTypeName -> SortTypeName -> m Coq.Identifier
-idFunctionShift ntn (STN stn) =
+idFunctionShift ntn (STN _loc stn) =
   do
     sr <- getShiftRoot ntn
     return (Coq.ID $ sr ++ stn)
@@ -424,22 +330,22 @@ idFunctionShift ntn (STN stn) =
 setFunctionShift :: Elab m => m [Coq.Identifier]
 setFunctionShift = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idFunctionShift ntn stn
     | (stn,ntns) <- M.toList deps, ntn <- ntns
     ]
 
 idFunctionWeakenTerm :: Elab m => SortTypeName -> m Coq.Identifier
 idFunctionWeakenTerm stn =
-  return . Coq.ID $ "weaken" ++ fromStn stn
+  return . Coq.ID $ "weaken" ++ stnId stn
 
 idLemmaWeakenTermAppend :: Elab m => SortTypeName -> m Coq.Identifier
 idLemmaWeakenTermAppend stn =
-  return $ Coq.ID $ "weaken" ++ fromStn stn ++ "_append"
+  return $ Coq.ID $ "weaken" ++ stnId stn ++ "_append"
 
 idInstanceWeakenTerm :: Elab m => SortTypeName -> m Coq.Identifier
 idInstanceWeakenTerm stn =
-  return . Coq.ID $ "Weaken" ++ fromStn stn
+  return . Coq.ID $ "Weaken" ++ stnId stn
 
 {-------------------------------------------------------------------------------
    ___      _       _
@@ -456,7 +362,7 @@ idFunctionSubstIndex ntn =
     return (Coq.ID $ sr ++ "Index")
 
 idFunctionSubst :: Elab m => NamespaceTypeName -> SortTypeName -> m Coq.Identifier
-idFunctionSubst ntn (STN stn) =
+idFunctionSubst ntn (STN _loc stn) =
   do
     sr <- getSubstRoot ntn
     return (Coq.ID $ sr ++ stn)
@@ -475,29 +381,31 @@ inductionName s =
   return ("ind_" ++ s)
 
 idInductionSort :: Elab m => SortTypeName -> m Coq.Identifier
-idInductionSort stn = Coq.ID <$> inductionName (fromStn stn)
+idInductionSort stn = Coq.ID <$> inductionName (stnId stn)
 
 idInductionSortGroup :: Elab m => SortGroupTypeName -> m Coq.Identifier
-idInductionSortGroup sgtn = Coq.ID <$> inductionName (fromSgtn sgtn)
+idInductionSortGroup sgtn = Coq.ID <$> inductionName (sgtnId sgtn)
 
 inductionNameWellFormed :: Elab m => String -> m String
 inductionNameWellFormed s =
   return ("ind_wf" ++ s)
 
 idInductionWellFormedSort :: Elab m => SortTypeName -> m Coq.Identifier
-idInductionWellFormedSort stn = Coq.ID <$> inductionNameWellFormed (fromStn stn)
+idInductionWellFormedSort stn = Coq.ID <$> inductionNameWellFormed (stnId stn)
 
 idInductionWellFormedSortGroup :: Elab m => SortGroupTypeName -> m Coq.Identifier
-idInductionWellFormedSortGroup sgtn = Coq.ID <$> inductionNameWellFormed (fromSgtn sgtn)
+idInductionWellFormedSortGroup sgtn = Coq.ID <$> inductionNameWellFormed (sgtnId sgtn)
 
 idFunctionInductionSort :: Elab m => FunGroupName -> SortTypeName -> m Coq.Identifier
-idFunctionInductionSort (FGN fgn) (STN stn) =
+idFunctionInductionSort (FGN fgn) (STN _loc stn) =
   return (Coq.ID $ "ind_" ++ fgn ++ "_" ++ stn)
 
 idFunctionInductionSortGroup :: Elab m => FunGroupName -> SortGroupTypeName -> m Coq.Identifier
 idFunctionInductionSortGroup (FGN fgn) (SGTN sgtn) =
   return (Coq.ID $ "ind_" ++ fgn ++ "_" ++ sgtn)
 
+idInductionRelation :: Elab m => RelationTypeName -> m Coq.Identifier
+idInductionRelation (RTN _loc rtn) = return (Coq.ID $ rtn ++ "_ind")
 
 {-------------------------------------------------------------------------------
    _             _
@@ -509,12 +417,12 @@ idFunctionInductionSortGroup (FGN fgn) (SGTN sgtn) =
 
 idTypeLookup :: Elab m => CtorName -> m Coq.Identifier
 idTypeLookup cn =
-  return (Coq.ID $ "lookup_" ++ fromCN cn)
+  return (Coq.ID $ "lookup_" ++ cnId cn)
 
 setTypeLookup :: Elab m => m [Coq.Identifier]
 setTypeLookup = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
-  sequence [ idTypeLookup cn | (_, (_, cn)) <- envCtors ]
+  sequenceA [ idTypeLookup cn | (_, (_, cn)) <- envCtors ]
 
 idCtorLookupHere :: Elab m => CtorName -> m Coq.Identifier
 idCtorLookupHere cn = do
@@ -524,7 +432,7 @@ idCtorLookupHere cn = do
 idCtorLookupThere :: Elab m => CtorName -> CtorName -> m Coq.Identifier
 idCtorLookupThere cn cn' = do
   Coq.ID lookup <- idTypeLookup cn
-  return (Coq.ID $ lookup ++ "_there_" ++ fromCN cn')
+  return (Coq.ID $ lookup ++ "_there_" ++ cnId cn')
 
 idLemmaLookupFunctional :: Elab m => CtorName -> m Coq.Identifier
 idLemmaLookupFunctional cn = do
@@ -544,7 +452,7 @@ idLemmaLookupWellformedIndex cn = do
 setLemmaLookupWellformedIndex :: Elab m => m [Coq.Identifier]
 setLemmaLookupWellformedIndex = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
-  sequence [ idLemmaLookupWellformedIndex cn | (_, (_, cn)) <- envCtors ]
+  sequenceA [ idLemmaLookupWellformedIndex cn | (_, (_, cn)) <- envCtors ]
 
 {-------------------------------------------------------------------------------
    ___                  _     ___
@@ -556,25 +464,25 @@ setLemmaLookupWellformedIndex = do
 
 idTypeInsertEnv :: Elab m => CtorName -> m Coq.Identifier
 idTypeInsertEnv cn =
-  return (Coq.ID $ "shift_" ++ fromCN cn)
+  return (Coq.ID $ "shift_" ++ cnId cn)
 
 setTypeInsertEnv :: Elab m => m [Coq.Identifier]
-setTypeInsertEnv = getEnvCtors >>= mapM idTypeInsertEnv
+setTypeInsertEnv = getEnvCtors >>= traverse idTypeInsertEnv
 
 idCtorInsertEnvHere :: Elab m => CtorName -> m Coq.Identifier
 idCtorInsertEnvHere cn =
-  return (Coq.ID $ "shift_" ++ fromCN cn ++ "_here")
+  return (Coq.ID $ "shift_" ++ cnId cn ++ "_here")
 
 idCtorInsertEnvThere :: Elab m => CtorName -> CtorName -> m Coq.Identifier
 idCtorInsertEnvThere cn cn' =
-  return (Coq.ID $ "shift" ++ fromCN cn ++ "_there_" ++ fromCN cn')
+  return (Coq.ID $ "shift" ++ cnId cn ++ "_there_" ++ cnId cn')
 
 idLemmaWeakenInsertEnv :: Elab m => CtorName -> m Coq.Identifier
 idLemmaWeakenInsertEnv cn =
-  return (Coq.ID $ "weaken_shift_" ++ fromCN cn)
+  return (Coq.ID $ "weaken_shift_" ++ cnId cn)
 
 setLemmaWeakenInsertEnv :: Elab m => m [Coq.Identifier]
-setLemmaWeakenInsertEnv = getEnvCtors >>= mapM idLemmaWeakenInsertEnv
+setLemmaWeakenInsertEnv = getEnvCtors >>= traverse idLemmaWeakenInsertEnv
 
 idLemmaInsertEnvInsertHvl :: Elab m => EnvTypeName -> NamespaceTypeName -> m Coq.Identifier
 idLemmaInsertEnvInsertHvl etn ntn = do
@@ -594,25 +502,25 @@ idLemmaInsertEnvInsertHvl etn ntn = do
 
 idTypeSubstEnv :: Elab m => CtorName -> m Coq.Identifier
 idTypeSubstEnv cn =
-  return (Coq.ID $ "subst_" ++ fromCN cn)
+  return (Coq.ID $ "subst_" ++ cnId cn)
 
 setTypeSubstEnv :: Elab m => m [Coq.Identifier]
-setTypeSubstEnv = getEnvCtors >>= mapM idTypeSubstEnv
+setTypeSubstEnv = getEnvCtors >>= traverse idTypeSubstEnv
 
 idCtorSubstEnvHere :: Elab m => CtorName -> m Coq.Identifier
 idCtorSubstEnvHere cn =
-  return (Coq.ID $ "subst_" ++ fromCN cn ++ "_here")
+  return (Coq.ID $ "subst_" ++ cnId cn ++ "_here")
 
 idCtorSubstEnvThere :: Elab m => CtorName -> CtorName -> m Coq.Identifier
 idCtorSubstEnvThere cn cn' =
-  return (Coq.ID $ "subst_" ++ fromCN cn ++ "_there_" ++ fromCN cn')
+  return (Coq.ID $ "subst_" ++ cnId cn ++ "_there_" ++ cnId cn')
 
 idLemmaWeakenSubstEnv :: Elab m => CtorName -> m Coq.Identifier
 idLemmaWeakenSubstEnv cn =
-  return (Coq.ID $ "weaken_subst_" ++ fromCN cn)
+  return (Coq.ID $ "weaken_subst_" ++ cnId cn)
 
 setLemmaWeakenSubstEnv :: Elab m => m [Coq.Identifier]
-setLemmaWeakenSubstEnv = getEnvCtors >>= mapM idLemmaWeakenSubstEnv
+setLemmaWeakenSubstEnv = getEnvCtors >>= traverse idLemmaWeakenSubstEnv
 
 idLemmaSubstEnvSubstHvl :: Elab m => EnvTypeName -> NamespaceTypeName -> m Coq.Identifier
 idLemmaSubstEnvSubstHvl etn ntn = do
@@ -625,7 +533,7 @@ idLemmaSubstEnvSubstHvl etn ntn = do
 setLemmaSubstEnvSubstHvl :: Elab m => m [Coq.Identifier]
 setLemmaSubstEnvSubstHvl = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
-  sequence [ idLemmaSubstEnvSubstHvl etn ntn | (ntn, (etn, _)) <- envCtors ]
+  sequenceA [ idLemmaSubstEnvSubstHvl etn ntn | (ntn, (etn, _)) <- envCtors ]
 
 {-------------------------------------------------------------------------------
    ___ _    _  __ _     ___             _   _
@@ -641,28 +549,28 @@ idLemmaStabilityShiftGroup ntn (FGN s) = do
   return (Coq.ID $ "stability_" ++ sr ++ "_" ++ s)
 
 idLemmaStabilityShift :: Elab m => NamespaceTypeName -> FunName -> m Coq.Identifier
-idLemmaStabilityShift ntn (FN s _ _) = do
+idLemmaStabilityShift ntn fn = do
   sr <- getShiftRoot ntn
-  return (Coq.ID $ "stability_" ++ sr ++ "_" ++ s)
+  return (Coq.ID $ "stability_" ++ sr ++ "_" ++ fnId fn)
 
 setLemmaStabilityShift' :: Elab m => FunName -> SortTypeName -> m [Coq.Identifier]
 setLemmaStabilityShift' fn stn = do
   ntns <- getSortNamespaceDependencies stn
-  sequence [ idLemmaStabilityShift ntn fn | ntn <- ntns ]
+  sequenceA [ idLemmaStabilityShift ntn fn | ntn <- ntns ]
 
 setLemmaStabilityShift :: Elab m => m [Coq.Identifier]
 setLemmaStabilityShift = do
   fns <- M.toList . meFunType <$> getMetaEnvironments
-  concat <$> sequence [ setLemmaStabilityShift' fn stn | (fn,(stn,_)) <- fns ]
+  concat <$> sequenceA [ setLemmaStabilityShift' fn stn | (fn,(stn,_)) <- fns ]
 
 idLemmaStabilityWeaken :: Elab m => FunName -> m Coq.Identifier
-idLemmaStabilityWeaken (FN s _ _) =
-  return (Coq.ID $ "stability_weaken_" ++ s)
+idLemmaStabilityWeaken fn =
+  return (Coq.ID $ "stability_weaken_" ++ fnId fn)
 
 setLemmaStabilityWeaken :: Elab m => m [Coq.Identifier]
 setLemmaStabilityWeaken = do
   fns <- M.toList . meFunType <$> getMetaEnvironments
-  sequence [ idLemmaStabilityWeaken fn | (fn,_) <- fns ]
+  sequenceA [ idLemmaStabilityWeaken fn | (fn,_) <- fns ]
 
 idLemmaStabilitySubstGroup :: Elab m => NamespaceTypeName -> FunGroupName -> m Coq.Identifier
 idLemmaStabilitySubstGroup ntn (FGN s) = do
@@ -670,19 +578,19 @@ idLemmaStabilitySubstGroup ntn (FGN s) = do
   return (Coq.ID $ "stability_" ++ sr ++ "_" ++ s)
 
 idLemmaStabilitySubst :: Elab m => NamespaceTypeName -> FunName -> m Coq.Identifier
-idLemmaStabilitySubst ntn (FN s _ _) = do
+idLemmaStabilitySubst ntn fn = do
   sr <- getSubstRoot ntn
-  return (Coq.ID $ "stability_" ++ sr ++ "_" ++ s)
+  return (Coq.ID $ "stability_" ++ sr ++ "_" ++ fnId fn)
 
 setLemmaStabilitySubst' :: Elab m => FunName -> SortTypeName -> m [Coq.Identifier]
 setLemmaStabilitySubst' fn stn = do
   ntns <- getSortNamespaceDependencies stn
-  sequence [ idLemmaStabilitySubst ntn fn | ntn <- ntns ]
+  sequenceA [ idLemmaStabilitySubst ntn fn | ntn <- ntns ]
 
 setLemmaStabilitySubst :: Elab m => m [Coq.Identifier]
 setLemmaStabilitySubst = do
   fns <- M.toList . meFunType <$> getMetaEnvironments
-  concat <$> sequence [ setLemmaStabilitySubst' fn stn | (fn,(stn,_)) <- fns ]
+  concat <$> sequenceA [ setLemmaStabilitySubst' fn stn | (fn,(stn,_)) <- fns ]
 
 {-------------------------------------------------------------------------------
    ___ _    _  __ _      ___
@@ -708,7 +616,7 @@ idGroupLemmaShiftCommInd ntn1 ntn2 (SGTN g) = do
 idLemmaShiftCommInd :: Elab m =>
   NamespaceTypeName -> NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaShiftCommInd ntn1 ntn2 (STN g) = do
+idLemmaShiftCommInd ntn1 ntn2 (STN _loc g) = do
   s1 <- getShiftRoot ntn1
   s2 <- getShiftRoot ntn2
   return (Coq.ID $ s1 ++ "_" ++ s2 ++ "0_" ++ g ++ "_comm_ind")
@@ -716,7 +624,7 @@ idLemmaShiftCommInd ntn1 ntn2 (STN g) = do
 idLemmaShiftComm :: Elab m =>
   NamespaceTypeName -> NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaShiftComm ntn1 ntn2 (STN g) = do
+idLemmaShiftComm ntn1 ntn2 (STN _loc g) = do
   s1 <- getShiftRoot ntn1
   s2 <- getShiftRoot ntn2
   return (Coq.ID $ s1 ++ "_" ++ s2 ++ "0_" ++ g ++ "_comm")
@@ -724,7 +632,7 @@ idLemmaShiftComm ntn1 ntn2 (STN g) = do
 setLemmaShiftComm :: Elab m => m [Coq.Identifier]
 setLemmaShiftComm = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idLemmaShiftComm ntn1 ntn2 stn
     | (stn,ntns) <- M.toList deps, ntn1 <- ntns, ntn2 <- ntns
     ]
@@ -755,7 +663,7 @@ idGroupLemmaSubstShiftReflectionInd ntn (SGTN g) = do
 idLemmaSubstShiftReflectionInd :: Elab m =>
   NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaSubstShiftReflectionInd ntn (STN g) = do
+idLemmaSubstShiftReflectionInd ntn (STN _loc g) = do
   shift <- getShiftRoot ntn
   subst <- getSubstRoot ntn
   return (Coq.ID $ subst ++ "0_" ++ shift ++ "0_" ++ g ++ "_reflection_ind")
@@ -771,7 +679,7 @@ idLemmaSubstShiftReflection ntn stn = do
 setLemmaSubstShiftReflection :: Elab m => m [Coq.Identifier]
 setLemmaSubstShiftReflection = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idLemmaSubstShiftReflection ntn stn
     | (stn,ntns) <- M.toList deps, ntn <- ntns
     ]
@@ -803,7 +711,7 @@ idGroupLemmaShiftSubstCommInd ntna ntnb (SGTN g) = do
 idLemmaShiftSubstCommInd :: Elab m =>
   NamespaceTypeName -> NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaShiftSubstCommInd ntna ntnb (STN g) = do
+idLemmaShiftSubstCommInd ntna ntnb (STN _loc g) = do
   shift <- getShiftRoot ntna
   subst <- getSubstRoot ntnb
   return (Coq.ID $ shift ++ "_" ++ subst ++ "0_" ++ g ++ "_comm_ind")
@@ -819,7 +727,7 @@ idLemmaShiftSubstComm ntna ntnb stn = do
 setLemmaShiftSubstComm :: Elab m => m [Coq.Identifier]
 setLemmaShiftSubstComm = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idLemmaShiftSubstComm ntn1 ntn2 stn
     | (stn,ntns) <- M.toList deps, ntn1 <- ntns, ntn2 <- ntns
     ]
@@ -851,7 +759,7 @@ idGroupLemmaSubstShiftCommInd ntna ntnb (SGTN g) = do
 idLemmaSubstShiftCommInd :: Elab m =>
   NamespaceTypeName -> NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaSubstShiftCommInd ntna ntnb (STN g) = do
+idLemmaSubstShiftCommInd ntna ntnb (STN _loc g) = do
   subst <- getSubstRoot ntna
   shift <- getShiftRoot ntnb
   return (Coq.ID $ subst ++ "_" ++ shift ++ "0_" ++ g ++ "_comm_ind")
@@ -867,7 +775,7 @@ idLemmaSubstShiftComm ntna ntnb stn = do
 setLemmaSubstShiftComm :: Elab m => m [Coq.Identifier]
 setLemmaSubstShiftComm = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idLemmaSubstShiftComm ntn1 ntn2 stn
     | (stn,ntns) <- M.toList deps, ntn1 <- ntns, ntn2 <- ntns
     ]
@@ -907,7 +815,7 @@ idGroupLemmaSubstSubstCommInd ntna ntnb (SGTN g) = do
 idLemmaSubstSubstCommInd :: Elab m =>
   NamespaceTypeName -> NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaSubstSubstCommInd ntna ntnb (STN g) = do
+idLemmaSubstSubstCommInd ntna ntnb (STN _loc g) = do
   subst <- getSubstRoot ntna
   subst2 <- getSubstRoot ntnb
   return (Coq.ID $ subst ++ "_" ++ subst2 ++ "0_" ++ g ++ "_comm_ind")
@@ -923,7 +831,7 @@ idLemmaSubstSubstComm ntna ntnb stn = do
 setLemmaSubstSubstComm :: Elab m => m [Coq.Identifier]
 setLemmaSubstSubstComm = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idLemmaSubstSubstComm ntn ntn stn
     | (stn,ntns) <- M.toList deps, ntn <- ntns
     ]
@@ -939,21 +847,21 @@ setLemmaSubstSubstComm = do
 idGroupLemmaSubstSubordInd :: Elab m =>
   NamespaceTypeName -> NamespaceTypeName -> SortGroupTypeName ->
   m Coq.Identifier
-idGroupLemmaSubstSubordInd ntna (NTN ntnb) (SGTN g) = do
+idGroupLemmaSubstSubordInd ntna (NTN _loc ntnb) (SGTN g) = do
   subst <- getSubstRoot ntna
   return (Coq.ID $ subst ++ "_" ++ ntnb ++ "_" ++ g ++ "_ind")
 
 idLemmaSubstSubordInd :: Elab m =>
   NamespaceTypeName -> NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaSubstSubordInd ntna (NTN ntnb) (STN g) = do
+idLemmaSubstSubordInd ntna (NTN _locNtnb ntnb) (STN _locStn g) = do
   subst <- getSubstRoot ntna
   return (Coq.ID $ subst ++ "_" ++ ntnb ++ "_" ++ g ++ "_ind")
 
 idLemmaSubstSubord :: Elab m =>
   NamespaceTypeName -> NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaSubstSubord ntna (NTN ntnb) stn = do
+idLemmaSubstSubord ntna (NTN _loc ntnb) stn = do
   Coq.ID subst <- idFunctionSubst ntna stn
   return (Coq.ID $ subst ++ "_" ++ ntnb)
 
@@ -961,11 +869,11 @@ setLemmaSubstSubord :: Elab m => m [Coq.Identifier]
 setLemmaSubstSubord = do
   ntns <- getNamespaces
   allDeps <- meSortNamespaceDeps <$> getMetaEnvironments
-  concat <$> sequence
+  concat <$> sequenceA
     [ do
         (stna,_) <- getNamespaceCtor ntna
         depsa <- getSortNamespaceDependencies stna
-        sequence
+        sequenceA
           [ idLemmaSubstSubord ntna ntnb stn
           | ntnb <- ntns \\ depsa
           ]
@@ -982,7 +890,7 @@ setLemmaSubstSubord = do
 -------------------------------------------------------------------------------}
 
 idFunctionSize :: Elab m => SortTypeName -> m Coq.Identifier
-idFunctionSize (STN stn) =
+idFunctionSize (STN _loc stn) =
   return (Coq.ID $ "size_" ++ stn)
 
 idGroupLemmaShiftSize :: Elab m =>
@@ -995,24 +903,24 @@ idGroupLemmaShiftSize ntn (SGTN g) = do
 idLemmaShiftSize :: Elab m =>
   NamespaceTypeName -> SortTypeName ->
   m Coq.Identifier
-idLemmaShiftSize ntn (STN g) = do
+idLemmaShiftSize ntn (STN _loc g) = do
   shift <- getShiftRoot ntn
   return (Coq.ID $ shift ++ "_size_" ++ g)
 
 setLemmaShiftSize :: Elab m => m [Coq.Identifier]
 setLemmaShiftSize = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idLemmaShiftSize ntn stn
     | (stn,ntns) <- M.toList deps, ntn <- ntns
     ]
 
 idLemmaWeakenSize :: Elab m => SortTypeName -> m Coq.Identifier
-idLemmaWeakenSize (STN g) =
+idLemmaWeakenSize (STN _loc g) =
   return (Coq.ID $ "weaken_size_" ++ g)
 
 setLemmaWeakenSize :: Elab m => m [Coq.Identifier]
-setLemmaWeakenSize = getSorts >>= mapM idLemmaWeakenSize
+setLemmaWeakenSize = getSorts >>= traverse idLemmaWeakenSize
 
 {-------------------------------------------------------------------------------
   __      __        _
@@ -1031,7 +939,7 @@ idLemmaWeakenShift ntn stn = do
 setLemmaWeakenShift :: Elab m => m [Coq.Identifier]
 setLemmaWeakenShift = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idLemmaWeakenShift ntn stn
     | (stn,ntns) <- M.toList deps, ntn <- ntns
     ]
@@ -1045,7 +953,7 @@ idLemmaWeakenSubst ntn stn = do
 setLemmaWeakenSubst :: Elab m => m [Coq.Identifier]
 setLemmaWeakenSubst = do
   deps <- meSortNamespaceDeps <$> getMetaEnvironments
-  sequence
+  sequenceA
     [ idLemmaWeakenSubst ntn stn
     | (stn,ntns) <- M.toList deps, ntn <- ntns
     ]
@@ -1073,25 +981,29 @@ setLemmaInsertLookup :: Elab m => m [Coq.Identifier]
 setLemmaInsertLookup = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
   let cns = [ cn |(_,(_,cn)) <- envCtors ]
-  sequence [ idLemmaInsertLookup' icn lcn | icn <- cns, lcn <- cns ]
+  sequenceA [ idLemmaInsertLookup' icn lcn | icn <- cns, lcn <- cns ]
+
+setLemmaWeakenAppend :: Elab m => m [Coq.Identifier]
+setLemmaWeakenAppend = getSorts >>= traverse idLemmaWeakenAppend
+
 
 {-------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------}
 
 idFunctionAppendEnv :: Elab m => EnvTypeName -> m Coq.Identifier
-idFunctionAppendEnv (ETN s) = return (Coq.ID ("append" ++ s))
+idFunctionAppendEnv (ETN _loc etn) = return (Coq.ID ("append" ++ etn))
 
 idFunctionDomainEnv :: Elab m => EnvTypeName -> m Coq.Identifier
-idFunctionDomainEnv (ETN s) = return (Coq.ID ("domain" ++ s))
+idFunctionDomainEnv (ETN _loc etn) = return (Coq.ID ("domain" ++ etn))
 
 idFunctionShiftEnv :: Elab m => NamespaceTypeName -> EnvTypeName -> m Coq.Identifier
-idFunctionShiftEnv ntn (ETN etn) = do
+idFunctionShiftEnv ntn (ETN _loc etn) = do
   sr <- getShiftRoot ntn
   return (Coq.ID $ sr ++ etn)
 
 idFunctionSubstEnv :: Elab m => NamespaceTypeName -> EnvTypeName -> m Coq.Identifier
-idFunctionSubstEnv ntn (ETN etn) = do
+idFunctionSubstEnv ntn (ETN _loc etn) = do
   sr <- getSubstRoot ntn
   return (Coq.ID $ sr ++ etn)
 
@@ -1100,6 +1012,9 @@ idLemmaAppendEnvAssoc etn = do
   Coq.ID append <- idFunctionAppendEnv etn
   return (Coq.ID (append ++ "_assoc"))
 
+setLemmaAppendEnvAssoc :: Elab m => m [Coq.Identifier]
+setLemmaAppendEnvAssoc = getEnvironments >>= traverse idLemmaAppendEnvAssoc
+
 idLemmaDomainEnvAppendEnv :: Elab m => EnvTypeName -> m Coq.Identifier
 idLemmaDomainEnvAppendEnv etn = do
   Coq.ID length <- idFunctionDomainEnv etn
@@ -1107,7 +1022,7 @@ idLemmaDomainEnvAppendEnv etn = do
   return (Coq.ID (length ++ "_" ++ append))
 
 setLemmaDomainEnvAppendEnv :: Elab m => m [Coq.Identifier]
-setLemmaDomainEnvAppendEnv = getEnvironments >>= mapM idLemmaDomainEnvAppendEnv
+setLemmaDomainEnvAppendEnv = getEnvironments >>= traverse idLemmaDomainEnvAppendEnv
 
 idLemmaDomainEnvShiftEnv :: Elab m => NamespaceTypeName -> EnvTypeName -> m Coq.Identifier
 idLemmaDomainEnvShiftEnv ntn etn = do
@@ -1118,7 +1033,7 @@ idLemmaDomainEnvShiftEnv ntn etn = do
 setLemmaDomainEnvShiftEnv :: Elab m => m [Coq.Identifier]
 setLemmaDomainEnvShiftEnv = do
   deps <- M.toList . meEnvNamespaceDeps <$> getMetaEnvironments
-  sequence [ idLemmaDomainEnvShiftEnv ntn etn
+  sequenceA [ idLemmaDomainEnvShiftEnv ntn etn
            | (etn,ntns) <- deps, ntn <- ntns
            ]
 
@@ -1131,7 +1046,7 @@ idLemmaDomainEnvSubstEnv ntn etn = do
 setLemmaDomainEnvSubstEnv :: Elab m => m [Coq.Identifier]
 setLemmaDomainEnvSubstEnv = do
   deps <- M.toList . meEnvNamespaceDeps <$> getMetaEnvironments
-  sequence [ idLemmaDomainEnvSubstEnv ntn etn
+  sequenceA [ idLemmaDomainEnvSubstEnv ntn etn
            | (etn,ntns) <- deps, ntn <- ntns
            ]
 
@@ -1144,7 +1059,7 @@ idLemmaShiftEnvAppendEnv ntn etn = do
 setLemmaShiftEnvAppendEnv :: Elab m => m [Coq.Identifier]
 setLemmaShiftEnvAppendEnv = do
   deps <- M.toList . meEnvNamespaceDeps <$> getMetaEnvironments
-  sequence [ idLemmaShiftEnvAppendEnv ntn etn
+  sequenceA [ idLemmaShiftEnvAppendEnv ntn etn
            | (etn,ntns) <- deps, ntn <- ntns
            ]
 
@@ -1157,9 +1072,13 @@ idLemmaSubstEnvAppendEnv ntn etn = do
 setLemmaSubstEnvAppendEnv :: Elab m => m [Coq.Identifier]
 setLemmaSubstEnvAppendEnv = do
   deps <- M.toList . meEnvNamespaceDeps <$> getMetaEnvironments
-  sequence [ idLemmaSubstEnvAppendEnv ntn etn
+  sequenceA [ idLemmaSubstEnvAppendEnv ntn etn
            | (etn,ntns) <- deps, ntn <- ntns
            ]
+
+idFunctionWeakenEnv :: Elab m => EnvTypeName -> m Coq.Identifier
+idFunctionWeakenEnv etn =
+  return (Coq.ID $ "weaken" ++ etnId etn)
 
 {-------------------------------------------------------------------------------
   __      __   _ _ ___                     _
@@ -1170,15 +1089,16 @@ setLemmaSubstEnvAppendEnv = do
 -------------------------------------------------------------------------------}
 
 idRelationWellFormed :: Elab m => SortTypeName -> m Coq.Identifier
-idRelationWellFormed (STN stn) = do
+idRelationWellFormed (STN _loc stn) =
   return (Coq.ID $ "wf" ++ stn)
 
 idRelationWellFormedCtor :: Elab m => CtorName -> m Coq.Identifier
 idRelationWellFormedCtor cn = do
-  return (Coq.ID $ "wf" ++ fromStn (cnSort cn) ++ "_" ++ fromCN cn)
+  stn <- lookupCtorType cn
+  return (Coq.ID $ "wf" ++ stnId stn ++ "_" ++ cnId cn)
 
 idLemmaShiftWellFormedIndex :: Elab m => NamespaceTypeName -> NamespaceTypeName -> m Coq.Identifier
-idLemmaShiftWellFormedIndex ntna (NTN ntnb) = do
+idLemmaShiftWellFormedIndex ntna (NTN _loc ntnb) = do
   sr             <- getShiftRoot ntna
   Coq.ID wfindex <- idFunctionWellFormedIndex
 
@@ -1187,7 +1107,7 @@ idLemmaShiftWellFormedIndex ntna (NTN ntnb) = do
 setLemmaShiftWellFormedIndex :: Elab m => m [Coq.Identifier]
 setLemmaShiftWellFormedIndex = do
   ntns <- getNamespaces
-  sequence
+  sequenceA
     [ idLemmaShiftWellFormedIndex ntn1 ntn2
     | ntn1 <- ntns, ntn2 <- ntns
     ]
@@ -1195,7 +1115,7 @@ setLemmaShiftWellFormedIndex = do
 idGroupLemmaShiftWellFormedSort :: Elab m => NamespaceTypeName -> SortGroupTypeName -> m Coq.Identifier
 idGroupLemmaShiftWellFormedSort ntn sgtn = do
   sr            <- getShiftRoot ntn
-  Coq.ID wfterm <- idRelationWellFormed (STN $ fromSgtn sgtn)
+  Coq.ID wfterm <- idRelationWellFormed (STN LocNoWhere $ sgtnId sgtn)
 
   return (Coq.ID $ sr ++ "_" ++ wfterm)
 
@@ -1210,7 +1130,7 @@ setLemmaShiftWellFormedSort :: Elab m => m [Coq.Identifier]
 setLemmaShiftWellFormedSort = do
   stns <- getSorts
   ntns <- getNamespaces
-  sequence
+  sequenceA
     [ idLemmaShiftWellFormedSort ntn stn
     | ntn <- ntns
     , stn <- stns
@@ -1219,7 +1139,7 @@ setLemmaShiftWellFormedSort = do
 idGroupLemmaSubstWellFormedSort :: Elab m => NamespaceTypeName -> SortGroupTypeName -> m Coq.Identifier
 idGroupLemmaSubstWellFormedSort ntn sgtn = do
   Coq.ID substhvl <- idTypeSubstHvl ntn
-  Coq.ID wfterm   <- idRelationWellFormed (STN $ fromSgtn sgtn)
+  Coq.ID wfterm   <- idRelationWellFormed (STN LocNoWhere $ sgtnId sgtn)
 
   return (Coq.ID $ substhvl ++ "_" ++ wfterm)
 
@@ -1234,25 +1154,32 @@ setLemmaSubstWellFormedSort :: Elab m => m [Coq.Identifier]
 setLemmaSubstWellFormedSort = do
   stns <- getSorts
   ntns <- getNamespaces
-  sequence
+  sequenceA
     [ idLemmaSubstWellFormedSort ntn stn
     | ntn <- ntns
     , stn <- stns
     ]
 
+idLemmaWeakenWellFormedSort :: Elab m => SortTypeName -> m Coq.Identifier
+idLemmaWeakenWellFormedSort stn = do
+  Coq.ID wfterm <- idRelationWellFormed stn
+
+  return (Coq.ID $ "weaken_" ++ wfterm)
+
+
 setTypeInsertHvl :: Elab m => m [Coq.Identifier]
-setTypeInsertHvl = getNamespaces >>= mapM idRelationHVarlistInsert
+setTypeInsertHvl = getNamespaces >>= traverse idRelationHVarlistInsert
 
 setTypeSubstHvl :: Elab m => m [Coq.Identifier]
-setTypeSubstHvl = getNamespaces >>= mapM idTypeSubstHvl
+setTypeSubstHvl = getNamespaces >>= traverse idTypeSubstHvl
 
 setLemmaWeakenRelationHVarlistInsert :: Elab m => m [Coq.Identifier]
-setLemmaWeakenRelationHVarlistInsert = getNamespaces >>= mapM idLemmaWeakenRelationHVarlistInsert
+setLemmaWeakenRelationHVarlistInsert = getNamespaces >>= traverse idLemmaWeakenRelationHVarlistInsert
 
 setInsertEnvInsertHvl :: Elab m => m [Coq.Identifier]
 setInsertEnvInsertHvl = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
-  sequence [ idLemmaInsertEnvInsertHvl etn ntn | (ntn, (etn, _)) <- envCtors ]
+  sequenceA [ idLemmaInsertEnvInsertHvl etn ntn | (ntn, (etn, _)) <- envCtors ]
 
 idLemmaWeakenLookup :: Elab m => CtorName -> m Coq.Identifier
 idLemmaWeakenLookup cn = do
@@ -1263,7 +1190,7 @@ setLemmaWeakenLookup :: Elab m => m [Coq.Identifier]
 setLemmaWeakenLookup = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
   let cns = [ cn |(_,(_,cn)) <- envCtors ]
-  sequence [ idLemmaWeakenLookup cn | cn <- cns ]
+  sequenceA [ idLemmaWeakenLookup cn | cn <- cns ]
 
 
 idLemmaWeakenLookupHere :: Elab m => CtorName -> m Coq.Identifier
@@ -1275,7 +1202,7 @@ setLemmaWeakenLookupHere :: Elab m => m [Coq.Identifier]
 setLemmaWeakenLookupHere = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
   let cns = [ cn |(_,(_,cn)) <- envCtors ]
-  sequence [ idLemmaWeakenLookupHere cn | cn <- cns ]
+  sequenceA [ idLemmaWeakenLookupHere cn | cn <- cns ]
 
 
 
@@ -1297,7 +1224,7 @@ setLemmaSubstEnvLookup :: Elab m => m [Coq.Identifier]
 setLemmaSubstEnvLookup = do
   envCtors <- M.toList . meNamespaceEnvCtor <$> getMetaEnvironments
   let cns = [ cn |(_,(_,cn)) <- envCtors ]
-  sequence [ idLemmaSubstEnvLookup' scn lcn
+  sequenceA [ idLemmaSubstEnvLookup' scn lcn
            | scn <- cns , lcn <- cns , scn /= lcn ]
 
 idLemmaLookupWellformedData :: Elab m => CtorName -> m Coq.Identifier
@@ -1308,17 +1235,17 @@ idLemmaLookupWellformedData cn = do
 setLemmaLookupWellformedData :: Elab m => m [Coq.Identifier]
 setLemmaLookupWellformedData = do
   allCtors <- concat . M.elems . meEnvCtors <$> getMetaEnvironments
-  sequence [ idLemmaLookupWellformedData cn
-           | EnvCtorCons cn _ fields <- allCtors
+  sequenceA [ idLemmaLookupWellformedData cn
+           | EnvCtorCons cn _ fields _ <- allCtors
            , not (null fields)
            ]
 
 setRelationWellFormed :: Elab m => m [Coq.Identifier]
-setRelationWellFormed = getSorts >>= mapM idRelationWellFormed
+setRelationWellFormed = getSorts >>= traverse idRelationWellFormed
 
 idFunctionSubHvl :: Elab m => [NamespaceTypeName] -> m Coq.Identifier
 idFunctionSubHvl ntns =
-  return (Coq.ID $ "subhvl_" ++ intercalate "_" (map fromNtn ntns))
+  return (Coq.ID $ "subhvl_" ++ intercalate "_" (map ntnId ntns))
 
 idLemmaSubHvlAppend :: Elab m => [NamespaceTypeName] -> m Coq.Identifier
 idLemmaSubHvlAppend ntns = do
@@ -1331,3 +1258,96 @@ idLemmaWellFormedStrengthen stn ntns = do
   Coq.ID wf <- idRelationWellFormed stn
   Coq.ID subhvl <- idFunctionSubHvl ntns
   return (Coq.ID $ wf ++ "_strengthen_" ++ subhvl)
+
+idLemmaShiftRelation :: Elab m =>
+  EnvTypeName -> NamespaceTypeName -> RelationTypeName -> m Coq.Identifier
+idLemmaShiftRelation etn ntn (RTN _loc rtn) = do
+  icn <- getEnvCtorName etn ntn
+  Coq.ID insert <- idTypeInsertEnv icn
+  return (Coq.ID $ insert ++ "_" ++ rtn)
+
+setLemmaShiftRelation :: Elab m => m [Coq.Identifier]
+setLemmaShiftRelation = do
+  rtnEtns <- M.toList . meRelationEnvTypeNames <$> getMetaEnvironments
+  lemmass <- for rtnEtns $ \(rtn,etn) -> do
+    ntns <- getEnvNamespaces
+    sequenceA [idLemmaShiftRelation etn ntn rtn | ntn <- ntns]
+  return (concat lemmass)
+
+idLemmaWeakenRelation :: Elab m =>
+  RelationTypeName -> m Coq.Identifier
+idLemmaWeakenRelation rtn =
+  return (Coq.ID $ "weaken_" ++ rtnId rtn)
+
+idLemmaRelationWellFormed :: Elab m =>
+  RelationTypeName -> Int -> m Coq.Identifier
+idLemmaRelationWellFormed rtn i =
+  return (Coq.ID $ rtnId rtn ++ "_wf_" ++ show i)
+
+idLemmaWellFormedInversion :: Elab m =>
+  SortTypeName -> CtorName -> Int -> m Coq.Identifier
+idLemmaWellFormedInversion stn cn i = do
+  Coq.ID wf <- idRelationWellFormed stn
+  return (Coq.ID $ "inversion_" ++ wf ++ "_" ++ cnId cn ++ "_" ++ show i)
+
+idLemmaDomainOutput :: Elab m =>
+  RelationTypeName -> FunName -> m Coq.Identifier
+idLemmaDomainOutput rtn fn =
+  return (Coq.ID $ "domain_" ++ rtnId rtn ++ "_" ++ fnId fn)
+
+idLemmaRelationCast :: Elab m =>
+  RelationTypeName -> m Coq.Identifier
+idLemmaRelationCast rtn =
+  return (Coq.ID $ rtnId rtn ++ "_cast")
+
+idLemmaWellFormedTermCast :: Elab m =>
+  SortTypeName -> m Coq.Identifier
+idLemmaWellFormedTermCast stn = do
+  Coq.ID wf <- idRelationWellFormed stn
+  return (Coq.ID $ wf ++ "_cast")
+
+idClassObligationVar :: Elab m =>
+  EnvTypeName -> NamespaceTypeName -> m Coq.Identifier
+idClassObligationVar etn ntn =
+  return (Coq.ID $ "Obligation_" ++ etnId etn ++ "_var_" ++ ntnId ntn)
+
+idMethodObligationVar :: Elab m =>
+  EnvTypeName -> NamespaceTypeName -> m Coq.Identifier
+idMethodObligationVar etn ntn =
+  return (Coq.ID $ etnId etn ++ "_var_" ++ ntnId ntn)
+
+idInstObligationVar :: Elab m =>
+  EnvTypeName -> NamespaceTypeName -> m Coq.Identifier
+idInstObligationVar etn ntn =
+  return (Coq.ID $ "obligation_" ++ etnId etn ++ "_var_" ++ ntnId ntn)
+
+
+idClassObligationReg :: Elab m =>
+  EnvTypeName -> NamespaceTypeName -> RelationTypeName -> m Coq.Identifier
+idClassObligationReg etn ntn rtn =
+  return (Coq.ID $ "Obligation_" ++ etnId etn ++ "_reg_" ++ rtnId rtn)
+
+idMethodObligationReg :: Elab m =>
+  EnvTypeName -> NamespaceTypeName -> CtorName -> m Coq.Identifier
+idMethodObligationReg etn ntn cn =
+  return (Coq.ID $ etnId etn ++ "_reg_" ++ cnId cn)
+
+idInstObligationReg :: Elab m =>
+  EnvTypeName -> NamespaceTypeName -> RelationTypeName -> m Coq.Identifier
+idInstObligationReg etn ntn rtn =
+  return (Coq.ID $ "obligation_" ++ etnId etn ++ "_reg_" ++ rtnId rtn)
+
+idLemmaSubstRelation :: Elab m =>
+  EnvTypeName -> NamespaceTypeName -> RelationTypeName -> m Coq.Identifier
+idLemmaSubstRelation etn ntn (RTN _loc rtn) = do
+  scn <- getEnvCtorName etn ntn
+  Coq.ID subst <- idTypeSubstEnv scn
+  return (Coq.ID $ subst ++ "_" ++ rtn)
+
+setLemmaSubstRelation :: Elab m => m [Coq.Identifier]
+setLemmaSubstRelation = do
+  rtnEtns <- M.toList . meRelationEnvTypeNames <$> getMetaEnvironments
+  lemmass <- for rtnEtns $ \(rtn,etn) -> do
+    ntns <- getEnvNamespaces
+    sequenceA [idLemmaSubstRelation etn ntn rtn | ntn <- ntns]
+  return (concat lemmass)

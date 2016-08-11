@@ -3,16 +3,16 @@ namespace B, b : BB
 namespace Z, z : ZZ
 
 sort ZZ, zz :=
-  + zvar z
-  | aabs [a]aa
-  | babs [b]bb
+  + zvar {z}
+  | aabs a [a]aa
+  | babs b [b]bb
 
 sort AA, aa :=
-  + avar a
+  + avar {a}
   | arec zz
 
 sort BB, bb :=
-  + bvar b
+  + bvar {b}
   | brec zz
 
 env Env, G, D :=

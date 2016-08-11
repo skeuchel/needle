@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 
 module KnotCore.Elaboration.Lemma.StabilityWeaken where
 
@@ -10,10 +11,10 @@ import KnotCore.Elaboration.Core
 
 lemmas :: Elab m => [SortGroupDecl] -> m Sentences
 lemmas sdgs = concat <$>
-  sequence
+  sequenceA
     [ do
         fns <- getFunctionNames (typeNameOf sd)
-        mapM lemma fns
+        traverse lemma fns
     | SortGroupDecl _ sds _ _ <- sdgs,
       sd <- sds
     ]
@@ -21,20 +22,20 @@ lemmas sdgs = concat <$>
 lemma :: Elab m => FunName -> m Sentence
 lemma fn = localNames $ do
 
-  (stn,ntn) <- getFunctionType fn
+  (stn,_ntn) <- getFunctionType fn
 
   h   <- freshHVarlistVar
-  t   <- freshSubtreeVar stn
+  t   <- freshSortVariable stn
 
   statement <-
     TermForall
-      <$> sequence
+      <$> sequenceA
           [ toBinder h
           , toBinder t
           ]
       <*> (TermEq
-           <$> toTerm (HVCall ntn fn (SWeaken (SVar t) (HVVar h)))
-           <*> toTerm (HVCall ntn fn (SVar t))
+           <$> toTerm (HVCall fn (SWeaken (SVar t) (HVVar h)))
+           <*> toTerm (HVCall fn (SVar t))
           )
 
   lemma <- idLemmaStabilityWeaken fn
