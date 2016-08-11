@@ -1,6 +1,8 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+import           Paths_needle
+
 import qualified Knot.Env as Knot
 import qualified Knot.Fresh as Knot
 import qualified KnotSpec.Parser as IS
@@ -158,4 +160,10 @@ process conf fp = do
 
   case res of
     Left e -> hPrint stderr e
-    Right () -> return ()
+    Right () -> do
+      -- Copy tactic library
+      needlev <- getDataFileName "Needle.v"
+      let targetDir = dropFileName fp
+          target    = targetDir </> "Needle.v"
+      copyFile needlev target
+      return ()
