@@ -52,7 +52,7 @@ executable needle
   build-depends:     ansi-wl-pprint        >=0.6,
                      -- base-4.7 is the version of GHC 7.8 which is the minimum
                      -- that is needed to compile needle
-                     base                  >=4.7,
+                     base                  >=4.7 && < 4.11,
                      containers            >=0.5,
                      directory             >=1.2,
                      filepath              >=1.3,
@@ -71,7 +71,10 @@ executable needle
   -- Base language which the package is written in.
   default-language:    Haskell2010
 
-  if impl(ghc >= 8.0)
-    ghc-options: -Wall -fno-warn-unused-imports -fno-warn-redundant-constraints -fno-warn-name-shadowing
+  if impl(ghc >= 8.2)
+    ghc-options: -Wall -fno-warn-unused-imports -fno-warn-redundant-constraints -fno-warn-name-shadowing -Wno-unused-matches -Wno-unused-top-binds -Wno-incomplete-patterns
   else
-    ghc-options: -Wall -fno-warn-unused-imports -fno-warn-name-shadowing -fno-warn-incomplete-patterns
+    if impl(ghc >= 8.0)
+      ghc-options: -Wall -fno-warn-unused-imports -fno-warn-redundant-constraints -fno-warn-name-shadowing
+    else
+      ghc-options: -Wall -fno-warn-unused-imports -fno-warn-name-shadowing -fno-warn-incomplete-patterns
